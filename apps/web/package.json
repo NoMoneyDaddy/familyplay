@@ -12,6 +12,7 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.28.0",
     "@familyplay/ai": "workspace:*",
     "@familyplay/core": "workspace:*",
     "@familyplay/db": "workspace:*",
