@@ -30,7 +30,7 @@ jobs:
           path: ./
           base: ${{ github.event.pull_request.base.sha || github.event.before }}
           head: ${{ github.event.pull_request.head.sha || github.sha }}
-          only-verified: true
+          extra-args: --only-verified
 
   test:
     name: Lint + Type Check + Test
