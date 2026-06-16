@@ -45,6 +45,12 @@ export default function SettingsPage() {
 
             <div className="space-y-2">
               <a
+                href="/settings/invite"
+                className="block rounded-lg bg-white p-4 text-[--color-text] shadow-sm hover:bg-[--color-bg]"
+              >
+                👨‍👩‍👧 家庭成員
+              </a>
+              <a
                 href="/history"
                 className="block rounded-lg bg-white p-4 text-[--color-text] shadow-sm hover:bg-[--color-bg]"
               >

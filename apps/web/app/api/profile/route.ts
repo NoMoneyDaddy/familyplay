@@ -25,12 +25,30 @@ export async function GET() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('display_name,avatar_url')
+    .select('id,display_name,avatar_url')
     .eq('auth_user_id', data.session.user.id)
     .single()
 
+  if (!profile) {
+    return NextResponse.json({
+      displayName: data.session.user.user_metadata?.name || 'User',
+      avatarUrl: null,
+      householdId: null,
+      role: null,
+    })
+  }
+
+  // Get household membership
+  const { data: householdMember } = await supabase
+    .from('household_members')
+    .select('household_id,role')
+    .eq('user_profile_id', profile.id)
+    .single()
+
   return NextResponse.json({
-    displayName: profile?.display_name || data.session.user.user_metadata?.name || 'User',
-    avatarUrl: profile?.avatar_url,
+    displayName: profile.display_name || data.session.user.user_metadata?.name || 'User',
+    avatarUrl: profile.avatar_url,
+    householdId: householdMember?.household_id || null,
+    role: householdMember?.role || null,
   })
 }
