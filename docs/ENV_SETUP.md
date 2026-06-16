@@ -66,9 +66,9 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # Backend service role key (server-side only)
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# Database URL for migrations
-SUPABASE_DATABASE_URL=postgresql://postgres:password@db.supabase.co:5432/postgres
-PRODUCTION_DATABASE_URL=postgresql://postgres:password@db.supabase.co:5432/postgres
+# Database URL for migrations (replace <password> with actual password from Supabase)
+SUPABASE_DATABASE_URL=postgresql://postgres:<password>@db.supabase.co:5432/postgres
+PRODUCTION_DATABASE_URL=postgresql://postgres:<password>@db.supabase.co:5432/postgres
 ```
 
 ---
