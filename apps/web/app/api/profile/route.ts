@@ -35,6 +35,9 @@ export async function GET() {
       avatarUrl: null,
       householdId: null,
       role: null,
+      plan: 'free',
+      plusEndsAt: null,
+      revenuecatCustomerId: null,
     })
   }
 
@@ -45,10 +48,20 @@ export async function GET() {
     .eq('user_profile_id', profile.id)
     .single()
 
+  // Get entitlements (subscription info)
+  const { data: entitlements } = await supabase
+    .from('entitlements')
+    .select('plan,plus_ends_at,revenuecat_customer_id')
+    .eq('user_profile_id', profile.id)
+    .single()
+
   return NextResponse.json({
     displayName: profile.display_name || data.session.user.user_metadata?.name || 'User',
     avatarUrl: profile.avatar_url,
     householdId: householdMember?.household_id || null,
     role: householdMember?.role || null,
+    plan: entitlements?.plan || 'free',
+    plusEndsAt: entitlements?.plus_ends_at || null,
+    revenuecatCustomerId: entitlements?.revenuecat_customer_id || null,
   })
 }
