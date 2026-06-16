@@ -44,11 +44,13 @@ preview-deploy:
 
 ship:
 	@echo "🚀 推送正式版..."
+	@echo "   Zeabur 將自動從 main 分支部署至台北節點"
 	git checkout main
 	git merge develop --no-edit
 	git push -u origin main
 	git checkout develop
 	@echo "✅ 已推送至 main，等待 Telegram 通知..."
+	@echo "   如需查看部署狀態：https://zeabur.com/dashboard"
 
 rollback:
 	@echo "⏪ 回滾上一版..."

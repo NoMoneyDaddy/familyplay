@@ -43,7 +43,7 @@ supabase/migrations/   資料庫結構（不要直接改舊檔）
 
 | 工具 | 用途 | 備註 |
 |---|---|---|
-| Next.js 15 | Web 框架（App Router）| Vercel 部署 |
+| Next.js 15 | Web 框架（App Router）| Zeabur 部署，output: standalone |
 | Expo 52 | iOS + Android | EAS Build 雲端編譯，不需要 Mac |
 | Supabase | 資料庫 + Google 登入 + RLS | |
 | TypeScript | 全端語言 | strict mode |
@@ -57,7 +57,7 @@ supabase/migrations/   資料庫結構（不要直接改舊檔）
 | **Biome** | Lint + Format（取代 ESLint + Prettier）| 單一工具，快速 |
 | **LemonSqueezy** | Web 訂閱付費 | 個人帳號可用，代理稅務 |
 | RevenueCat | iOS + Android 內購 | Apple IAP + Google Play 統一 |
-| Vercel | Web 部署 | push GitHub 自動部署 |
+| **Zeabur** | Web 部署 | push GitHub 自動部署，台北節點低延遲 |
 | EAS Build | Mobile 雲端編譯 | 不需要本機 Xcode/Android Studio |
 | Expo Updates | OTA 熱更新 | 修 bug 不用等 App Store 審核 |
 | GitHub Actions | CI/CD | |

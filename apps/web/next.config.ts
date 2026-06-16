@@ -58,6 +58,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Zeabur 部署需要 standalone 輸出
+  output: 'standalone',
+
   // Transpile shared packages
   transpilePackages: [
     '@familyplay/core',
