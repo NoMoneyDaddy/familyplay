@@ -1,0 +1,178 @@
+import { getAgeMonths, getStageKey } from '@familyplay/core'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const updateSchema = z.object({
+  nickname: z.string().min(1).optional(),
+  birthYearMonth: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+})
+
+async function validateChildOwnership(
+  supabase: any,
+  childId: string,
+  userProfileId: string,
+): Promise<boolean> {
+  const { data: userProfile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('id', userProfileId)
+    .single()
+
+  if (!userProfile) return false
+
+  const { data: households } = await supabase
+    .from('households')
+    .select('id')
+    .eq('owner_id', userProfileId)
+
+  if (!households || households.length === 0) return false
+
+  const householdIds = households.map((h: any) => h.id)
+
+  const { data: child } = await supabase
+    .from('child_profiles')
+    .select('id')
+    .eq('id', childId)
+    .in('household_id', householdIds)
+    .single()
+
+  return !!child
+}
+
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !anonKey) {
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
+
+  const cookieStore = await cookies()
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll: () => cookieStore.getAll(),
+      setAll: () => {},
+    },
+  })
+
+  const { data } = await supabase.auth.getSession()
+  if (!data.session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('auth_user_id', data.session.user.id)
+      .single()
+
+    if (!userProfile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    }
+
+    // Verify ownership
+    const isOwner = await validateChildOwnership(supabase, params.id, userProfile.id)
+    if (!isOwner) {
+      return NextResponse.json({ error: 'Child not found' }, { status: 404 })
+    }
+
+    const body = await request.json()
+    const { nickname, birthYearMonth } = updateSchema.parse(body)
+
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    }
+
+    if (nickname) {
+      updateData.nickname = nickname
+    }
+
+    if (birthYearMonth) {
+      const ageMonths = getAgeMonths(birthYearMonth)
+      const stageKey = getStageKey(ageMonths)
+      updateData.birth_year_month = birthYearMonth
+      updateData.stage_key = stageKey
+    }
+
+    const { data: updated, error } = await supabase
+      .from('child_profiles')
+      .update(updateData)
+      .eq('id', params.id)
+      .select()
+      .single()
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      id: updated.id,
+      nickname: updated.nickname,
+      birthYearMonth: updated.birth_year_month,
+      stageKey: updated.stage_key,
+    })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !anonKey) {
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
+
+  const cookieStore = await cookies()
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll: () => cookieStore.getAll(),
+      setAll: () => {},
+    },
+  })
+
+  const { data } = await supabase.auth.getSession()
+  if (!data.session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('auth_user_id', data.session.user.id)
+      .single()
+
+    if (!userProfile) {
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    }
+
+    // Verify ownership
+    const isOwner = await validateChildOwnership(supabase, params.id, userProfile.id)
+    if (!isOwner) {
+      return NextResponse.json({ error: 'Child not found' }, { status: 404 })
+    }
+
+    // Soft delete by marking as inactive (if schema supports it)
+    // For now, do a hard delete since the schema doesn't have an isActive field for children
+    const { error } = await supabase
+      .from('child_profiles')
+      .delete()
+      .eq('id', params.id)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
