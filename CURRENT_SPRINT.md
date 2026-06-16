@@ -2,7 +2,7 @@
 
 **目標：** `make init && make dev` 5 分鐘內看到首頁
 
-**狀態：** 🚧 進行中
+**狀態：** ✅ 完成
 
 ---
 
@@ -17,28 +17,28 @@
 - [x] `CLAUDE.md`（含所有架構決策）
 
 ### Supabase 設定
-- [ ] `supabase/config.toml`（含 Google OAuth）
-- [ ] 初始 Schema Migration（所有資料表）
-- [ ] RLS Policy Migration（所有資料表）
-- [ ] Seed 資料（示範孩子 + 30 個活動模板前 5 筆）
+- [x] `supabase/config.toml`（含 Google OAuth）
+- [x] 初始 Schema Migration（所有資料表）
+- [x] RLS Policy Migration（所有資料表）
+- [x] Seed 資料（示範孩子 + 30 個活動模板前 5 筆）
 
 ### GitHub Actions
 - [x] `preview.yml`（develop branch，含 secret scanning）
 - [x] `production.yml`（main branch）
-- [ ] `dependabot.yml`（自動安全更新）
+- [x] `dependabot.yml`（自動安全更新）
 
 ### Web App（apps/web）
-- [ ] Next.js 15 基本設定
-- [ ] HTTP Security Headers（next.config.ts）
-- [ ] Supabase Auth（@supabase/ssr）
-- [ ] 首頁骨架（/app/page.tsx）
-- [ ] 全域 Layout
+- [x] Next.js 15 基本設定
+- [x] HTTP Security Headers（next.config.ts）
+- [x] Supabase Auth（@supabase/ssr — lib/supabase/client.ts + server.ts + middleware.ts）
+- [x] 首頁骨架（/app/page.tsx）
+- [x] 全域 Layout
 
 ### Mobile App（apps/mobile）
-- [ ] Expo 52 + Expo Router 基本設定
-- [ ] eas.json（preview + production profile）
-- [ ] expo-secure-store（BYOK key 儲存）
-- [ ] expo-updates（OTA 熱更新）
+- [x] Expo 52 + Expo Router 基本設定
+- [x] eas.json（preview + production profile）
+- [x] expo-secure-store（BYOK key 儲存）
+- [x] expo-updates（OTA 熱更新）
 
 ### Packages 骨架
 - [x] packages/core（stage-keys、capability-keys、safety-rules）
@@ -48,17 +48,17 @@
 - [x] packages/capabilities（能力常數）
 
 ### Sentry 初始設定
-- [ ] 安裝 @sentry/nextjs
-- [ ] `beforeSend` 移除 Authorization Header
-- [ ] 移除 Cookie Header
+- [x] 安裝 @sentry/nextjs
+- [x] `beforeSend` 移除 Authorization Header
+- [x] 移除 Cookie Header
 
 ### Playwright 設定
-- [ ] 三個斷點（375px / 390px / 360px）
-- [ ] 基本 smoke test
+- [x] 三個斷點（375px / 390px / 360px）
+- [x] 基本 smoke test
 
 ### Vitest 設定
-- [ ] packages/core vitest.config.ts
-- [ ] 空的 test 檔案（讓 CI 通過）
+- [x] packages/core vitest.config.ts
+- [x] 空的 test 檔案（讓 CI 通過）
 
 ---
 

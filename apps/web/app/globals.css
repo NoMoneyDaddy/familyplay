@@ -2,20 +2,20 @@
 
 @theme {
   /* ── Colors ── */
-  --color-brand:   #FF6B35;
-  --color-bg:      #FAFAF8;
-  --color-card:    #FFFFFF;
-  --color-text:    #1A1A1A;
-  --color-muted:   #6B7280;
-  --color-border:  #E5E7EB;
+  --color-brand: #ff6b35;
+  --color-bg: #fafaf8;
+  --color-card: #ffffff;
+  --color-text: #1a1a1a;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
 
-  --color-success: #3ECF8E;
-  --color-warning: #FFB347;
-  --color-info:    #4DA6FF;
+  --color-success: #3ecf8e;
+  --color-warning: #ffb347;
+  --color-info: #4da6ff;
 
   /* ── Special modes ── */
-  --color-bedtime-bg:   #1A1428;
-  --color-emotion-bg:   #1C1410;
+  --color-bedtime-bg: #1a1428;
+  --color-emotion-bg: #1c1410;
 
   /* ── Typography ── */
   --font-sans: "Noto Sans TC", "DM Sans", system-ui, sans-serif;
@@ -35,7 +35,9 @@
 
   /* Respect system animation preference */
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;

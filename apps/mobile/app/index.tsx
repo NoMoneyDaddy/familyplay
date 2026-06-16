@@ -1,5 +1,5 @@
 // Sprint 1 骨架首頁 — 完整 UI Sprint 5 實作
-import { View, Text, Pressable } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function HomeScreen() {
@@ -12,9 +12,7 @@ export default function HomeScreen() {
         <View className="w-full bg-white rounded-2xl p-6 shadow-sm border border-[#E5E7EB] mb-6">
           <Text className="text-sm text-[#6B7280] mb-2">示範引導卡</Text>
           <Text className="text-xl font-semibold text-[#1A1A1A] mb-2">問你一件今天的事</Text>
-          <Text className="text-2xl font-bold text-[#FF6B35]">
-            你今天有什麼讓你開心的事嗎？
-          </Text>
+          <Text className="text-2xl font-bold text-[#FF6B35]">你今天有什麼讓你開心的事嗎？</Text>
         </View>
 
         <Pressable

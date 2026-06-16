@@ -12,9 +12,7 @@ export default function HomePage() {
         <div className="rounded-2xl bg-white p-6 shadow-sm border border-[--color-border] text-left space-y-4">
           <p className="text-sm text-[--color-muted]">示範引導卡</p>
           <h2 className="text-xl font-semibold">問你一件今天的事</h2>
-          <p className="text-2xl font-bold text-[--color-brand]">
-            你今天有什麼讓你開心的事嗎？
-          </p>
+          <p className="text-2xl font-bold text-[--color-brand]">你今天有什麼讓你開心的事嗎？</p>
           <div className="flex gap-2 text-sm text-[--color-muted]">
             <span>5–10 分鐘</span>
             <span>·</span>
@@ -23,15 +21,14 @@ export default function HomePage() {
         </div>
 
         <button
+          type="button"
           className="w-full rounded-xl bg-[--color-brand] py-4 text-lg font-bold text-white transition-transform active:scale-[0.97]"
           aria-label="快給我一個陪伴方案"
         >
           🧡 快給我一個
         </button>
 
-        <p className="text-xs text-[--color-muted]">
-          Sprint 1 骨架 — 完整功能 Sprint 3 上線
-        </p>
+        <p className="text-xs text-[--color-muted]">Sprint 1 骨架 — 完整功能 Sprint 3 上線</p>
       </div>
     </main>
   )

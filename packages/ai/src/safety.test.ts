@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { safetyFilter, checkSafety } from './safety'
+import { describe, expect, it } from 'vitest'
+import { checkSafety, safetyFilter } from './safety'
 
 describe('safetyFilter', () => {
   it('passes clean content', () => {
