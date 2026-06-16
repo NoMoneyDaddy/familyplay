@@ -1,14 +1,7 @@
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface ProfileData {
@@ -91,9 +84,7 @@ export default function ProfileScreen() {
         <View className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
           <Text className="text-lg font-semibold text-gray-900 mb-4">Account</Text>
           <View className="space-y-2">
-            <Text className="text-gray-600">
-              Email: {session?.user?.email || 'Not available'}
-            </Text>
+            <Text className="text-gray-600">Email: {session?.user?.email || 'Not available'}</Text>
             <Text className="text-gray-600">
               User ID: {session?.user?.id?.substring(0, 8) || 'Not available'}...
             </Text>
