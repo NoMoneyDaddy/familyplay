@@ -52,7 +52,7 @@ export default function ProfileScreen() {
         if (data.revenuecatCustomerId) {
           subscription.setRevenuecatCustomerId(data.revenuecatCustomerId)
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Failed to fetch profile:', err)
         setError('Failed to load profile')
       } finally {
@@ -66,7 +66,7 @@ export default function ProfileScreen() {
   const handleManageSubscription = async () => {
     try {
       await openSubscriptionSettings()
-    } catch (err) {
+    } catch (err: unknown) {
       Alert.alert(
         'Error',
         'Could not open subscription settings. Please manage subscriptions in your app store settings.',

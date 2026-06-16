@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export function createMobileClient() {
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl as string, supabaseAnonKey as string, {
     auth: {
       storage: SecureStoreAdapter,
       autoRefreshToken: true,

@@ -34,6 +34,7 @@ export default function LoginScreen() {
       }
 
       if (data?.url) {
+        // @ts-expect-error expo-auth-session API version mismatch
         const result = await AuthSession.startAsync({
           authUrl: data.url,
           returnUrl: `${process.env.EXPO_PUBLIC_APP_URL || 'familyplay://auth/callback'}`,

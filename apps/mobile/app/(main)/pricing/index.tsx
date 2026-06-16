@@ -23,7 +23,7 @@ export default function PricingScreen() {
 
       await showPurchaseUI(productId)
       // Purchase completion is handled by the root layout listener
-    } catch (err) {
+    } catch (err: unknown) {
       const message =
         err instanceof RevenueCatError
           ? err.message

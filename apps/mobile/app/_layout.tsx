@@ -22,7 +22,7 @@ export default function RootLayout() {
       try {
         setIsLoading(true)
         await initializeRevenueCat(user.id)
-      } catch (err) {
+      } catch (err: unknown) {
         const message =
           err instanceof RevenueCatError ? err.message : 'Failed to initialize payments'
         console.error('[App] RevenueCat init error:', message)
@@ -76,7 +76,7 @@ export default function RootLayout() {
         }
 
         Alert.alert('Success', 'Your subscription has been activated!')
-      } catch (err) {
+      } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Purchase validation failed'
         console.error('[App] Purchase validation error:', message)
         setError(message)

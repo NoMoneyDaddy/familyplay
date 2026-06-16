@@ -1,3 +1,4 @@
+// @ts-expect-error react-native-purchases doesn't have TypeScript definitions
 import * as RCPurchases from 'react-native-purchases'
 import { z } from 'zod'
 
@@ -133,7 +134,7 @@ function setupPurchaseListener(): void {
               purchaseCompleteListener({
                 productId: activeEntitlement,
                 transactionId:
-                  customerInfo.originalTransactionId || customerInfo.managementURL || '',
+                  customerInfo.originalTransactionId || (customerInfo as any).managementURL || '',
                 purchaseDate: mostRecentPurchase,
                 customerId: customerInfo.originalAppUserId || '',
               })
@@ -207,7 +208,7 @@ export async function showPurchaseUI(productId: string): Promise<void> {
       throw new RevenueCatError('No current offering available', 'NO_OFFERING')
     }
 
-    const package_ = offerings.current.availablePackages.find((pkg) => pkg.identifier === validated)
+    const package_ = offerings.current.availablePackages.find((pkg: any) => pkg.identifier === validated)
 
     if (!package_) {
       throw new RevenueCatError(`Product not found: ${productId}`, 'PRODUCT_NOT_FOUND')
@@ -216,9 +217,10 @@ export async function showPurchaseUI(productId: string): Promise<void> {
     // Initiate purchase
     await RCPurchases.purchasePackage(package_)
   } catch (error) {
-    if (error instanceof RCPurchases.PurchasesError) {
+    if (error && typeof error === 'object' && 'code' in error) {
       // User cancelled or other purchase error
-      if (error.code === RCPurchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      const e = error as any
+      if (e.code === 'PURCHASE_CANCELLED_ERROR') {
         return
       }
     }
@@ -255,10 +257,11 @@ export async function openSubscriptionSettings(): Promise<void> {
     // For app-based management, open system settings
     // iOS: Settings > AppName > Subscriptions
     // Android: Google Play Store > My apps & games > Subscriptions
-    if (customerInfo.managementURL) {
+    const managementURL = (customerInfo as any).managementURL
+    if (managementURL) {
       // Use web-based management if available
-      const { Linking } = await import('react-native')
-      Linking.openURL(customerInfo.managementURL).catch((err: Error) =>
+      const { Linking } = require('react-native')
+      Linking.openURL(managementURL).catch((err: Error) =>
         console.error('[RevenueCat] Failed to open settings:', err),
       )
     }

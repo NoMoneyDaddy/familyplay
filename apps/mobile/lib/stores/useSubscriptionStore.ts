@@ -54,7 +54,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         activeEntitlements: state.activeEntitlements,
         plusEndsAt: state.plusEndsAt ? state.plusEndsAt.toISOString() : null,
       }),
-      onRehydrate: (state) => {
+      onRehydrated: (state: any) => {
         // Convert ISO string back to Date
         if (typeof state?.plusEndsAt === 'string') {
           state.plusEndsAt = new Date(state.plusEndsAt)
