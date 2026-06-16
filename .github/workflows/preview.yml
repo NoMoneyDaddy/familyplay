@@ -25,12 +25,16 @@ jobs:
         with:
           fetch-depth: 0
       - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: ${{ github.event.pull_request.base.sha || github.event.before }}
-          head: ${{ github.event.pull_request.head.sha || github.sha }}
-          extra-args: --only-verified
+        run: |
+          docker run --rm -v .:/tmp -w /tmp \
+            ghcr.io/trufflesecurity/trufflehog:latest \
+            git file:///tmp/ \
+            --since-commit ${{ github.event.pull_request.base.sha || github.event.before }} \
+            --branch ${{ github.event.pull_request.head.sha || github.sha }} \
+            --only-verified \
+            --fail \
+            --no-update \
+            --github-actions
 
   test:
     name: Lint + Type Check + Test
