@@ -72,7 +72,7 @@ describe('Recommendation Engine', () => {
 
     child = {
       id: 'child-1',
-      stageKey: STAGE_KEYS.sitting_baby,
+      stageKey: STAGE_KEYS.SITTING_BABY,
       ageMonths: 8,
       acquiredCapabilities: new Set(),
     }
