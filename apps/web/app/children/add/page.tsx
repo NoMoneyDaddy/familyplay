@@ -1,7 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { ChildForm } from '@/app/components/child-form'
+import { useRouter } from 'next/navigation'
 
 export default function AddChildPage() {
   const router = useRouter()
@@ -22,6 +22,7 @@ export default function AddChildPage() {
 
         <p className="text-center text-xs text-[--color-muted]">
           <button
+            type="button"
             onClick={() => router.back()}
             className="text-[--color-brand] hover:underline font-medium"
           >

@@ -68,7 +68,10 @@ export async function POST(request: Request) {
       .single()
 
     if (existingMembership) {
-      return NextResponse.json({ error: 'You are already a member of this household' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'You are already a member of this household' },
+        { status: 400 },
+      )
     }
 
     const { data: membership, error: membershipError } = await supabase

@@ -1,8 +1,8 @@
 'use client'
 
+import { useChildStore } from '@/lib/stores/useChildStore'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Child {
   id: string
@@ -66,10 +66,7 @@ export function ChildSwitcher() {
           </select>
         )}
       </div>
-      <Link
-        href="/children"
-        className="text-sm text-[--color-brand] hover:underline font-medium"
-      >
+      <Link href="/children" className="text-sm text-[--color-brand] hover:underline font-medium">
         編輯
       </Link>
     </div>

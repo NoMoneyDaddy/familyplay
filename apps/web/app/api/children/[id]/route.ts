@@ -6,10 +6,14 @@ import { z } from 'zod'
 
 const updateSchema = z.object({
   nickname: z.string().min(1).optional(),
-  birthYearMonth: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+  birthYearMonth: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/)
+    .optional(),
 })
 
 async function validateChildOwnership(
+  // biome-ignore lint/suspicious/noExplicitAny: Supabase client type is complex
   supabase: any,
   childId: string,
   userProfileId: string,
@@ -29,6 +33,7 @@ async function validateChildOwnership(
 
   if (!households || households.length === 0) return false
 
+  // biome-ignore lint/suspicious/noExplicitAny: Supabase response type
   const householdIds = households.map((h: any) => h.id)
 
   const { data: child } = await supabase
@@ -82,6 +87,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json()
     const { nickname, birthYearMonth } = updateSchema.parse(body)
 
+    // biome-ignore lint/suspicious/noExplicitAny: Dynamic field updates
     const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),
     }
@@ -162,10 +168,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 
     // Soft delete by marking as inactive (if schema supports it)
     // For now, do a hard delete since the schema doesn't have an isActive field for children
-    const { error } = await supabase
-      .from('child_profiles')
-      .delete()
-      .eq('id', params.id)
+    const { error } = await supabase.from('child_profiles').delete().eq('id', params.id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

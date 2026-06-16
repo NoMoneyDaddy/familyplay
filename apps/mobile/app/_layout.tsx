@@ -1,30 +1,30 @@
+import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import { Alert } from 'react-native'
-import { useAuthStore } from '@/lib/stores/useAuthStore'
-import { initializeRevenueCat, onPurchaseComplete, RevenueCatError } from '~/lib/revenue-cat'
+import { RevenueCatError, initializeRevenueCat, onPurchaseComplete } from '~/lib/revenue-cat'
 import { useSubscriptionStore } from '~/lib/stores/useSubscriptionStore'
 
 export default function RootLayout() {
   const { session } = useAuthStore()
   const user = session?.user
-  const { setIsLoading, setError, setPlan, setRevenuecatCustomerId, setPlusEndsAt } = useSubscriptionStore()
+  const { setIsLoading, setError, setPlan, setRevenuecatCustomerId, setPlusEndsAt } =
+    useSubscriptionStore()
 
   // Initialize RevenueCat when user is authenticated
   useEffect(() => {
     const initRC = async () => {
       if (!user?.id) {
-        console.log('[App] No authenticated user, skipping RevenueCat init')
         return
       }
 
       try {
         setIsLoading(true)
         await initializeRevenueCat(user.id)
-        console.log('[App] RevenueCat initialized')
       } catch (err) {
-        const message = err instanceof RevenueCatError ? err.message : 'Failed to initialize payments'
+        const message =
+          err instanceof RevenueCatError ? err.message : 'Failed to initialize payments'
         console.error('[App] RevenueCat init error:', message)
         setError(message)
         // Don't block app, just log
@@ -41,7 +41,6 @@ export default function RootLayout() {
     onPurchaseComplete(async (event) => {
       try {
         setIsLoading(true)
-        console.log('[App] Purchase completed:', event.productId)
 
         // Call backend to validate and update entitlements
         const response = await fetch('/api/mobile-purchase-complete', {
@@ -70,7 +69,7 @@ export default function RootLayout() {
         }
 
         // Update subscription store
-        setPlan(result.plan as any)
+        setPlan(result.plan)
         setRevenuecatCustomerId(result.revenuecatCustomerId)
         if (result.plusEndsAt) {
           setPlusEndsAt(new Date(result.plusEndsAt))

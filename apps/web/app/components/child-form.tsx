@@ -67,8 +67,11 @@ export function ChildForm({
       {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       <div className="space-y-2">
-        <label className="block text-sm font-semibold text-[--color-text]">孩子的暱稱</label>
+        <label htmlFor="nickname" className="block text-sm font-semibold text-[--color-text]">
+          孩子的暱稱
+        </label>
         <input
+          id="nickname"
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
@@ -78,8 +81,8 @@ export function ChildForm({
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-semibold text-[--color-text]">出生年月</label>
+      <fieldset className="space-y-2">
+        <legend className="block text-sm font-semibold text-[--color-text]">出生年月</legend>
         <div className="grid grid-cols-2 gap-3">
           <select
             value={birthYear}
@@ -109,14 +112,20 @@ export function ChildForm({
           </select>
         </div>
         <p className="text-xs text-[--color-muted]">我們只記錄年月，不記錄完整生日</p>
-      </div>
+      </fieldset>
 
       <button
         type="submit"
         disabled={loading || !nickname || !birthYear || !birthMonth}
         className="w-full rounded-lg bg-[--color-brand] py-3 font-semibold text-white disabled:opacity-50"
       >
-        {loading ? (isEditMode ? '更新中...' : '建立中...') : isEditMode ? '✨ 更新孩子' : '✨ 開始陪伴'}
+        {loading
+          ? isEditMode
+            ? '更新中...'
+            : '建立中...'
+          : isEditMode
+            ? '✨ 更新孩子'
+            : '✨ 開始陪伴'}
       </button>
     </form>
   )

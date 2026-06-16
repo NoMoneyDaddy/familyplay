@@ -82,6 +82,7 @@ export async function GET(request: Request) {
 
     const transformedMembers = (members || []).map((member) => ({
       id: member.id,
+      // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
       displayName: (member.user_profiles as any)?.display_name || 'Unknown User',
       role: member.role,
       nickname: member.nickname || null,

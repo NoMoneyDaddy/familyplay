@@ -1,7 +1,7 @@
+import { verifyWebhookSignature } from '@/lib/payment/lemonsqueezy'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { verifyWebhookSignature } from '@/lib/payment/lemonsqueezy'
 
 const webhookSchema = z.object({
   meta: z.object({
@@ -50,8 +50,10 @@ export async function POST(request: Request) {
     const validated = webhookSchema.parse(webhookData)
 
     // Only process completed orders
-    if (validated.meta.eventName !== 'order.completed' || validated.data.attributes.status !== 'paid') {
-      console.log(`Webhook: Ignoring event type ${validated.meta.eventName}`)
+    if (
+      validated.meta.eventName !== 'order.completed' ||
+      validated.data.attributes.status !== 'paid'
+    ) {
       return NextResponse.json({ success: true })
     }
 
@@ -90,7 +92,6 @@ export async function POST(request: Request) {
       .single()
 
     if (existing?.lemonsqueezy_subscription_id === subscriptionId && subscriptionId) {
-      console.log(`Webhook: Subscription already processed: ${subscriptionId}`)
       return NextResponse.json({ success: true })
     }
 
@@ -120,8 +121,6 @@ export async function POST(request: Request) {
       console.error('Webhook: Database update failed', error)
       return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
     }
-
-    console.log(`Webhook: Successfully updated user ${userProfileId} to plan ${plan}`)
     return NextResponse.json({ success: true })
   } catch (error) {
     if (error instanceof z.ZodError) {

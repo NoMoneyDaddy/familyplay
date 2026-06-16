@@ -1,9 +1,9 @@
+import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { createMobileClient } from '@/lib/supabase/mobile'
+import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { createMobileClient } from '@/lib/supabase/mobile'
-import { useAuthStore } from '@/lib/stores/useAuthStore'
 
 interface ChildProfile {
   id: string
@@ -116,9 +116,7 @@ export default function SelectScreen() {
               onPress={() => router.push('/onboarding/child-info')}
               className="mt-4 rounded-lg border-2 border-dashed border-[#E5E7EB] py-6 active:opacity-80"
             >
-              <Text className="text-center text-lg font-semibold text-[#6B7280]">
-                + 新增孩子
-              </Text>
+              <Text className="text-center text-lg font-semibold text-[#6B7280]">+ 新增孩子</Text>
             </Pressable>
           </View>
         )}

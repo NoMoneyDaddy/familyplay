@@ -1,5 +1,10 @@
+import {
+  type CompanionContext,
+  HIGH_RISK_STAGES,
+  containsBlockedMaterial,
+  hasBlockedContextKeyword,
+} from './safety-rules'
 import type { StageKey } from './stage-keys'
-import { HIGH_RISK_STAGES, containsBlockedMaterial, hasBlockedContextKeyword, type CompanionContext } from './safety-rules'
 export type ParentEnergy = 'exhausted' | 'low' | 'medium' | 'high'
 export type SpaceType = 'anywhere' | 'living_room' | 'bedroom' | 'outdoor' | 'kitchen'
 

@@ -61,6 +61,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       logs: (logs || []).map((log) => ({
         id: log.id,
+        // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
         activityTitle: (log.companion_activities as any)?.title || 'Unknown Activity',
         outcome: log.outcome,
         childReaction: log.child_reaction,

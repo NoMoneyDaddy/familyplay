@@ -1,10 +1,10 @@
+import { createMobileClient } from '@/lib/supabase/mobile'
+import * as AuthSession from 'expo-auth-session'
+import { useRouter } from 'expo-router'
+import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import * as AuthSession from 'expo-auth-session'
-import * as WebBrowser from 'expo-web-browser'
-import { createMobileClient } from '@/lib/supabase/mobile'
 
 WebBrowser.maybeCompleteAuthSession()
 

@@ -101,6 +101,7 @@ export default function RecommendationsPage() {
                 {rec.reasons.length > 0 && (
                   <ul className="mb-4 space-y-1 text-xs text-[--color-muted]">
                     {rec.reasons.map((reason, i) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
                       <li key={i}>✓ {reason}</li>
                     ))}
                   </ul>
@@ -117,7 +118,13 @@ export default function RecommendationsPage() {
           </div>
         )}
 
-        <button className="w-full rounded-lg border border-[--color-border] py-3 font-semibold text-[--color-text]">
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = '/select'
+          }}
+          className="w-full rounded-lg border border-[--color-border] py-3 font-semibold text-[--color-text]"
+        >
           ↺ 重新選擇狀態
         </button>
       </div>

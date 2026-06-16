@@ -1,9 +1,9 @@
+import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { createMobileClient } from '@/lib/supabase/mobile'
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
-import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { createMobileClient } from '@/lib/supabase/mobile'
-import { useAuthStore } from '@/lib/stores/useAuthStore'
 
 const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
@@ -107,16 +107,12 @@ export default function ChildInfoScreen() {
                         onPress={() => setBirthYear(String(year))}
                         disabled={loading}
                         className={`rounded-lg px-4 py-2 ${
-                          birthYear === String(year)
-                            ? 'bg-[#FF6B35]'
-                            : 'bg-[#F3F4F6]'
+                          birthYear === String(year) ? 'bg-[#FF6B35]' : 'bg-[#F3F4F6]'
                         } active:opacity-80`}
                       >
                         <Text
                           className={`font-medium ${
-                            birthYear === String(year)
-                              ? 'text-white'
-                              : 'text-[#1A1A1A]'
+                            birthYear === String(year) ? 'text-white' : 'text-[#1A1A1A]'
                           }`}
                         >
                           {year}
@@ -141,16 +137,12 @@ export default function ChildInfoScreen() {
                         onPress={() => setBirthMonth(String(month))}
                         disabled={loading}
                         className={`rounded-lg px-3 py-2 ${
-                          birthMonth === String(month)
-                            ? 'bg-[#FF6B35]'
-                            : 'bg-[#F3F4F6]'
+                          birthMonth === String(month) ? 'bg-[#FF6B35]' : 'bg-[#F3F4F6]'
                         } active:opacity-80`}
                       >
                         <Text
                           className={`font-medium ${
-                            birthMonth === String(month)
-                              ? 'text-white'
-                              : 'text-[#1A1A1A]'
+                            birthMonth === String(month) ? 'text-white' : 'text-[#1A1A1A]'
                           }`}
                         >
                           {month}月
@@ -162,9 +154,7 @@ export default function ChildInfoScreen() {
               </View>
             </View>
 
-            <Text className="mt-2 text-xs text-[#6B7280]">
-              我們只記錄年月，不記錄完整生日
-            </Text>
+            <Text className="mt-2 text-xs text-[#6B7280]">我們只記錄年月，不記錄完整生日</Text>
           </View>
 
           <Pressable
@@ -178,9 +168,7 @@ export default function ChildInfoScreen() {
             </Text>
           </Pressable>
 
-          <Text className="text-center text-xs text-[#6B7280]">
-            你可以之後新增更多孩子
-          </Text>
+          <Text className="text-center text-xs text-[#6B7280]">你可以之後新增更多孩子</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

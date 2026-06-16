@@ -1,8 +1,8 @@
 'use client'
 
+import { useHouseholdStore } from '@/lib/stores/useHouseholdStore'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useHouseholdStore } from '@/lib/stores/useHouseholdStore'
 
 interface HouseholdMember {
   id: string
@@ -106,6 +106,7 @@ export default function InvitePage() {
         {/* Header */}
         <div className="space-y-2">
           <button
+            type="button"
             onClick={() => router.back()}
             className="text-sm text-[--color-muted] hover:text-[--color-text]"
           >
@@ -126,8 +127,11 @@ export default function InvitePage() {
 
                 {/* Role Selection */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[--color-text]">角色</label>
+                  <label htmlFor="role" className="block text-sm font-medium text-[--color-text]">
+                    角色
+                  </label>
                   <select
+                    id="role"
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value as 'caregiver' | 'viewer')}
                     className="w-full rounded-lg border border-[--color-border] px-3 py-2 text-[--color-text]"
@@ -139,6 +143,7 @@ export default function InvitePage() {
 
                 {/* Generate Button */}
                 <button
+                  type="button"
                   onClick={handleGenerateInvite}
                   disabled={generating}
                   className="w-full rounded-lg bg-[--color-brand] px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
@@ -156,6 +161,7 @@ export default function InvitePage() {
                           {generatedInvite.code}
                         </code>
                         <button
+                          type="button"
                           onClick={() => {
                             navigator.clipboard.writeText(generatedInvite.code)
                             setCopySuccess(true)
@@ -178,6 +184,7 @@ export default function InvitePage() {
                           className="flex-1 rounded bg-white px-3 py-2 text-xs text-[--color-text]"
                         />
                         <button
+                          type="button"
                           onClick={handleCopyLink}
                           className="rounded bg-[--color-brand] px-3 py-2 text-xs text-white hover:opacity-90"
                         >

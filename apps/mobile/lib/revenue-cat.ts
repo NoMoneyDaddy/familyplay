@@ -96,8 +96,6 @@ export async function initializeRevenueCat(authUserId: string): Promise<void> {
 
       // Set up purchase update listener
       setupPurchaseListener()
-
-      console.log('[RevenueCat] Initialized with user:', authUserId)
     } catch (error) {
       console.error('[RevenueCat] Initialization error:', error)
       throw new RevenueCatError(
@@ -121,7 +119,10 @@ function setupPurchaseListener(): void {
         const customerInfo = purchasesUpdated.customerInfo
 
         // Extract purchase information from updated customer info
-        if (customerInfo.entitlements.active && Object.keys(customerInfo.entitlements.active).length > 0) {
+        if (
+          customerInfo.entitlements.active &&
+          Object.keys(customerInfo.entitlements.active).length > 0
+        ) {
           // Get the latest transaction details
           const allPurchases = Object.values(customerInfo.allPurchaseDatesByProductId || {})
           if (allPurchases.length > 0) {
@@ -131,7 +132,8 @@ function setupPurchaseListener(): void {
             if (purchaseCompleteListener) {
               purchaseCompleteListener({
                 productId: activeEntitlement,
-                transactionId: customerInfo.originalTransactionId || customerInfo.managementURL || '',
+                transactionId:
+                  customerInfo.originalTransactionId || customerInfo.managementURL || '',
                 purchaseDate: mostRecentPurchase,
                 customerId: customerInfo.originalAppUserId || '',
               })
@@ -217,7 +219,6 @@ export async function showPurchaseUI(productId: string): Promise<void> {
     if (error instanceof RCPurchases.PurchasesError) {
       // User cancelled or other purchase error
       if (error.code === RCPurchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
-        console.log('[RevenueCat] Purchase cancelled by user')
         return
       }
     }

@@ -1,8 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 
 interface Child {
   id: string
@@ -113,6 +113,7 @@ export default function ChildrenPage() {
                       編輯
                     </Link>
                     <button
+                      type="button"
                       onClick={() => handleDelete(child.id)}
                       disabled={deleting === child.id}
                       className="px-3 py-1 rounded-md bg-red-50 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"

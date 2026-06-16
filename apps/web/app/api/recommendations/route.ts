@@ -1,4 +1,4 @@
-import { getRecommendations, STAGE_KEYS } from '@familyplay/core'
+import { STAGE_KEYS, getRecommendations } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
@@ -35,8 +35,14 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { childId, parentEnergy, context, availableSpace, availableResources, maxDurationMinutes } =
-      requestSchema.parse(body)
+    const {
+      childId,
+      parentEnergy,
+      context,
+      availableSpace,
+      availableResources,
+      maxDurationMinutes,
+    } = requestSchema.parse(body)
 
     // Fetch child
     const { data: child, error: childError } = await supabase
@@ -112,6 +118,7 @@ export async function POST(request: Request) {
       {
         child: {
           id: childId,
+          // biome-ignore lint/suspicious/noExplicitAny: Supabase column type
           stageKey: (child.stage_key as any) || STAGE_KEYS.TODDLER_PLAYER,
           ageMonths,
           acquiredCapabilities,

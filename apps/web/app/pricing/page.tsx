@@ -148,19 +148,15 @@ export default function PricingPage() {
         {state.loading ? (
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-96 animate-pulse rounded-2xl bg-gray-200"
-              />
+              <div key={i} className="h-96 animate-pulse rounded-2xl bg-gray-200" />
             ))}
           </div>
         ) : state.currentPlan === null ? (
           /* Not authenticated */
           <div className="space-y-4 rounded-xl bg-blue-50 p-6 text-center">
-            <p className="text-sm text-blue-900">
-              Please sign in to subscribe to a plan.
-            </p>
+            <p className="text-sm text-blue-900">Please sign in to subscribe to a plan.</p>
             <button
+              type="button"
               onClick={() => router.push('/auth')}
               className="rounded-lg bg-[--color-brand] px-6 py-2 font-semibold text-white transition-opacity hover:opacity-90"
             >
@@ -173,7 +169,9 @@ export default function PricingPage() {
             {state.currentPlan === 'free' && (
               <div className="rounded-lg bg-amber-50 p-4 text-sm">
                 <p className="font-semibold text-amber-900">💡 You're on the Free plan</p>
-                <p className="mt-1 text-amber-800">Upgrade to unlock more features and support development.</p>
+                <p className="mt-1 text-amber-800">
+                  Upgrade to unlock more features and support development.
+                </p>
               </div>
             )}
 
@@ -215,10 +213,8 @@ export default function PricingPage() {
 
                   <ul className="mb-6 space-y-2">
                     {plan.features.map((feature, idx) => (
-                      <li
-                        key={idx}
-                        className="flex items-start gap-3 text-sm text-[--color-text]"
-                      >
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Plan features are static and ordered
+                      <li key={idx} className="flex items-start gap-3 text-sm text-[--color-text]">
                         <span className="mt-0.5 flex-shrink-0 text-[--color-brand]">✓</span>
                         <span>{feature}</span>
                       </li>
@@ -226,6 +222,7 @@ export default function PricingPage() {
                   </ul>
 
                   <button
+                    type="button"
                     onClick={() => handleSubscribe(plan.id as 'supporter' | 'plus')}
                     disabled={plan.ctaDisabled || state.authenticating}
                     className={`w-full rounded-lg px-4 py-3 font-semibold transition-all ${
@@ -253,7 +250,9 @@ export default function PricingPage() {
               <div className="space-y-3 text-sm">
                 <div>
                   <p className="font-medium text-[--color-text]">Can I upgrade anytime?</p>
-                  <p className="mt-1 text-[--color-muted]">Yes, upgrade from Free to Supporter or Plus anytime.</p>
+                  <p className="mt-1 text-[--color-muted]">
+                    Yes, upgrade from Free to Supporter or Plus anytime.
+                  </p>
                 </div>
                 <div>
                   <p className="font-medium text-[--color-text]">How do I cancel?</p>

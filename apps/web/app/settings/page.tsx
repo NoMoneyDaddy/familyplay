@@ -63,6 +63,7 @@ export default function SettingsPage() {
                 📊 陪伴紀錄
               </a>
               <button
+                type="button"
                 onClick={handleLogout}
                 className="w-full rounded-lg bg-red-100 p-4 text-red-600 transition-colors hover:bg-red-200"
               >

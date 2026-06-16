@@ -1,8 +1,8 @@
+import { createMobileClient } from '@/lib/supabase/mobile'
+import * as Linking from 'expo-linking'
+import { useRouter } from 'expo-router'
 import { useEffect } from 'react'
 import { ActivityIndicator, View } from 'react-native'
-import { useRouter } from 'expo-router'
-import * as Linking from 'expo-linking'
-import { createMobileClient } from '@/lib/supabase/mobile'
 
 export default function CallbackScreen() {
   const router = useRouter()

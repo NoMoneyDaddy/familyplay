@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 
 /**
  * Verify LemonSqueezy webhook signature using HMAC-SHA256
@@ -7,11 +7,7 @@ import crypto from 'crypto'
  * @param secret Webhook secret from env
  * @returns true if signature is valid
  */
-export function verifyWebhookSignature(
-  body: string,
-  signature: string,
-  secret: string,
-): boolean {
+export function verifyWebhookSignature(body: string, signature: string, secret: string): boolean {
   const hmac = crypto.createHmac('sha256', secret).update(body).digest('hex')
   return hmac === signature
 }

@@ -89,6 +89,7 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
               <h3 className="text-sm font-semibold text-[--color-text]">步驟</h3>
               <ol className="space-y-2">
                 {activity.steps.map((step, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Activity steps are static and ordered
                   <li key={i} className="flex gap-3">
                     <span className="font-semibold text-[--color-brand]">{i + 1}</span>
                     <span className="text-[--color-text]">{step}</span>
@@ -102,6 +103,7 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
                 <h3 className="text-sm font-semibold text-[--color-text]">跟進問題</h3>
                 <ul className="space-y-1">
                   {activity.followUpQuestions.map((q, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: Follow-up questions are static and ordered
                     <li key={i} className="text-sm text-[--color-muted]">
                       • {q}
                     </li>
@@ -120,12 +122,17 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
           <h3 className="font-semibold text-[--color-text]">活動結果</h3>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-[--color-text]">孩子的反應</label>
+            <div className="block text-sm font-semibold text-[--color-text]">孩子的反應</div>
             <div className="grid grid-cols-2 gap-2">
               {['happy', 'engaged', 'neutral', 'leaving', 'disinterested', 'calmed'].map((r) => (
                 <button
                   key={r}
-                  onClick={() => setChildReaction(r as any)}
+                  type="button"
+                  onClick={() =>
+                    setChildReaction(
+                      r as 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed',
+                    )
+                  }
                   className={`rounded-lg p-2 text-xs font-medium ${
                     childReaction === r ? 'bg-[--color-brand] text-white' : 'bg-[--color-bg]'
                   }`}
@@ -137,12 +144,13 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-[--color-text]">活動完成度</label>
+            <div className="block text-sm font-semibold text-[--color-text]">活動完成度</div>
             <div className="grid grid-cols-3 gap-2">
               {['completed', 'tried', 'abandoned'].map((o) => (
                 <button
                   key={o}
-                  onClick={() => setOutcome(o as any)}
+                  type="button"
+                  onClick={() => setOutcome(o as 'completed' | 'tried' | 'abandoned')}
                   className={`rounded-lg p-2 text-xs font-medium ${
                     outcome === o ? 'bg-[--color-brand] text-white' : 'bg-[--color-bg]'
                   }`}
@@ -154,6 +162,7 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
           </div>
 
           <button
+            type="button"
             onClick={handleComplete}
             disabled={loading}
             className="w-full rounded-lg bg-[--color-brand] py-3 font-semibold text-white disabled:opacity-50"

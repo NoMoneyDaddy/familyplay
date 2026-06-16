@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  getRecommendations,
   type Activity,
   type Child,
   type RecommendationContext,
+  getRecommendations,
 } from './recommendation-engine'
 import { STAGE_KEYS } from './stage-keys'
 

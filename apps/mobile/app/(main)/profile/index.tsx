@@ -1,18 +1,18 @@
+import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
+  ActivityIndicator,
+  Alert,
+  Linking,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  Alert,
-  Linking,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuthStore } from '@/lib/stores/useAuthStore'
-import { useSubscriptionStore } from '~/lib/stores/useSubscriptionStore'
 import { openSubscriptionSettings } from '~/lib/revenue-cat'
+import { useSubscriptionStore } from '~/lib/stores/useSubscriptionStore'
 
 interface ProfileData {
   displayName: string
@@ -105,7 +105,9 @@ export default function ProfileScreen() {
       <SafeAreaView className="flex-1 bg-slate-50">
         <ScrollView className="flex-1" contentContainerClassName="px-6 py-8">
           <View className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <Text className="text-red-900 font-semibold mb-4">{error || 'Failed to load profile'}</Text>
+            <Text className="text-red-900 font-semibold mb-4">
+              {error || 'Failed to load profile'}
+            </Text>
           </View>
 
           <TouchableOpacity
@@ -120,11 +122,28 @@ export default function ProfileScreen() {
   }
 
   const planColor = getPlanColor(profile.plan)
-  const planBgColor = planColor === 'orange' ? 'bg-orange-50' : planColor === 'blue' ? 'bg-blue-50' : 'bg-gray-50'
-  const planBorderColor = planColor === 'orange' ? 'border-orange-200' : planColor === 'blue' ? 'border-blue-200' : 'border-gray-200'
-  const planTextColor = planColor === 'orange' ? 'text-orange-900' : planColor === 'blue' ? 'text-blue-900' : 'text-gray-900'
-  const planBadgeColor = planColor === 'orange' ? 'bg-orange-100' : planColor === 'blue' ? 'bg-blue-100' : 'bg-gray-100'
-  const planBadgeTextColor = planColor === 'orange' ? 'text-orange-700' : planColor === 'blue' ? 'text-blue-700' : 'text-gray-700'
+  const planBgColor =
+    planColor === 'orange' ? 'bg-orange-50' : planColor === 'blue' ? 'bg-blue-50' : 'bg-gray-50'
+  const planBorderColor =
+    planColor === 'orange'
+      ? 'border-orange-200'
+      : planColor === 'blue'
+        ? 'border-blue-200'
+        : 'border-gray-200'
+  const planTextColor =
+    planColor === 'orange'
+      ? 'text-orange-900'
+      : planColor === 'blue'
+        ? 'text-blue-900'
+        : 'text-gray-900'
+  const planBadgeColor =
+    planColor === 'orange' ? 'bg-orange-100' : planColor === 'blue' ? 'bg-blue-100' : 'bg-gray-100'
+  const planBadgeTextColor =
+    planColor === 'orange'
+      ? 'text-orange-700'
+      : planColor === 'blue'
+        ? 'text-blue-700'
+        : 'text-gray-700'
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -140,9 +159,7 @@ export default function ProfileScreen() {
         {/* Subscription Status Card */}
         <View className={`${planBgColor} border ${planBorderColor} rounded-lg p-6 mb-6`}>
           <View className="flex-row items-center justify-between mb-4">
-            <Text className={`text-xl font-bold ${planTextColor}`}>
-              Subscription Status
-            </Text>
+            <Text className={`text-xl font-bold ${planTextColor}`}>Subscription Status</Text>
             <View className={`${planBadgeColor} px-3 py-1 rounded-full`}>
               <Text className={`text-sm font-semibold ${planBadgeTextColor}`}>
                 {getPlanDisplayName(profile.plan)}
@@ -168,16 +185,12 @@ export default function ProfileScreen() {
                 onPress={handleManageSubscription}
                 className={`${planColor === 'blue' ? 'bg-blue-600 active:bg-blue-700' : 'bg-orange-600 active:bg-orange-700'} rounded-lg py-3 px-4`}
               >
-                <Text className="text-white text-center font-semibold">
-                  Manage Subscription
-                </Text>
+                <Text className="text-white text-center font-semibold">Manage Subscription</Text>
               </TouchableOpacity>
             </>
           ) : profile.plan === 'supporter' ? (
             <>
-              <Text className={`${planTextColor} text-base mb-4`}>
-                Supporter includes:
-              </Text>
+              <Text className={`${planTextColor} text-base mb-4`}>Supporter includes:</Text>
               <View className="space-y-2 mb-4">
                 <SubscriptionFeature icon="✓" text="Unlimited activities" />
                 <SubscriptionFeature icon="✓" text="Smart recommendations" />
@@ -187,9 +200,7 @@ export default function ProfileScreen() {
                 onPress={() => router.push('/(main)/pricing')}
                 className="bg-orange-600 active:bg-orange-700 rounded-lg py-3 px-4 mb-3"
               >
-                <Text className="text-white text-center font-semibold">
-                  Upgrade to Plus
-                </Text>
+                <Text className="text-white text-center font-semibold">Upgrade to Plus</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -211,9 +222,7 @@ export default function ProfileScreen() {
                 onPress={() => router.push('/(main)/pricing')}
                 className="bg-blue-600 active:bg-blue-700 rounded-lg py-3 px-4"
               >
-                <Text className="text-white text-center font-semibold">
-                  View Plans
-                </Text>
+                <Text className="text-white text-center font-semibold">View Plans</Text>
               </TouchableOpacity>
             </>
           )}
@@ -226,7 +235,10 @@ export default function ProfileScreen() {
           <View className="space-y-4">
             <InfoRow label="Email" value={profile.displayName || 'Not available'} />
             {profile.revenuecatCustomerId && (
-              <InfoRow label="Subscription ID" value={`***${profile.revenuecatCustomerId.slice(-8)}`} />
+              <InfoRow
+                label="Subscription ID"
+                value={`***${profile.revenuecatCustomerId.slice(-8)}`}
+              />
             )}
           </View>
         </View>

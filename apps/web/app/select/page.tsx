@@ -1,9 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { useChildStore } from '@/lib/stores/useChildStore'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function SelectPage() {
   const router = useRouter()
@@ -64,7 +64,7 @@ export default function SelectPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-3">
-            <label className="block text-sm font-semibold text-[--color-text]">你的精力狀態</label>
+            <div className="block text-sm font-semibold text-[--color-text]">你的精力狀態</div>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { value: 'exhausted', label: '累到不行 😴', emoji: '😴' },
@@ -98,7 +98,7 @@ export default function SelectPage() {
           </div>
 
           <div className="space-y-3">
-            <label className="block text-sm font-semibold text-[--color-text]">現在的情境</label>
+            <div className="block text-sm font-semibold text-[--color-text]">現在的情境</div>
             <div className="grid gap-2">
               {[
                 { value: 'normal', label: '正常時光 ☀️' },

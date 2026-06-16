@@ -13,13 +13,6 @@ export default function JoinPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  useEffect(() => {
-    // If code provided in URL, try to accept it automatically
-    if (codeFromUrl && !code) {
-      handleAcceptInvite(codeFromUrl)
-    }
-  }, [codeFromUrl])
-
   const handleAcceptInvite = async (inviteCode: string) => {
     if (!inviteCode.trim()) {
       setError('請輸入邀請碼')
@@ -56,6 +49,14 @@ export default function JoinPage() {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only auto-accept on initial load when code is provided
+  useEffect(() => {
+    // If code provided in URL, try to accept it automatically
+    if (codeFromUrl && !code) {
+      handleAcceptInvite(codeFromUrl)
+    }
+  }, [codeFromUrl])
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
@@ -71,9 +72,7 @@ export default function JoinPage() {
             <div className="text-4xl">✅</div>
             <div>
               <h2 className="font-semibold text-[--color-text]">邀請已接受</h2>
-              <p className="mt-2 text-sm text-[--color-muted]">
-                歡迎加入家庭！正在重新導向...
-              </p>
+              <p className="mt-2 text-sm text-[--color-muted]">歡迎加入家庭！正在重新導向...</p>
             </div>
           </div>
         ) : (
@@ -94,13 +93,10 @@ export default function JoinPage() {
               />
             </label>
 
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
             <button
+              type="button"
               onClick={() => handleAcceptInvite(code)}
               disabled={loading || !code.trim()}
               className="w-full rounded-lg bg-[--color-brand] px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
@@ -110,7 +106,9 @@ export default function JoinPage() {
 
             <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
               <p className="font-semibold">💡 提示</p>
-              <p className="mt-1 text-xs">邀請碼由家庭擁有者或照顧者生成。如果還沒有收到邀請碼，請聯繫你的家庭成員。</p>
+              <p className="mt-1 text-xs">
+                邀請碼由家庭擁有者或照顧者生成。如果還沒有收到邀請碼，請聯繫你的家庭成員。
+              </p>
             </div>
           </div>
         )}
@@ -119,6 +117,7 @@ export default function JoinPage() {
         {!success && (
           <div className="text-center">
             <button
+              type="button"
               onClick={() => router.push('/select')}
               className="text-sm text-[--color-muted] hover:text-[--color-text]"
             >

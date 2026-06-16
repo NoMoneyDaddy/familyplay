@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { useChildStore } from '@/lib/stores/useChildStore'
+import { useEffect, useState } from 'react'
 
 interface Capability {
   key: string

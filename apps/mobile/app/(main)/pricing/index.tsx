@@ -1,15 +1,8 @@
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  Alert,
-} from 'react-native'
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { showPurchaseUI, RevenueCatError } from '~/lib/revenue-cat'
+import { RevenueCatError, showPurchaseUI } from '~/lib/revenue-cat'
 import { useSubscriptionStore } from '~/lib/stores/useSubscriptionStore'
 
 export default function PricingScreen() {
@@ -53,12 +46,8 @@ export default function PricingScreen() {
       <ScrollView className="flex-1" contentContainerClassName="px-6 py-8">
         {/* Header */}
         <View className="mb-8">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">
-            Support FamilyPlay
-          </Text>
-          <Text className="text-gray-600">
-            Unlock more features and help us improve the app.
-          </Text>
+          <Text className="text-3xl font-bold text-gray-900 mb-2">Support FamilyPlay</Text>
+          <Text className="text-gray-600">Unlock more features and help us improve the app.</Text>
         </View>
 
         {/* Current Plan Banner */}
@@ -195,8 +184,8 @@ export default function PricingScreen() {
         {/* Info */}
         <View className="bg-gray-50 rounded-lg p-4 mb-4">
           <Text className="text-gray-700 text-sm leading-5">
-            Subscriptions are billed monthly to your App Store or Google Play account.
-            Cancel anytime in app settings.
+            Subscriptions are billed monthly to your App Store or Google Play account. Cancel
+            anytime in app settings.
           </Text>
         </View>
 

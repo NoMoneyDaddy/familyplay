@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 // Validate mobile purchase request
@@ -113,14 +113,10 @@ export async function POST(request: NextRequest) {
           plan,
           revenuecat_customer_id: purchase.revenuecatCustomerId,
           plus_started_at:
-            plan === 'plus'
-              ? new Date(purchase.purchaseDate).toISOString()
-              : undefined,
+            plan === 'plus' ? new Date(purchase.purchaseDate).toISOString() : undefined,
           plus_ends_at: plan === 'plus' ? plusEndsAt.toISOString() : undefined,
           supporter_purchased_at:
-            plan === 'supporter'
-              ? new Date(purchase.purchaseDate).toISOString()
-              : undefined,
+            plan === 'supporter' ? new Date(purchase.purchaseDate).toISOString() : undefined,
           updated_at: new Date().toISOString(),
         })
         .eq('user_profile_id', userProfile.id)
@@ -129,10 +125,7 @@ export async function POST(request: NextRequest) {
 
       if (updateError || !updated) {
         console.error('[mobile-purchase-complete] Update error:', updateError)
-        return NextResponse.json(
-          { error: 'Failed to update entitlements' },
-          { status: 500 },
-        )
+        return NextResponse.json({ error: 'Failed to update entitlements' }, { status: 500 })
       }
 
       return NextResponse.json({
@@ -140,48 +133,36 @@ export async function POST(request: NextRequest) {
         plusEndsAt: updated.plus_ends_at,
         revenuecatCustomerId: updated.revenuecat_customer_id,
       })
-    } else {
-      // Create new entitlements record
-      const { data: created, error: createError } = await supabase
-        .from('entitlements')
-        .insert({
-          user_profile_id: userProfile.id,
-          plan,
-          revenuecat_customer_id: purchase.revenuecatCustomerId,
-          plus_started_at:
-            plan === 'plus'
-              ? new Date(purchase.purchaseDate).toISOString()
-              : null,
-          plus_ends_at: plan === 'plus' ? plusEndsAt.toISOString() : null,
-          supporter_purchased_at:
-            plan === 'supporter'
-              ? new Date(purchase.purchaseDate).toISOString()
-              : null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single()
-
-      if (createError || !created) {
-        console.error('[mobile-purchase-complete] Insert error:', createError)
-        return NextResponse.json(
-          { error: 'Failed to create entitlements' },
-          { status: 500 },
-        )
-      }
-
-      return NextResponse.json({
-        plan: created.plan,
-        plusEndsAt: created.plus_ends_at,
-        revenuecatCustomerId: created.revenuecat_customer_id,
-      })
     }
+    // Create new entitlements record
+    const { data: created, error: createError } = await supabase
+      .from('entitlements')
+      .insert({
+        user_profile_id: userProfile.id,
+        plan,
+        revenuecat_customer_id: purchase.revenuecatCustomerId,
+        plus_started_at: plan === 'plus' ? new Date(purchase.purchaseDate).toISOString() : null,
+        plus_ends_at: plan === 'plus' ? plusEndsAt.toISOString() : null,
+        supporter_purchased_at:
+          plan === 'supporter' ? new Date(purchase.purchaseDate).toISOString() : null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (createError || !created) {
+      console.error('[mobile-purchase-complete] Insert error:', createError)
+      return NextResponse.json({ error: 'Failed to create entitlements' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      plan: created.plan,
+      plusEndsAt: created.plus_ends_at,
+      revenuecatCustomerId: created.revenuecat_customer_id,
+    })
   } catch (error) {
     console.error('[mobile-purchase-complete] Unexpected error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

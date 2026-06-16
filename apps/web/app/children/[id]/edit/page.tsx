@@ -1,8 +1,8 @@
 'use client'
 
-import { useRouter, useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { ChildForm } from '@/app/components/child-form'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface Child {
   id: string
@@ -54,6 +54,7 @@ export default function EditChildPage() {
         <div className="mx-auto max-w-[480px] text-center">
           <p className="text-[--color-muted]">找不到這個孩子</p>
           <button
+            type="button"
             onClick={() => router.push('/children')}
             className="mt-4 text-[--color-brand] hover:underline font-medium"
           >
@@ -88,6 +89,7 @@ export default function EditChildPage() {
 
         <p className="text-center text-xs text-[--color-muted]">
           <button
+            type="button"
             onClick={() => router.back()}
             className="text-[--color-brand] hover:underline font-medium"
           >

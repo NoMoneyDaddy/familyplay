@@ -1,7 +1,7 @@
+import { CAPABILITY_KEYS } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { CAPABILITY_KEYS } from '@familyplay/core'
 import { z } from 'zod'
 
 const querySchema = z.object({

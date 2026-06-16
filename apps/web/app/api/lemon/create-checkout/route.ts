@@ -1,8 +1,8 @@
+import { createLemonSqueezyCheckout } from '@/lib/payment/lemonsqueezy'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createLemonSqueezyCheckout } from '@/lib/payment/lemonsqueezy'
 
 const createCheckoutSchema = z.object({
   planId: z.enum(['supporter', 'plus']),

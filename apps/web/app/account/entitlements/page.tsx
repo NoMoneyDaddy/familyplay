@@ -189,6 +189,7 @@ export default function EntitlementsPage() {
         <div className="space-y-3">
           {entitlements.plan === 'free' && (
             <button
+              type="button"
               onClick={() => router.push('/pricing')}
               className="w-full rounded-lg bg-[--color-brand] px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
             >
@@ -198,6 +199,7 @@ export default function EntitlementsPage() {
 
           {entitlements.plan === 'supporter' && (
             <button
+              type="button"
               onClick={() => router.push('/pricing')}
               className="w-full rounded-lg bg-[--color-brand] px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
             >
@@ -207,6 +209,7 @@ export default function EntitlementsPage() {
 
           {entitlements.plan !== 'free' && (
             <button
+              type="button"
               disabled
               className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-semibold text-[--color-muted]"
             >
@@ -249,6 +252,7 @@ export default function EntitlementsPage() {
 
         {/* Back link */}
         <button
+          type="button"
           onClick={() => router.back()}
           className="text-center text-sm text-[--color-brand] transition-opacity hover:opacity-70"
         >

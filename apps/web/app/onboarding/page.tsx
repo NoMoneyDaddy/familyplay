@@ -1,7 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { ChildForm } from '@/app/components/child-form'
+import { useRouter } from 'next/navigation'
 
 export default function OnboardingPage() {
   const router = useRouter()
