@@ -66,11 +66,10 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # Backend service role key (server-side only)
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# Database URL for migrations
-# Format: postgresql://[username]:[password]@[host]:[port]/[database]
-# Example: Get connection string from Supabase dashboard → Database Settings → Connection String
-SUPABASE_DATABASE_URL=<supabase-database-url>
-PRODUCTION_DATABASE_URL=<production-database-url>
+# Database URL (get from Supabase dashboard → Settings → Database → Connection String)
+# Set both SUPABASE_DATABASE_URL and PRODUCTION_DATABASE_URL
+# SUPABASE_DATABASE_URL=<your-connection-string>
+# PRODUCTION_DATABASE_URL=<your-production-connection-string>
 ```
 
 ---

@@ -1,0 +1,14 @@
+# TruffleHog Configuration
+# Excludes false positives from secret scanning
+
+[allowlist]
+# Exclude documentation files that contain example connection strings
+paths = [
+    "docs/ENV_SETUP.md",
+    "docs/DEPLOYMENT.md",
+]
+
+# Exclude Postgres detector for specific files (false positives in examples)
+detectors = [
+    { name = "postgres", paths = ["docs/ENV_SETUP.md"] }
+]
