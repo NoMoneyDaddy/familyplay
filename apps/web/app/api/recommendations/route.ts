@@ -1,4 +1,4 @@
-import { getRecommendations } from '@familyplay/core'
+import { getRecommendations, STAGE_KEYS } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
       {
         child: {
           id: childId,
-          stageKey: (child.stage_key as string) || 'toddler_player',
+          stageKey: (child.stage_key as any) || STAGE_KEYS.TODDLER_PLAYER,
           ageMonths,
           acquiredCapabilities,
         },

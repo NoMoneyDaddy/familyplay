@@ -1,6 +1,6 @@
-# Sprint 1 — 骨架與工具
+# Sprint 2 — 核心推薦邏輯
 
-**目標：** `make init && make dev` 5 分鐘內看到首頁
+**目標：** 七步推薦引擎 + API + 核心測試
 
 **狀態：** ✅ 完成
 
@@ -8,80 +8,50 @@
 
 ## 任務清單
 
-### 環境與工具
-- [x] Monorepo 結構（pnpm workspaces + Turbo）
-- [x] Biome（Lint + Format，取代 ESLint + Prettier）
-- [x] Makefile（含安全修正，不再 `git add -A`）
-- [x] `.env.example`（含 LemonSqueezy、iOS 相關）
-- [x] `.gitignore`（防止 `.env.local` 和 iOS 憑證被 commit）
-- [x] `CLAUDE.md`（含所有架構決策）
+### 推薦引擎核心（packages/core）
+- [x] Stage keys (9 階段，0–60 個月)
+- [x] Capability keys（42 個發展能力跨 5 域）
+- [x] Safety rules（禁止材料 + 情境阻擋規則）
+- [x] Recommendation engine（7 步演算法）
+  - [x] Step 1: Age safety filter
+  - [x] Step 2: Context safety rules
+  - [x] Step 3: Capability matching
+  - [x] Step 4: ZPD scoring
+  - [x] Step 5: Context/resource filtering
+  - [x] Step 6: Priority sorting
+  - [x] Step 7: Recency penalty
+- [x] Vitest 覆蓋率（18 tests pass）
 
-### Supabase 設定
-- [x] `supabase/config.toml`（含 Google OAuth）
-- [x] 初始 Schema Migration（所有資料表）
-- [x] RLS Policy Migration（所有資料表）
-- [x] Seed 資料（示範孩子 + 30 個活動模板前 5 筆）
+### API Endpoint
+- [x] POST /api/recommendations（輸入: childId、parentEnergy、context、space、resources、maxDuration）
+- [x] Fetch from Supabase（活動、能力、近期紀錄）
+- [x] 年齡計算（birth_year_month → ageMonths）
+- [x] 返回前 3 筆推薦（含 score + reasons）
 
-### GitHub Actions
-- [x] `preview.yml`（develop branch，含 secret scanning）
-- [x] `production.yml`（main branch）
-- [x] `dependabot.yml`（自動安全更新）
-
-### Web App（apps/web）
-- [x] Next.js 15 基本設定
-- [x] HTTP Security Headers（next.config.ts）
-- [x] Supabase Auth（@supabase/ssr — lib/supabase/client.ts + server.ts + middleware.ts）
-- [x] 首頁骨架（/app/page.tsx）
-- [x] 全域 Layout
-
-### Mobile App（apps/mobile）
-- [x] Expo 52 + Expo Router 基本設定
-- [x] eas.json（preview + production profile）
-- [x] expo-secure-store（BYOK key 儲存）
-- [x] expo-updates（OTA 熱更新）
-
-### Packages 骨架
-- [x] packages/core（stage-keys、capability-keys、safety-rules）
-- [x] packages/ai（types、safety filter 骨架）
-- [x] packages/db（Drizzle schema）
-- [x] packages/assessment（發展域定義）
-- [x] packages/capabilities（能力常數）
-
-### Sentry 初始設定
-- [x] 安裝 @sentry/nextjs
-- [x] `beforeSend` 移除 Authorization Header
-- [x] 移除 Cookie Header
-
-### Playwright 設定
-- [x] 三個斷點（375px / 390px / 360px）
-- [x] 基本 smoke test
-
-### Vitest 設定
-- [x] packages/core vitest.config.ts
-- [x] 空的 test 檔案（讓 CI 通過）
+### 測試基礎
+- [x] Core + AI + Assessment 各自獨立測試
+- [x] Mobile + Web 測試分離（避免衝突）
+- [x] 全部 unit tests 通過
 
 ---
 
 ## 驗收標準
 
 ```bash
-make init             # ✅ 5 分鐘內完成，看到成功訊息
-make dev              # ✅ http://localhost:3000 可以打開
-make preview-deploy   # ✅ Telegram 收到通知
-make test             # ✅ 測試全部通過（包含 packages/core 空測試）
-make lint             # ✅ Biome 沒有 error
-make check-secrets    # ✅ 沒有硬寫的 API Key
+pnpm test                                    # ✅ Core + AI + Assessment 通過
+pnpm --filter @familyplay/web type-check   # ✅ 無 TS 錯誤
+pnpm biome check .                           # ✅ 無 lint 錯誤
+POST /api/recommendations                   # ✅ 返回 3 筆推薦，含 score
 ```
 
 ---
 
 ## 下一個 Sprint
 
-Sprint 2 — 核心推薦邏輯
-- 年齡計算、stageKey 判斷
-- 能力 Key 常數（全部 30 個）
-- 里程碑時間線、ZPD 推算
-- 安全規則（禁止材料清單）
-- 推薦引擎 Step 1–7
-- 保底活動
-- Vitest 覆蓋率 > 90%
+Sprint 3 — 認證流程 + 選擇流程
+- Supabase Auth 完整實現（登入、Google OAuth、session）
+- 首頁狀態選擇（parentEnergy、context 選擇器）
+- 推薦結果頁面（顯示 3 筆活動，可開始/記錄）
+- Activity 詳細頁面
+- 孩子管理介面
+- Vitest > 90% 覆蓋率
