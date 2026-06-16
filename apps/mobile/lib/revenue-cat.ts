@@ -134,7 +134,10 @@ function setupPurchaseListener(): void {
               purchaseCompleteListener({
                 productId: activeEntitlement,
                 transactionId:
-                  customerInfo.originalTransactionId || (customerInfo as any).managementURL || '',
+                  customerInfo.originalTransactionId ||
+                  // biome-ignore lint/suspicious/noExplicitAny: react-native-purchases type mismatch
+                  (customerInfo as any).managementURL ||
+                  '',
                 purchaseDate: mostRecentPurchase,
                 customerId: customerInfo.originalAppUserId || '',
               })
@@ -208,7 +211,10 @@ export async function showPurchaseUI(productId: string): Promise<void> {
       throw new RevenueCatError('No current offering available', 'NO_OFFERING')
     }
 
-    const package_ = offerings.current.availablePackages.find((pkg: any) => pkg.identifier === validated)
+    const package_ = offerings.current.availablePackages.find(
+      // biome-ignore lint/suspicious/noExplicitAny: react-native-purchases type mismatch
+      (pkg: any) => pkg.identifier === validated,
+    )
 
     if (!package_) {
       throw new RevenueCatError(`Product not found: ${productId}`, 'PRODUCT_NOT_FOUND')
@@ -219,6 +225,7 @@ export async function showPurchaseUI(productId: string): Promise<void> {
   } catch (error) {
     if (error && typeof error === 'object' && 'code' in error) {
       // User cancelled or other purchase error
+      // biome-ignore lint/suspicious/noExplicitAny: react-native-purchases error type mismatch
       const e = error as any
       if (e.code === 'PURCHASE_CANCELLED_ERROR') {
         return
@@ -257,6 +264,7 @@ export async function openSubscriptionSettings(): Promise<void> {
     // For app-based management, open system settings
     // iOS: Settings > AppName > Subscriptions
     // Android: Google Play Store > My apps & games > Subscriptions
+    // biome-ignore lint/suspicious/noExplicitAny: react-native-purchases type mismatch
     const managementURL = (customerInfo as any).managementURL
     if (managementURL) {
       // Use web-based management if available

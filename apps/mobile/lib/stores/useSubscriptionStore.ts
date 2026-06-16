@@ -54,6 +54,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         activeEntitlements: state.activeEntitlements,
         plusEndsAt: state.plusEndsAt ? state.plusEndsAt.toISOString() : null,
       }),
+      // biome-ignore lint/suspicious/noExplicitAny: Zustand persist state type
       onRehydrated: (state: any) => {
         // Convert ISO string back to Date
         if (typeof state?.plusEndsAt === 'string') {
