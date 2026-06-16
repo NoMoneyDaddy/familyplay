@@ -1,57 +1,59 @@
-# Sprint 2 — 核心推薦邏輯
+# Sprint 4 — 日誌記錄 + 歷史管理
 
-**目標：** 七步推薦引擎 + API + 核心測試
+**目標：** 記錄陪伴活動 + 查看歷史紀錄
 
-**狀態：** ✅ 完成
+**狀態：** ✅ 完成（核心 API）
 
 ---
 
 ## 任務清單
 
-### 推薦引擎核心（packages/core）
-- [x] Stage keys (9 階段，0–60 個月)
-- [x] Capability keys（42 個發展能力跨 5 域）
-- [x] Safety rules（禁止材料 + 情境阻擋規則）
-- [x] Recommendation engine（7 步演算法）
-  - [x] Step 1: Age safety filter
-  - [x] Step 2: Context safety rules
-  - [x] Step 3: Capability matching
-  - [x] Step 4: ZPD scoring
-  - [x] Step 5: Context/resource filtering
-  - [x] Step 6: Priority sorting
-  - [x] Step 7: Recency penalty
-- [x] Vitest 覆蓋率（18 tests pass）
+### 日誌記錄 API
+- [x] POST /api/log（childId, activityId, outcome, childReaction, durationSecs）
+- [x] 驗證權限（user → household → child）
+- [x] 記錄到 companion_logs
 
-### API Endpoint
-- [x] POST /api/recommendations（輸入: childId、parentEnergy、context、space、resources、maxDuration）
-- [x] Fetch from Supabase（活動、能力、近期紀錄）
-- [x] 年齡計算（birth_year_month → ageMonths）
-- [x] 返回前 3 筆推薦（含 score + reasons）
-
-### 測試基礎
-- [x] Core + AI + Assessment 各自獨立測試
-- [x] Mobile + Web 測試分離（避免衝突）
-- [x] 全部 unit tests 通過
+### 已完成（Sprint 1–3）
+- [x] **Sprint 1** — 基礎設施（Supabase, Sentry, Auth helpers）
+- [x] **Sprint 2** — 推薦引擎（7 步演算法 + API）
+- [x] **Sprint 3** — 選擇流程（狀態選擇 + 推薦展示）
 
 ---
 
-## 驗收標準
+## 下一步（Sprint 5+）
+
+若要達成 MVP：
+- [ ] 登入/註冊 UI（Google OAuth 整合）
+- [ ] 孩子新增頁面（birth_year_month 輸入）
+- [ ] 活動詳細頁面 + 日誌按鈕
+- [ ] 歷史紀錄頁面
+- [ ] 家長邀請功能
+- [ ] 行動應用適配（Expo）
+
+若要上線（完整功能）：
+- [ ] 付費整合（LemonSqueezy Web + RevenueCat Mobile）
+- [ ] AI 生成活動（可選功能）
+- [ ] 無障礙設計驗證（WCAG 2.1 AA）
+- [ ] 性能優化（<3s 首屏）
+- [ ] 推送通知（Expo）
+
+---
+
+## 部署準備
 
 ```bash
-pnpm test                                    # ✅ Core + AI + Assessment 通過
-pnpm --filter @familyplay/web type-check   # ✅ 無 TS 錯誤
-pnpm biome check .                           # ✅ 無 lint 錯誤
-POST /api/recommendations                   # ✅ 返回 3 筆推薦，含 score
+# 檢查清單
+make lint             # Biome pass
+make type-check       # TypeScript pass
+make test            # Unit tests pass
+make audit           # Npm audit pass
+make check-secrets   # 無硬寫 API Key
+
+# 推送至 staging
+git push develop
+
+# 發正式版（需要合併 PR 到 main）
+make ship
 ```
 
----
-
-## 下一個 Sprint
-
-Sprint 3 — 認證流程 + 選擇流程
-- Supabase Auth 完整實現（登入、Google OAuth、session）
-- 首頁狀態選擇（parentEnergy、context 選擇器）
-- 推薦結果頁面（顯示 3 筆活動，可開始/記錄）
-- Activity 詳細頁面
-- 孩子管理介面
-- Vitest > 90% 覆蓋率
+目前：**可交付的 MVP 架構**，缺 UI 層完整度
