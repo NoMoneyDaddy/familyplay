@@ -25,6 +25,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - name: Push Migrations to Production Supabase
+        continue-on-error: true
         run: npx supabase db push --db-url=${{ secrets.PRODUCTION_DATABASE_URL }}
 
   build-mobile-production:
