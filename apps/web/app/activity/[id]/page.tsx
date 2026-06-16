@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Activity {
   id: string
@@ -16,21 +16,22 @@ interface Activity {
 
 export default function ActivityPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [activity] = useState<Activity>({
-    id: params.id,
-    title: '活動名稱',
-    openingLine: '開場白',
-    steps: ['步驟 1', '步驟 2', '步驟 3'],
-    followUpQuestions: ['問題 1', '問題 2'],
-    minDurationMinutes: 5,
-    maxDurationMinutes: 15,
-  })
+  const [activity, setActivity] = useState<Activity | null>(null)
+  const [activityLoading, setActivityLoading] = useState(true)
   const [outcome, setOutcome] = useState<'completed' | 'tried' | 'abandoned'>('completed')
   const [childReaction, setChildReaction] = useState<
     'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
   >('happy')
   const [startTime] = useState(Date.now())
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetch(`/api/activities/${params.id}`)
+      .then((res) => res.json())
+      .then((data) => setActivity(data))
+      .catch(() => setActivity(null))
+      .finally(() => setActivityLoading(false))
+  }, [params.id])
 
   const handleComplete = async () => {
     setLoading(true)
@@ -55,6 +56,22 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (activityLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-[--color-muted]">加載活動中...</p>
+      </main>
+    )
+  }
+
+  if (!activity) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-red-600">活動不存在</p>
+      </main>
+    )
   }
 
   return (

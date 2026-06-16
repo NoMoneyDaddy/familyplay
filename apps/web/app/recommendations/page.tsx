@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -16,9 +17,9 @@ export default function RecommendationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const childId = searchParams.get('childId')
-  const parentEnergy = searchParams.get('parentEnergy')
-  const context = searchParams.get('context')
+  const childId = searchParams.get('childId') || ''
+  const parentEnergy = searchParams.get('parentEnergy') || ''
+  const context = searchParams.get('context') || ''
 
   useEffect(() => {
     if (!childId || !parentEnergy || !context) {
@@ -105,9 +106,12 @@ export default function RecommendationsPage() {
                   </ul>
                 )}
 
-                <button className="w-full rounded-lg bg-[--color-brand] py-3 font-semibold text-white transition-transform active:scale-[0.97]">
+                <Link
+                  href={`/activity/${rec.id}?childId=${childId}`}
+                  className="block w-full rounded-lg bg-[--color-brand] py-3 text-center font-semibold text-white transition-transform active:scale-[0.97]"
+                >
                   📖 開始這個活動
-                </button>
+                </Link>
               </div>
             ))}
           </div>
