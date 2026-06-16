@@ -281,6 +281,28 @@ perf: 性能優化
 
 ---
 
+## 部署流程（重要）
+
+```
+日常開發：
+  make dev                    # 本機開發
+  git add <files>
+  make preview-deploy         # push develop → Zeabur 自動部署 staging
+
+發正式版：
+  make ship                   # push develop → 印出 PR 連結
+                              # 在 GitHub 開 PR develop → main
+                              # CI 通過 → 合併 → Zeabur 自動部署 production
+```
+
+**GitHub Branch Protection（一次性設定）：**
+Settings → Branches → Add rule → `main`
+- ✅ Require a pull request before merging
+- ✅ Require status checks to pass: `test`（preview.yml 的 job 名稱）
+- ✅ Do not allow bypassing the above settings
+
+這樣 production 永遠只部署通過 CI 的版本。
+
 ## 部署前安全檢查
 
 ```bash

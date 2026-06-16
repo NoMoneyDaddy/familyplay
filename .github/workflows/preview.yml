@@ -3,18 +3,23 @@ name: Preview CI
 on:
   push:
     branches: [develop]
+  pull_request:
+    branches: [develop, main]
 
-# Zeabur 透過 GitHub 整合自動偵測 push → 自動部署 develop 分支
-# 此 workflow 負責：安全掃描 + 測試 + Mobile build（選擇性）+ 通知
+# PR 和 push 都跑 CI：
+#   push develop  → Zeabur 自動部署 staging（CI 結果只通知，不擋部署）
+#   PR → develop  → CI 必須通過才能合併（branch protection 控制）
+#   PR → main     → CI 必須通過才能合併（最重要的守門員）
 
 concurrency:
-  group: preview-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   security-scan:
     name: Secret Scanning
     runs-on: ubuntu-latest
+    # PR 事件沒有 event.before，改掃整個 branch
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,8 +28,8 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.before }}
-          head: HEAD
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.event.pull_request.head.sha || github.sha }}
           only-verified: true
 
   test:
@@ -50,7 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     # commit message 含 [mobile] 才觸發，省 EAS 額度
-    if: contains(github.event.head_commit.message, '[mobile]')
+    if: |
+      github.event_name == 'push' &&
+      contains(github.event.head_commit.message, '[mobile]')
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -65,8 +72,7 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - name: Build iOS + Android Preview
-        run: |
+      - run: |
           cd apps/mobile
           eas build --platform ios --profile preview --non-interactive
           eas build --platform android --profile preview --non-interactive
@@ -75,22 +81,29 @@ jobs:
     name: Telegram Notification
     runs-on: ubuntu-latest
     needs: [test]
-    if: always()
+    # 只在 push 時通知（不在 PR 通知，避免 spam）
+    if: always() && github.event_name == 'push'
     steps:
       - name: Send Notification
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TEST_STATUS: ${{ needs.test.result }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
+          SHORT_MSG=$(echo "$COMMIT_MSG" | head -1 | cut -c1-60)
           if [ "$TEST_STATUS" = "success" ]; then
             curl -s -X POST \
               "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
               -d chat_id="$CHAT_ID" \
-              -d text="🔍 預覽版 CI 通過，Zeabur 正在部署 develop 分支..."
+              -d text="✅ [$BRANCH] CI 通過，Zeabur 正在部署...
+          $SHORT_MSG"
           else
             curl -s -X POST \
               "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
               -d chat_id="$CHAT_ID" \
-              -d text="❌ 預覽版 CI 失敗（test/lint），Zeabur 部署已取消。請查看 GitHub Actions。"
+              -d text="❌ [$BRANCH] CI 失敗
+          $SHORT_MSG
+          ⚠️ Zeabur 可能已部署壞版本，請至 Dashboard rollback"
           fi

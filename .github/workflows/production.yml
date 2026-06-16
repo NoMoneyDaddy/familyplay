@@ -4,51 +4,18 @@ on:
   push:
     branches: [main]
 
-# Zeabur 透過 GitHub 整合自動偵測 push → 自動部署 main 分支（生產環境）
-# 建議：在 GitHub 設定 Branch Protection，讓 main 只能透過 PR 合併，且 CI 需通過
+# main 只能透過 PR 合併（設定 Branch Protection）
+# PR 跑 preview.yml 的 CI → 通過後才能合併
+# 合併後此 workflow 執行 DB migration + 通知
 
 concurrency:
   group: production
   cancel-in-progress: false
 
 jobs:
-  security-scan:
-    name: Secret Scanning
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: ${{ github.event.before }}
-          head: HEAD
-          only-verified: true
-
-  test:
-    name: Lint + Type Check + Test
-    runs-on: ubuntu-latest
-    needs: security-scan
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm biome check .
-      - run: pnpm turbo type-check
-      - run: pnpm turbo test
-
   run-migrations:
     name: Run DB Migrations
     runs-on: ubuntu-latest
-    needs: test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -62,10 +29,9 @@ jobs:
       - name: Push Migrations to Production Supabase
         run: npx supabase db push --db-url=${{ secrets.PRODUCTION_DATABASE_URL }}
 
-  build-mobile:
-    name: Build Mobile (EAS Production)
+  build-mobile-production:
+    name: Build Mobile Production (EAS)
     runs-on: ubuntu-latest
-    needs: test
     if: contains(github.event.head_commit.message, '[mobile]')
     steps:
       - uses: actions/checkout@v4
@@ -81,8 +47,7 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - name: Build iOS + Android Production
-        run: |
+      - run: |
           cd apps/mobile
           eas build --platform ios --profile production --non-interactive
           eas build --platform android --profile production --non-interactive
@@ -90,29 +55,29 @@ jobs:
   notify:
     name: Telegram Notification
     runs-on: ubuntu-latest
-    needs: [test, run-migrations]
+    needs: [run-migrations]
     if: always()
     steps:
       - name: Send Notification
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TEST_STATUS: ${{ needs.test.result }}
           DB_STATUS: ${{ needs.run-migrations.result }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          if [ "$TEST_STATUS" = "success" ] && [ "$DB_STATUS" = "success" ]; then
+          SHORT_MSG=$(echo "$COMMIT_MSG" | head -1 | cut -c1-60)
+          if [ "$DB_STATUS" = "success" ]; then
             curl -s -X POST \
               "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
               -d chat_id="$CHAT_ID" \
-              -d text="✅ 正式版 CI 通過，Zeabur 正在部署至台北節點
-          🌐 https://familyplay.zeabur.app
-          🗄  DB migrations: 完成"
+              -d text="🚀 正式版已合併，Zeabur 正在部署至台北節點
+          🗄 DB migrations: 完成
+          $SHORT_MSG"
           else
             curl -s -X POST \
               "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
               -d chat_id="$CHAT_ID" \
-              -d text="❌ 正式版 CI 失敗
-          Tests: $TEST_STATUS | DB: $DB_STATUS
-          ⚠️ 請立即至 Zeabur Dashboard 手動 Rollback！
-          請查看 GitHub Actions 確認失敗原因。"
+              -d text="⚠️ 正式版已部署但 DB migration 失敗！
+          請立即至 Supabase Dashboard 手動執行 migration
+          DB: $DB_STATUS"
           fi

@@ -43,14 +43,19 @@ preview-deploy:
 	@echo "✅ 已推送至 develop，等待 Telegram 通知..."
 
 ship:
-	@echo "🚀 推送正式版..."
-	@echo "   Zeabur 將自動從 main 分支部署至台北節點"
-	git checkout main
-	git merge develop --no-edit
-	git push -u origin main
-	git checkout develop
-	@echo "✅ 已推送至 main，等待 Telegram 通知..."
-	@echo "   如需查看部署狀態：https://zeabur.com/dashboard"
+	@# 推送 develop，然後引導開 PR → main
+	@# main 有 Branch Protection，CI 通過才能合併，Zeabur 才部署正式版
+	@echo "🚀 準備發布正式版..."
+	@git check-ignore .env.local > /dev/null 2>&1 || \
+		(echo "❌ 危險：.env.local 未被 gitignore，中止部署" && exit 1)
+	git push -u origin develop
+	@echo ""
+	@echo "✅ develop 已推送"
+	@echo ""
+	@echo "👉 下一步：在 GitHub 建立 PR develop → main"
+	@echo "   https://github.com/nomoneydaddy/familyplay/compare/main...develop"
+	@echo ""
+	@echo "   CI 通過後合併，Zeabur 自動部署正式版至台北節點"
 
 rollback:
 	@echo "⏪ 回滾上一版..."
