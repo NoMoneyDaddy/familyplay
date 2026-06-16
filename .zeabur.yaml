@@ -1,0 +1,30 @@
+services:
+  web:
+    source:
+      path: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - port: 3000
+        type: http
+    env:
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    health_check:
+      path: /api/health
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    readiness_probe:
+      path: /api/health
+      interval: 10s
+      timeout: 5s
+      initial_delay: 30s
+    scaling:
+      min_replicas: 1
+      max_replicas: 3
+      target_cpu: 70
+    resource:
+      cpu: 500m
+      memory: 512Mi

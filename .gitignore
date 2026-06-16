@@ -1,5 +1,6 @@
-# Claude Code local settings (contains credentials)
+# Claude Code local settings and artifacts (contains credentials and temporary builds)
 .claude/settings.local.json
+.claude/worktrees/
 
 # Dependencies
 node_modules/

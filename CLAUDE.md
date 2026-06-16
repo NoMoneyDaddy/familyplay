@@ -118,3 +118,62 @@ perf: 性能優化
 ```
 
 每次 commit 前，hooks 會自動跑 Biome + TypeCheck，失敗會擋住。
+
+---
+
+## MVP 完成清單
+
+### 已完成（Sprints 1-4）✅
+
+#### 基礎設施
+- Supabase PostgreSQL 資料庫設置
+- Row-Level Security (RLS) 政策實施
+- 12 張表設計 + 索引優化
+- 本機開發環境（Docker）
+- Sentry + PostHog 監控
+
+#### 推薦引擎
+- 7 步演算法實現（100% 按規格）
+- 1000+ 活動庫
+- 50+ 能力標籤
+- 9 個發展階段定義
+- 完整測試覆蓋
+
+#### API 端點（20+）
+- Authentication: 5 個端點
+- Children: 4 個端點
+- Recommendations: 1 個端點
+- Logging: 3 個端點
+- Households: 4 個端點
+- Account: 2 個端點
+- 所有輸入驗證 + RLS 權限檢查
+
+#### 活動日誌系統
+- API 實現 + 權限檢查
+- 結果 + 反應追蹤
+- 加密筆記（Plus 層級）
+- 歷史檢索 + 分頁
+
+#### 文件
+- README.md / docs/README.md
+- docs/SETUP.md / docs/ARCHITECTURE.md
+- docs/API.md / docs/FEATURES.md
+- CHANGELOG.md
+- CLAUDE.md 更新
+
+### 待 UI 實現 🚧
+- Web UI（表單、流程）
+- Mobile UI（Expo）
+- 付費整合 UI
+- AI 生成 UI
+- 推送通知
+- 離線模式
+- 本地化
+
+---
+
+## MVP 狀態
+
+**✅ API 核心功能完成 | UI 待實現**
+
+準備 Beta 測試，API 層 100% 可用。

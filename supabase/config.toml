@@ -40,8 +40,8 @@ enable_anonymous_sign_ins = false
 enable_manual_linking = false
 
 [auth.email]
-enable_signup = false
-enable_confirmations = false
+enable_signup = true
+enable_confirmations = true
 
 [auth.sms]
 enable_signup = false

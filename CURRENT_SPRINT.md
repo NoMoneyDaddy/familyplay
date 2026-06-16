@@ -1,87 +1,59 @@
-# Sprint 1 — 骨架與工具
+# Sprint 4 — 日誌記錄 + 歷史管理
 
-**目標：** `make init && make dev` 5 分鐘內看到首頁
+**目標：** 記錄陪伴活動 + 查看歷史紀錄
 
-**狀態：** 🚧 進行中
+**狀態：** ✅ 完成（核心 API）
 
 ---
 
 ## 任務清單
 
-### 環境與工具
-- [x] Monorepo 結構（pnpm workspaces + Turbo）
-- [x] Biome（Lint + Format，取代 ESLint + Prettier）
-- [x] Makefile（含安全修正，不再 `git add -A`）
-- [x] `.env.example`（含 LemonSqueezy、iOS 相關）
-- [x] `.gitignore`（防止 `.env.local` 和 iOS 憑證被 commit）
-- [x] `CLAUDE.md`（含所有架構決策）
+### 日誌記錄 API
+- [x] POST /api/log（childId, activityId, outcome, childReaction, durationSecs）
+- [x] 驗證權限（user → household → child）
+- [x] 記錄到 companion_logs
 
-### Supabase 設定
-- [ ] `supabase/config.toml`（含 Google OAuth）
-- [ ] 初始 Schema Migration（所有資料表）
-- [ ] RLS Policy Migration（所有資料表）
-- [ ] Seed 資料（示範孩子 + 30 個活動模板前 5 筆）
-
-### GitHub Actions
-- [x] `preview.yml`（develop branch，含 secret scanning）
-- [x] `production.yml`（main branch）
-- [ ] `dependabot.yml`（自動安全更新）
-
-### Web App（apps/web）
-- [ ] Next.js 15 基本設定
-- [ ] HTTP Security Headers（next.config.ts）
-- [ ] Supabase Auth（@supabase/ssr）
-- [ ] 首頁骨架（/app/page.tsx）
-- [ ] 全域 Layout
-
-### Mobile App（apps/mobile）
-- [ ] Expo 52 + Expo Router 基本設定
-- [ ] eas.json（preview + production profile）
-- [ ] expo-secure-store（BYOK key 儲存）
-- [ ] expo-updates（OTA 熱更新）
-
-### Packages 骨架
-- [x] packages/core（stage-keys、capability-keys、safety-rules）
-- [x] packages/ai（types、safety filter 骨架）
-- [x] packages/db（Drizzle schema）
-- [x] packages/assessment（發展域定義）
-- [x] packages/capabilities（能力常數）
-
-### Sentry 初始設定
-- [ ] 安裝 @sentry/nextjs
-- [ ] `beforeSend` 移除 Authorization Header
-- [ ] 移除 Cookie Header
-
-### Playwright 設定
-- [ ] 三個斷點（375px / 390px / 360px）
-- [ ] 基本 smoke test
-
-### Vitest 設定
-- [ ] packages/core vitest.config.ts
-- [ ] 空的 test 檔案（讓 CI 通過）
+### 已完成（Sprint 1–3）
+- [x] **Sprint 1** — 基礎設施（Supabase, Sentry, Auth helpers）
+- [x] **Sprint 2** — 推薦引擎（7 步演算法 + API）
+- [x] **Sprint 3** — 選擇流程（狀態選擇 + 推薦展示）
 
 ---
 
-## 驗收標準
+## 下一步（Sprint 5+）
+
+若要達成 MVP：
+- [ ] 登入/註冊 UI（Google OAuth 整合）
+- [ ] 孩子新增頁面（birth_year_month 輸入）
+- [ ] 活動詳細頁面 + 日誌按鈕
+- [ ] 歷史紀錄頁面
+- [ ] 家長邀請功能
+- [ ] 行動應用適配（Expo）
+
+若要上線（完整功能）：
+- [ ] 付費整合（LemonSqueezy Web + RevenueCat Mobile）
+- [ ] AI 生成活動（可選功能）
+- [ ] 無障礙設計驗證（WCAG 2.1 AA）
+- [ ] 性能優化（<3s 首屏）
+- [ ] 推送通知（Expo）
+
+---
+
+## 部署準備
 
 ```bash
-make init             # ✅ 5 分鐘內完成，看到成功訊息
-make dev              # ✅ http://localhost:3000 可以打開
-make preview-deploy   # ✅ Telegram 收到通知
-make test             # ✅ 測試全部通過（包含 packages/core 空測試）
-make lint             # ✅ Biome 沒有 error
-make check-secrets    # ✅ 沒有硬寫的 API Key
+# 檢查清單
+make lint             # Biome pass
+make type-check       # TypeScript pass
+make test            # Unit tests pass
+make audit           # Npm audit pass
+make check-secrets   # 無硬寫 API Key
+
+# 推送至 staging
+git push develop
+
+# 發正式版（需要合併 PR 到 main）
+make ship
 ```
 
----
-
-## 下一個 Sprint
-
-Sprint 2 — 核心推薦邏輯
-- 年齡計算、stageKey 判斷
-- 能力 Key 常數（全部 30 個）
-- 里程碑時間線、ZPD 推算
-- 安全規則（禁止材料清單）
-- 推薦引擎 Step 1–7
-- 保底活動
-- Vitest 覆蓋率 > 90%
+目前：**可交付的 MVP 架構**，缺 UI 層完整度

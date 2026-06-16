@@ -17,7 +17,7 @@ export const BLOCKED_MATERIALS_UNDER_3 = [
 
 export const BLOCKED_CONTEXTS = {
   bedtime: ['高刺激', '競賽', '跑跳', '興奮', '爭輸贏'],
-  emotional_crisis: ['競賽', '規則', '評分', '輸贏', '難度'],
+  emotional_crisis: ['競賽', '規則', '評分', '贏', '難度'],
   sick_day: ['跑跳', '戶外', '流汗', '高刺激', '複雜規則'],
 } as const
 

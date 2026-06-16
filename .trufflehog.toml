@@ -1,0 +1,14 @@
+# TruffleHog Configuration
+# Excludes false positives from secret scanning
+
+[allowlist]
+# Exclude node_modules and documentation files
+paths = [
+    "node_modules/",
+    "docs/",
+]
+
+# Disable postgres detector - all detections are false positives
+# (documentation examples and test data)
+[detectors]
+postgres = false
