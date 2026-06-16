@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ChildSwitcher } from '@/app/components/child-switcher'
+import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Capability {
   key: string
@@ -9,22 +11,39 @@ interface Capability {
 }
 
 export default function CapabilitiesPage() {
+  const { selectedChildId } = useChildStore()
   const [capabilities, setCapabilities] = useState<Capability[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/capabilities')
+    if (!selectedChildId) {
+      setLoading(false)
+      return
+    }
+
+    fetch(`/api/capabilities?childId=${selectedChildId}`)
       .then((res) => res.json())
       .then((data) => setCapabilities(data.capabilities || []))
       .catch(() => setCapabilities([]))
       .finally(() => setLoading(false))
-  }, [])
+  }, [selectedChildId])
 
   const achievedCount = capabilities.filter((c) => c.achieved).length
 
+  if (!selectedChildId) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+        <div className="mx-auto max-w-[480px]">
+          <div className="text-center text-[--color-muted]">加載中...</div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
+      <ChildSwitcher />
+      <div className="mx-auto max-w-[480px] space-y-6 pt-6">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold text-[--color-brand]">能力追踪</h1>
           <p className="text-[--color-muted]">

@@ -1,40 +1,68 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+'use client'
 
-export default async function SelectPage() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: () => {},
-      },
-    },
-  )
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { ChildSwitcher } from '@/app/components/child-switcher'
+import { useChildStore } from '@/lib/stores/useChildStore'
 
-  const { data } = await supabase.auth.getSession()
-  if (!data.session) {
-    redirect('/auth')
-  }
+export default function SelectPage() {
+  const router = useRouter()
+  const { selectedChildId } = useChildStore()
+  const [loading, setLoading] = useState(false)
 
-  const { data: children } = await supabase.from('child_profiles').select('id,nickname').limit(1)
+  useEffect(() => {
+    if (!selectedChildId) {
+      router.push('/onboarding')
+    }
+  }, [selectedChildId, router])
 
-  if (!children || children.length === 0) {
-    redirect('/onboarding')
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!selectedChildId) return
+
+    setLoading(true)
+    const formData = new FormData(e.currentTarget)
+    const parentEnergy = formData.get('parentEnergy') as string
+    const context = formData.get('context') as string
+
+    try {
+      const res = await fetch('/api/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          childId: selectedChildId,
+          parentEnergy,
+          context,
+          availableSpace: 'anywhere',
+          availableResources: [],
+          maxDurationMinutes: 20,
+        }),
+      })
+
+      if (res.ok) {
+        router.push(
+          `/recommendations?childId=${selectedChildId}&parentEnergy=${parentEnergy}&context=${context}`,
+        )
+      } else {
+        alert('獲取方案失敗，請重試')
+      }
+    } catch (error) {
+      alert('發生錯誤，請重試')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-8">
+      <ChildSwitcher />
+      <div className="mx-auto max-w-[480px] space-y-8 pt-6">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold text-[--color-brand]">你今天怎麼樣？</h1>
           <p className="text-[--color-muted]">選擇你的狀態，30 秒拿到陪伴方案</p>
         </div>
 
-        <form method="POST" action="/api/recommend" className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-[--color-text]">你的精力狀態</label>
             <div className="grid grid-cols-2 gap-3">
@@ -97,9 +125,10 @@ export default async function SelectPage() {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-[--color-brand] py-4 text-lg font-bold text-white transition-transform active:scale-[0.97]"
+            disabled={loading || !selectedChildId}
+            className="w-full rounded-xl bg-[--color-brand] py-4 text-lg font-bold text-white transition-transform active:scale-[0.97] disabled:opacity-50"
           >
-            🎯 給我陪伴方案
+            {loading ? '取得中...' : '🎯 給我陪伴方案'}
           </button>
         </form>
 

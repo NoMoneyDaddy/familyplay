@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ChildSwitcher } from '@/app/components/child-switcher'
+import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Log {
   id: string
@@ -12,16 +14,22 @@ interface Log {
 }
 
 export default function HistoryPage() {
+  const { selectedChildId } = useChildStore()
   const [logs, setLogs] = useState<Log[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/logs')
+    if (!selectedChildId) {
+      setLoading(false)
+      return
+    }
+
+    fetch(`/api/logs?childId=${selectedChildId}`)
       .then((res) => res.json())
       .then((data) => setLogs(data.logs || []))
       .catch(() => setLogs([]))
       .finally(() => setLoading(false))
-  }, [])
+  }, [selectedChildId])
 
   const getOutcomeEmoji = (outcome: string) => {
     switch (outcome) {
@@ -36,9 +44,20 @@ export default function HistoryPage() {
     }
   }
 
+  if (!selectedChildId) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+        <div className="mx-auto max-w-[480px]">
+          <div className="text-center text-[--color-muted]">加載中...</div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
+      <ChildSwitcher />
+      <div className="mx-auto max-w-[480px] space-y-6 pt-6">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold text-[--color-brand]">陪伴紀錄</h1>
           <p className="text-[--color-muted]">回顧過去的親子時光</p>
