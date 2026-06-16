@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [ -z \"$f\" ] && exit 0; case \"$f\" in *.ts|*.tsx|*.js|*.jsx|*.css) cd /home/user/familyplay && pnpm biome check --fix \"$f\" 2>/dev/null || true;; esac; }",
+            "timeout": 15,
+            "statusMessage": "Biome 自動修正中..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command // empty' | { read -r cmd; case \"$cmd\" in *'git commit'*) cd /home/user/familyplay && pnpm biome check . && pnpm turbo type-check || exit 2;; esac; }",
+            "timeout": 120,
+            "statusMessage": "Commit 前檢查 Biome + TypeCheck..."
+          }
+        ]
+      }
+    ]
+  }
+}
