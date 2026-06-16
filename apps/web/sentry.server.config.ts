@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/nextjs'
 
-const SENSITIVE_HEADERS = new Set(['authorization', 'cookie'])
+const SENSITIVE_HEADERS = new Set(['authorization', 'cookie', 'set-cookie', 'x-api-key'])
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
