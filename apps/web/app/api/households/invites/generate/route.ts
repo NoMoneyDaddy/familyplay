@@ -8,7 +8,6 @@ const schema = z.object({
   role: z.enum(['caregiver', 'viewer']),
 })
 
-// Generate a 6-character alphanumeric token
 function generateInviteToken(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let token = ''
@@ -45,7 +44,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { householdId, role } = schema.parse(body)
 
-    // Get current user's profile
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select('id')
@@ -56,7 +54,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // Verify user is a member of the household
     const { data: membership } = await supabase
       .from('household_members')
       .select('role')
@@ -65,18 +62,13 @@ export async function POST(request: Request) {
       .single()
 
     if (!membership) {
-      return NextResponse.json(
-        { error: 'Not a member of this household' },
-        { status: 403 },
-      )
+      return NextResponse.json({ error: 'Not a member of this household' }, { status: 403 })
     }
 
-    // Generate token and calculate 30-day expiry
     const token = generateInviteToken()
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 30)
 
-    // Insert invite
     const { data: invite, error: inviteError } = await supabase
       .from('household_invites')
       .insert({

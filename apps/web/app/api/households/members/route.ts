@@ -29,7 +29,6 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Parse household ID from query parameters
     const { searchParams } = new URL(request.url)
     const householdId = searchParams.get('householdId')
 
@@ -39,7 +38,6 @@ export async function GET(request: Request) {
 
     const { householdId: validatedHouseholdId } = schema.parse({ householdId })
 
-    // Get current user's profile
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select('id')
@@ -50,7 +48,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // Verify user is a member of the household
     const { data: membership } = await supabase
       .from('household_members')
       .select('id')
@@ -59,13 +56,9 @@ export async function GET(request: Request) {
       .single()
 
     if (!membership) {
-      return NextResponse.json(
-        { error: 'Not a member of this household' },
-        { status: 403 },
-      )
+      return NextResponse.json({ error: 'Not a member of this household' }, { status: 403 })
     }
 
-    // Get all members of the household
     const { data: members, error: membersError } = await supabase
       .from('household_members')
       .select(
@@ -87,11 +80,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 })
     }
 
-    // Transform the response
     const transformedMembers = (members || []).map((member) => ({
       id: member.id,
-      displayName:
-        (member.user_profiles as any)?.display_name || 'Unknown User',
+      displayName: (member.user_profiles as any)?.display_name || 'Unknown User',
       role: member.role,
       nickname: member.nickname || null,
       joinedAt: member.joined_at,
