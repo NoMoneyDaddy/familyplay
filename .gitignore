@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+.expo/
+*.tsbuildinfo
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.*.local
+.env.development
+.env.staging
+.env.production
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+supabase/functions/.env
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+.playwright/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# Turbo
+.turbo/
+
+# Vercel
+.vercel/
+
+# EAS / Expo
+*.mobileprovision
+*.p8
+*.p12
+*.cer
+google-services.json
+GoogleService-Info.plist
+android/
+ios/
+
+# Misc
+*.pem
