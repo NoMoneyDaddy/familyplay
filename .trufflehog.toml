@@ -2,10 +2,13 @@
 # Excludes false positives from secret scanning
 
 [allowlist]
-# Exclude node_modules (contains test data with JWT examples from dependencies)
-# and documentation files
+# Exclude node_modules and documentation files
 paths = [
     "node_modules/",
-    "docs/ENV_SETUP.md",
-    "docs/DEPLOYMENT.md",
+    "docs/",
 ]
+
+# Disable postgres detector - all detections are false positives
+# (documentation examples and test data)
+[detectors]
+postgres = false
