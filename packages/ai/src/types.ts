@@ -64,15 +64,35 @@ export type ResourceKey =
   | 'kitchen_items'
 
 export const ALLOWED_SPACE_CONTEXTS: SpaceContext[] = [
-  'anywhere', 'living_room', 'bedroom', 'kitchen',
-  'outdoor_yard', 'park', 'car', 'waiting_area',
+  'anywhere',
+  'living_room',
+  'bedroom',
+  'kitchen',
+  'outdoor_yard',
+  'park',
+  'car',
+  'waiting_area',
 ]
 
 export const ALLOWED_COMPANION_TYPES: CompanionType[] = [
-  'play', 'talk', 'read', 'outdoor', 'creative', 'sensory', 'music', 'calm_down',
+  'play',
+  'talk',
+  'read',
+  'outdoor',
+  'creative',
+  'sensory',
+  'music',
+  'calm_down',
 ]
 
 export const ALLOWED_RESOURCE_KEYS: ResourceKey[] = [
-  'none', 'books', 'blocks', 'balls', 'paper_crayons',
-  'cushions', 'music', 'water', 'kitchen_items',
+  'none',
+  'books',
+  'blocks',
+  'balls',
+  'paper_crayons',
+  'cushions',
+  'music',
+  'water',
+  'kitchen_items',
 ]

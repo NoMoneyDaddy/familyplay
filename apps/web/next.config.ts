@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-              "font-src fonts.gstatic.com",
+              'font-src fonts.gstatic.com',
               "img-src 'self' data: https:",
               "connect-src 'self' *.supabase.co *.googleapis.com generativelanguage.googleapis.com api.openai.com api.anthropic.com *.groq.com *.lemonsqueezy.com app.posthog.com *.sentry.io",
               "frame-ancestors 'none'",
@@ -53,20 +53,14 @@ const nextConfig: NextConfig = {
   // Images
   images: {
     formats: ['image/webp', 'image/avif'],
-    remotePatterns: [
-      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
-    ],
+    remotePatterns: [{ protocol: 'https', hostname: 'lh3.googleusercontent.com' }],
   },
 
   // Zeabur 部署需要 standalone 輸出
   output: 'standalone',
 
   // Transpile shared packages
-  transpilePackages: [
-    '@familyplay/core',
-    '@familyplay/ai',
-    '@familyplay/db',
-  ],
+  transpilePackages: ['@familyplay/core', '@familyplay/ai', '@familyplay/db'],
 }
 
 export default nextConfig

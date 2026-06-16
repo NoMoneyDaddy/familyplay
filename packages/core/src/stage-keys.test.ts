@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { getStageKey, getAgeMonths, STAGE_KEYS } from './stage-keys'
+import { describe, expect, it } from 'vitest'
+import { STAGE_KEYS, getAgeMonths, getStageKey } from './stage-keys'
 
 describe('getStageKey', () => {
   it('returns newborn for 0 months', () => {
