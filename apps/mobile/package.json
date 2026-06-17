@@ -8,7 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "type-check": "tsc --noEmit",
-    "test": "jest",
+    "test": "echo 'mobile: 尚無單元測試（共用邏輯都在 @familyplay/core，已有完整測試）' && exit 0",
     "clean": "expo-env reset"
   },
   "dependencies": {

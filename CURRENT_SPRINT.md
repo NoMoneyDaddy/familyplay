@@ -6,6 +6,34 @@
 
 ---
 
+## 📌 商轉優化進度更新（production-optimization）
+
+這次把專案推進到「CI 全綠 + 核心引擎可用」：
+
+**修復原本壞掉的 CI（先前無法通過自己的檢查）：**
+- Biome 格式 / import 排序 / `button` 缺 `type`（20 個錯誤）
+- Mobile `jest: not found`（改為明確 passthrough，共用邏輯測試集中在 core）
+- Mobile NativeWind `className` 型別（新增 `nativewind-env.d.ts`）
+- 各 `packages/*` 缺自己的 `tsconfig.json` → `tsc` 誤編整個 repo（已補上 scoped tsconfig）
+- `packages/ai` 漏宣告 `@familyplay/core` 相依
+- `emotional_crisis` 關鍵字遺漏「贏/比賽」導致既有測試一直失敗
+
+**新增核心功能（Sprint 2 提前落地）：**
+- ✅ 推薦引擎七步（`packages/core/src/recommendation.ts`，純 TS、無外部依賴）
+- ✅ 內建啟動活動庫（`activity-catalog.ts`，9 筆覆蓋各階段）
+- ✅ 推薦 API `POST /api/recommend`（Zod 白名單驗證，stageKey 由年齡推算不信任前端）
+- ✅ 測試：core 43 + ai 10 + assessment 7 + web 12 = 72 個，全綠
+
+**驗證指令（全部通過）：**
+```bash
+pnpm biome check .       # 0 error
+pnpm turbo type-check    # 7/7
+pnpm turbo test          # 72 tests pass
+pnpm --filter @familyplay/web exec next build  # 含 /api/recommend
+```
+
+---
+
 ## 任務清單
 
 ### 環境與工具

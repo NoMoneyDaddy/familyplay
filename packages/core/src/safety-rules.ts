@@ -1,18 +1,32 @@
 import type { StageKey } from './stage-keys'
 
 export const BLOCKED_MATERIALS_UNDER_3 = [
-  '硬幣', '鈕扣', '電池', '磁鐵', '彈珠', '小零件',
-  '氣球', '塑膠袋', '繩子', '珠子', '別針', '迴紋針',
+  '硬幣',
+  '鈕扣',
+  '電池',
+  '磁鐵',
+  '彈珠',
+  '小零件',
+  '氣球',
+  '塑膠袋',
+  '繩子',
+  '珠子',
+  '別針',
+  '迴紋針',
 ]
 
 export const BLOCKED_CONTEXTS = {
   bedtime: ['高刺激', '競賽', '跑跳', '興奮', '爭輸贏'],
-  emotional_crisis: ['競賽', '規則', '評分', '輸贏', '難度'],
+  emotional_crisis: ['競賽', '比賽', '規則', '評分', '輸贏', '贏', '難度'],
   sick_day: ['跑跳', '戶外', '流汗', '高刺激', '複雜規則'],
 } as const
 
 export const HIGH_RISK_STAGES: StageKey[] = [
-  'newborn', 'early_infant', 'sitting_baby', 'crawler', 'early_walker',
+  'newborn',
+  'early_infant',
+  'sitting_baby',
+  'crawler',
+  'early_walker',
 ]
 
 export function isUnder3(stageKey: StageKey): boolean {
@@ -21,7 +35,7 @@ export function isUnder3(stageKey: StageKey): boolean {
 
 export function containsBlockedMaterial(text: string, stageKey: StageKey): boolean {
   if (!isUnder3(stageKey)) return false
-  return BLOCKED_MATERIALS_UNDER_3.some(material => text.includes(material))
+  return BLOCKED_MATERIALS_UNDER_3.some((material) => text.includes(material))
 }
 
 export type CompanionContext = 'bedtime' | 'emotional_crisis' | 'sick_day' | 'normal'
@@ -29,7 +43,7 @@ export type CompanionContext = 'bedtime' | 'emotional_crisis' | 'sick_day' | 'no
 export function hasBlockedContextKeyword(text: string, context: CompanionContext): boolean {
   if (context === 'normal') return false
   const keywords = BLOCKED_CONTEXTS[context] ?? []
-  return keywords.some(keyword => text.includes(keyword))
+  return keywords.some((keyword) => text.includes(keyword))
 }
 
 export const SAFETY_REQUIRED_ACTIVITIES = ['outdoor', 'physical', 'craft'] as const
