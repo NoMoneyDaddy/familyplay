@@ -70,6 +70,7 @@ export default function InvitePage() {
 
     try {
       setGenerating(true)
+      setError(null)
       const res = await fetch('/api/households/invites/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
