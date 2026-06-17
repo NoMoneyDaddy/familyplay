@@ -35,77 +35,29 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { code } = schema.parse(body)
 
-    const { data: userProfile } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
+    // RLS 下受邀者「還不是成員」，無法直接讀邀請或更新 used_at；
+    // 改呼叫 SECURITY DEFINER 函式原子化完成查驗 → 加入成員 → 標記已用。
+    const { data: householdId, error: rpcError } = await supabase.rpc('accept_household_invite', {
+      invite_code: code.trim().toUpperCase(),
+    })
 
-    if (!userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
-
-    const { data: invite } = await supabase
-      .from('household_invites')
-      .select('id,household_id,role,expires_at,used_at')
-      .eq('token', code)
-      .single()
-
-    if (!invite) {
-      return NextResponse.json({ error: 'Invalid invite code' }, { status: 400 })
-    }
-
-    if (new Date(invite.expires_at) < new Date()) {
-      return NextResponse.json({ error: 'Invite has expired' }, { status: 400 })
-    }
-
-    if (invite.used_at) {
-      return NextResponse.json({ error: 'Invite has already been used' }, { status: 400 })
-    }
-
-    const { data: existingMembership } = await supabase
-      .from('household_members')
-      .select('id')
-      .eq('household_id', invite.household_id)
-      .eq('user_profile_id', userProfile.id)
-      .single()
-
-    if (existingMembership) {
-      return NextResponse.json(
-        { error: 'You are already a member of this household' },
-        { status: 400 },
-      )
-    }
-
-    const { data: membership, error: membershipError } = await supabase
-      .from('household_members')
-      .insert({
-        household_id: invite.household_id,
-        user_profile_id: userProfile.id,
-        role: invite.role,
-        joined_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single()
-
-    if (membershipError || !membership) {
-      return NextResponse.json({ error: 'Failed to add user to household' }, { status: 500 })
-    }
-
-    const { error: updateError } = await supabase
-      .from('household_invites')
-      .update({
-        used_at: new Date().toISOString(),
-        used_by: userProfile.id,
-      })
-      .eq('id', invite.id)
-
-    if (updateError) {
-      return NextResponse.json({ error: 'Failed to mark invite as used' }, { status: 500 })
+    if (rpcError) {
+      const map: Record<string, { status: number; message: string }> = {
+        invalid_code: { status: 400, message: '邀請碼無效' },
+        expired: { status: 400, message: '邀請已過期' },
+        already_used: { status: 400, message: '邀請碼已被使用' },
+        already_member: { status: 400, message: '你已經是這個家庭的成員' },
+        unauthorized: { status: 401, message: 'Unauthorized' },
+      }
+      const hit = map[rpcError.message]
+      if (hit) {
+        return NextResponse.json({ error: hit.message }, { status: hit.status })
+      }
+      return NextResponse.json({ error: '無法接受邀請，請稍後再試' }, { status: 500 })
     }
 
     return NextResponse.json({
-      householdId: invite.household_id,
+      householdId,
       message: 'Successfully joined household',
     })
   } catch (error) {

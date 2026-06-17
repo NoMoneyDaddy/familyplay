@@ -27,32 +27,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { data: userProfile } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (!userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
-
-    const { data: households } = await supabase
-      .from('households')
-      .select('id')
-      .eq('owner_id', userProfile.id)
-
-    if (!households || households.length === 0) {
-      return NextResponse.json({ children: [] })
-    }
-
-    const householdIds = households.map((h) => h.id)
-
-    // Fetch all children in user's households
+    // 直接查 child_profiles，交給 RLS 依「成員身分」(household_id IN my_household_ids())
+    // 過濾——這樣受邀的次要成員（caregiver/viewer）也能看到共用的孩子。
+    // 先前以 households.owner_id 過濾只回傳「自己擁有」的家庭，會把次要成員排除，
+    // 導致邀請加入後看不到任何孩子（共同查看功能失效）。
     const { data: children, error } = await supabase
       .from('child_profiles')
       .select('id,nickname,birth_year_month,stage_key,created_at')
-      .in('household_id', householdIds)
       .order('created_at', { ascending: false })
 
     if (error) {
