@@ -283,15 +283,17 @@ perf: 性能優化
 
 ## 部署流程（重要）
 
+**單一正式分支 `main`：Zeabur 只從 `main` 自動部署（沒有 develop / staging）。**
+
 ```
 日常開發：
   make dev                    # 本機開發
-  git add <files>
-  make preview-deploy         # push develop → Zeabur 自動部署 staging
+  git checkout -b feat/xxx    # 從 main 開功能分支
+  git add <files> && git commit
 
 發正式版：
-  make ship                   # push develop → 印出 PR 連結
-                              # 在 GitHub 開 PR develop → main
+  make ship                   # push 目前的功能分支 → 印出開 PR 連結
+                              # 在 GitHub 開 PR <功能分支> → main
                               # CI 通過 → 合併 → Zeabur 自動部署 production
 ```
 
@@ -301,7 +303,7 @@ Settings → Branches → Add rule → `main`
 - ✅ Require status checks to pass: `test`（preview.yml 的 job 名稱）
 - ✅ Do not allow bypassing the above settings
 
-這樣 production 永遠只部署通過 CI 的版本。
+這樣 production 永遠只部署通過 CI 的版本。功能分支合併進 `main` 後即可刪除。
 
 ## 部署前安全檢查
 

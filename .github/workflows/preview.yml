@@ -1,15 +1,15 @@
 name: Preview CI
 
 on:
-  push:
-    branches: [develop]
   pull_request:
-    branches: [develop, main]
+    branches: [main]
+  push:
+    branches-ignore: [main]
 
-# PR 和 push 都跑 CI：
-#   push develop  → Zeabur 自動部署 staging（CI 結果只通知，不擋部署）
-#   PR → develop  → CI 必須通過才能合併（branch protection 控制）
-#   PR → main     → CI 必須通過才能合併（最重要的守門員）
+# 單一正式分支 main（沒有 develop/staging）：
+#   push 功能分支 → 跑 CI + Telegram 通知（早期回饋）
+#   PR → main     → CI 必須通過才能合併（最重要的守門員，branch protection 控制）
+#   合併 main      → production.yml 跑 migration + Zeabur 自動部署正式版
 
 concurrency:
   group: ci-${{ github.ref }}

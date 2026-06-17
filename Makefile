@@ -28,34 +28,38 @@ dev:
 # ─────────────────────────────────────────────────────────
 
 preview-deploy:
-	@# 確認 .env.local 在 gitignore 中，防止意外 commit
+	@# 把目前的功能分支推上去，讓 PR 跑 CI（沒有 develop/staging，正式版只走 main）
 	@git check-ignore .env.local > /dev/null 2>&1 || \
 		(echo "❌ 危險：.env.local 未被 gitignore，中止部署" && exit 1)
-	@# 只有已 staged 的變更才 commit
-	@if [ -n "$$(git diff --cached --name-only)" ]; then \
-		git commit -m "preview: $$(date '+%Y-%m-%d %H:%M')"; \
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" = "main" ]; then \
+		echo "❌ 請勿直接在 main 開發，請先開功能分支"; exit 1; \
+	fi; \
+	if [ -n "$$(git diff --cached --name-only)" ]; then \
+		git commit -m "wip: $$(date '+%Y-%m-%d %H:%M')"; \
 	elif [ -n "$$(git status --porcelain)" ]; then \
-		echo "⚠️  有未 staged 的變更。請先執行：git add <檔案>"; \
-		echo "   或執行：git add apps/ packages/ supabase/ && make preview-deploy"; \
-		exit 1; \
-	fi
-	git push -u origin develop
-	@echo "✅ 已推送至 develop，等待 Telegram 通知..."
+		echo "⚠️  有未 staged 的變更。請先執行：git add <檔案>"; exit 1; \
+	fi; \
+	git push -u origin "$$BRANCH"; \
+	echo "✅ 已推送 $$BRANCH，PR 會自動跑 CI"
 
 ship:
-	@# 推送 develop，然後引導開 PR → main
-	@# main 有 Branch Protection，CI 通過才能合併，Zeabur 才部署正式版
+	@# 推送目前功能分支，引導開 PR → main（main 有 Branch Protection，CI 通過才能合併）
 	@echo "🚀 準備發布正式版..."
 	@git check-ignore .env.local > /dev/null 2>&1 || \
 		(echo "❌ 危險：.env.local 未被 gitignore，中止部署" && exit 1)
-	git push -u origin develop
-	@echo ""
-	@echo "✅ develop 已推送"
-	@echo ""
-	@echo "👉 下一步：在 GitHub 建立 PR develop → main"
-	@echo "   https://github.com/nomoneydaddy/familyplay/compare/main...develop"
-	@echo ""
-	@echo "   CI 通過後合併，Zeabur 自動部署正式版至台北節點"
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" = "main" ]; then \
+		echo "❌ 請勿直接在 main 開發，請先開功能分支"; exit 1; \
+	fi; \
+	git push -u origin "$$BRANCH"; \
+	echo ""; \
+	echo "✅ $$BRANCH 已推送"; \
+	echo ""; \
+	echo "👉 下一步：在 GitHub 建立 PR $$BRANCH → main"; \
+	echo "   https://github.com/nomoneydaddy/familyplay/compare/main...$$BRANCH"; \
+	echo ""; \
+	echo "   CI 通過後合併，Zeabur 自動部署正式版至台北節點"
 
 rollback:
 	@echo "⏪ 回滾上一版..."

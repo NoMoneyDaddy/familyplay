@@ -37,13 +37,23 @@
 - ℹ️ 遠端 `familyplay` 專案（ap-south-1）健康、13 張表全開 RLS、`companion_activities` 已有 6 筆 seed
 - ⚠️ 安全建議待處理（屬 DB migration 擁有者）：3 個 `SECURITY DEFINER` RLS 輔助函式對 `authenticated` 開放 RPC 執行，建議 `REVOKE EXECUTE`
 
-**測試：core 43 + ai 10 + assessment 12 + web 27 = 92 個，全綠**
+**Supabase Google 登入（@supabase/ssr）：**
+- ✅ `lib/supabase/{config,client,server,middleware}.ts` + 根目錄 `middleware.ts`（每請求刷新 session）
+- ✅ `app/auth/callback`（OAuth 換 session）、`app/auth/signout`（登出）、`components/auth-button.tsx`
+- ✅ 登入後 `/api/recommend` 自動改用 DB 活動（RLS）；未登入 / 未設定環境變數 → 優雅降級
+- ⚙️ 待你在 Supabase 啟用 Google provider，並於 Zeabur 設定 `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+**部署流程簡化為單一 `main` 分支（移除 develop）：**
+- Zeabur 只從 `main` 自動部署；功能分支 → PR → `main`（CI 守門）→ 合併即部署
+- 已同步 `CLAUDE.md`、`Makefile`（`ship`/`preview-deploy` 改推目前功能分支）、`preview.yml`
+
+**測試：core 43 + ai 10 + assessment 12 + web 29 = 94 個，全綠**
 
 **驗證指令（全部通過）：**
 ```bash
 pnpm biome check .       # 0 error
 pnpm turbo type-check    # 7/7
-pnpm turbo test          # 92 tests pass
+pnpm turbo test          # 94 tests pass
 pnpm --filter @familyplay/web exec next build  # 首頁互動 + /api/recommend
 ```
 
@@ -72,7 +82,7 @@ pnpm --filter @familyplay/web exec next build  # 首頁互動 + /api/recommend
 - [ ] Seed 資料（示範孩子 + 30 個活動模板前 5 筆）
 
 ### GitHub Actions
-- [x] `preview.yml`（develop branch，含 secret scanning）
+- [x] `preview.yml`（PR → main 守門 + 功能分支 push，含 secret scanning）
 - [x] `production.yml`（main branch）
 - [ ] `dependabot.yml`（自動安全更新）
 
