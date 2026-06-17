@@ -7,7 +7,10 @@ export async function GET(request: Request) {
   const token = requestUrl.searchParams.get('token')
   const type = requestUrl.searchParams.get('type')
 
-  if (!token || !type) {
+  const ALLOWED_OTP_TYPES = ['email', 'recovery', 'invite', 'magiclink'] as const
+  type OtpType = (typeof ALLOWED_OTP_TYPES)[number]
+
+  if (!token || !type || !ALLOWED_OTP_TYPES.includes(type as OtpType)) {
     return NextResponse.redirect(new URL('/auth?error=invalid_token', request.url))
   }
 
@@ -30,10 +33,10 @@ export async function GET(request: Request) {
     },
   })
 
-  // Verify the token with Supabase
+  // Verify the token with Supabase (type already validated above)
   const { error } = await supabase.auth.verifyOtp({
     token_hash: token,
-    type: type as 'email' | 'recovery' | 'invite' | 'magiclink',
+    type: type as OtpType,
   })
 
   if (error) {

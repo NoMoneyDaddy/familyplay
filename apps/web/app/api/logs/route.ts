@@ -58,7 +58,8 @@ export async function GET(request: Request) {
       .limit(50)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('Failed to fetch logs', error)
+      return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 })
     }
 
     return NextResponse.json({

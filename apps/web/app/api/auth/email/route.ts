@@ -1,3 +1,4 @@
+import { checkRateLimit } from '@/lib/ratelimit'
 import { type CookieOptions, createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -12,6 +13,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { email, password } = emailAuthSchema.parse(body)
+
+    const rl = await checkRateLimit(`auth:email:${email}`, 5)
+    if (!rl.success) {
+      return NextResponse.json({ error: 'Too many attempts, please try later' }, { status: 429 })
+    }
 
     const cookieStore = await cookies()
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL

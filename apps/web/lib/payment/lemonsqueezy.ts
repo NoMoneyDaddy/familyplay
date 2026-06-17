@@ -9,7 +9,8 @@ import crypto from 'node:crypto'
  */
 export function verifyWebhookSignature(body: string, signature: string, secret: string): boolean {
   const hmac = crypto.createHmac('sha256', secret).update(body).digest('hex')
-  return hmac === signature
+  if (hmac.length !== signature.length) return false
+  return crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(signature, 'hex'))
 }
 
 /**

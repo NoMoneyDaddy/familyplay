@@ -70,7 +70,8 @@ export async function POST(request: Request) {
     })
 
     if (insertError) {
-      return NextResponse.json({ error: insertError.message }, { status: 500 })
+      console.error('Failed to insert companion log', insertError)
+      return NextResponse.json({ error: 'Failed to save log' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

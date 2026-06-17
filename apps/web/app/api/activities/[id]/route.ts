@@ -19,6 +19,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     },
   })
 
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const { data: activity, error } = await supabase
     .from('companion_activities')
     .select('*')

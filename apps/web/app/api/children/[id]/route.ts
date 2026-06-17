@@ -117,7 +117,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('Failed to update child profile', error)
+      return NextResponse.json({ error: 'Failed to update child profile' }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -181,7 +182,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { error } = await supabase.from('child_profiles').delete().eq('id', id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('Failed to delete child profile', error)
+      return NextResponse.json({ error: 'Failed to delete child profile' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
