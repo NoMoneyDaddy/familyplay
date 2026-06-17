@@ -144,5 +144,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .clay-blob {
     animation: clay-drift 14s ease-in-out infinite;
+    /* 提示瀏覽器把高模糊球提升到 GPU 圖層，避免行動裝置反覆重繪 */
+    will-change: transform;
   }
 }

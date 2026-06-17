@@ -100,7 +100,7 @@ function AuthPageInner() {
 
   // 統一的按鈕設計系統：相同尺寸/圓角/字重/結構（圖示 + 文字），各方式僅以底色與圖示區分。
   const btnBase =
-    'flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-semibold shadow-clay-sm ring-1 transition-all duration-150 hover:shadow-md active:scale-[0.96] disabled:opacity-60'
+    'flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-semibold shadow-clay-sm ring-1 transition-all duration-150 enabled:hover:shadow-md enabled:active:scale-[0.96] disabled:opacity-60'
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-10">

@@ -207,7 +207,10 @@ export function PageShell({
       className={`relative min-h-dvh overflow-hidden px-5 pt-7 ${withNav ? 'pb-28' : 'pb-10'} ${className}`}
     >
       {/* 黏土調性氛圍：兩顆柔和暖色飄移球，給頁面一點溫度與深度（不可互動、可降動態） */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
         <div
           className="clay-blob -left-16 -top-10 h-56 w-56 opacity-40"
           style={{
@@ -304,13 +307,31 @@ type ButtonSize = 'md' | 'lg'
 
 // 黏土鈕扣：較大圓角 + 按壓回彈（squish 到 0.96），手感像可愛的軟糖按鈕。
 const BTN_BASE =
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold transition-all duration-150 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 
+// 底色／陰影等靜態樣式（不含互動回饋）。
 const BTN_VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-[image:var(--gradient-brand)] text-white shadow-brand hover:brightness-[1.04]',
-  secondary: 'bg-card text-text shadow-clay-sm ring-1 ring-border/70 hover:bg-bg',
-  ghost: 'bg-transparent text-brand hover:bg-brand-tint',
-  danger: 'bg-danger-tint text-danger hover:brightness-95',
+  primary: 'bg-[image:var(--gradient-brand)] text-white shadow-brand',
+  secondary: 'bg-card text-text shadow-clay-sm ring-1 ring-border/70',
+  ghost: 'bg-transparent text-brand',
+  danger: 'bg-danger-tint text-danger',
+}
+
+// 互動回饋（hover/active squish）分兩套：
+//  • <button>（Button）用 enabled: 前綴——disabled 時不觸發亮度/底色/縮放。
+//  • <a>（LinkButton）永遠可互動，用原樣；:enabled 不適用於 <a>，若也加 enabled:
+//    反而會讓所有連結 CTA 失去 hover，故刻意分開。
+const BTN_FX_BUTTON: Record<ButtonVariant, string> = {
+  primary: 'enabled:hover:brightness-[1.04] enabled:active:scale-[0.96]',
+  secondary: 'enabled:hover:bg-bg enabled:active:scale-[0.96]',
+  ghost: 'enabled:hover:bg-brand-tint enabled:active:scale-[0.96]',
+  danger: 'enabled:hover:brightness-95 enabled:active:scale-[0.96]',
+}
+const BTN_FX_LINK: Record<ButtonVariant, string> = {
+  primary: 'hover:brightness-[1.04] active:scale-[0.96]',
+  secondary: 'hover:bg-bg active:scale-[0.96]',
+  ghost: 'hover:bg-brand-tint active:scale-[0.96]',
+  danger: 'hover:brightness-95 active:scale-[0.96]',
 }
 
 const BTN_SIZE: Record<ButtonSize, string> = {
@@ -345,7 +366,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled || loading}
       aria-busy={loading}
-      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_SIZE[size]} ${className}`}
+      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_FX_BUTTON[variant]} ${BTN_SIZE[size]} ${className}`}
     >
       {loading ? (
         <span className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent opacity-70" />
@@ -376,7 +397,7 @@ export function LinkButton({
   return (
     <Link
       href={href}
-      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_SIZE[size]} ${className}`}
+      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_FX_LINK[variant]} ${BTN_SIZE[size]} ${className}`}
     >
       {icon && <Icon name={icon} className="h-[18px] w-[18px]" />}
       {children}

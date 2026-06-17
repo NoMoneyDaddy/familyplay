@@ -59,7 +59,7 @@ export function BottomNav() {
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-2xl transition-all ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-2xl transition ${
                     active ? 'bg-brand-tint shadow-clay-sm' : 'bg-transparent'
                   }`}
                 >
