@@ -1,8 +1,8 @@
 'use client'
 
-import { useHouseholdStore } from '@/lib/stores/useHouseholdStore'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useHouseholdStore } from '@/lib/stores/useHouseholdStore'
 
 interface HouseholdMember {
   id: string

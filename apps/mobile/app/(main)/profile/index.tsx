@@ -1,8 +1,8 @@
-import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAuthStore } from '@/lib/stores/useAuthStore'
 
 interface ProfileData {
   displayName: string

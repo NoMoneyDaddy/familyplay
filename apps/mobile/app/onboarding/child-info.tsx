@@ -1,9 +1,9 @@
-import { useAuthStore } from '@/lib/stores/useAuthStore'
-import { createMobileClient } from '@/lib/supabase/mobile'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { createMobileClient } from '@/lib/supabase/mobile'
 
 const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)

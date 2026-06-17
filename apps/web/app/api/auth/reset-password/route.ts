@@ -1,8 +1,8 @@
-import { checkRateLimit } from '@/lib/ratelimit'
 import { type CookieOptions, createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const passwordResetSchema = z.object({
   email: z.string().email('Invalid email address'),

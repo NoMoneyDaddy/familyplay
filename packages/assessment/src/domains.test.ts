@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MILESTONE_MAP, getZpdTargets } from './domains'
+import { getZpdTargets, MILESTONE_MAP } from './domains'
 
 describe('getZpdTargets', () => {
   it('returns the next milestone for an achieved capability', () => {

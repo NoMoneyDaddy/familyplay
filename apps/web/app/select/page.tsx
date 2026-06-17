@@ -1,9 +1,9 @@
 'use client'
 
-import { ChildSwitcher } from '@/app/components/child-switcher'
-import { useChildStore } from '@/lib/stores/useChildStore'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { ChildSwitcher } from '@/app/components/child-switcher'
+import { useChildStore } from '@/lib/stores/useChildStore'
 
 export default function SelectPage() {
   const router = useRouter()

@@ -1,8 +1,8 @@
-import { createMobileClient } from '@/lib/supabase/mobile'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { createMobileClient } from '@/lib/supabase/mobile'
 
 type EmailTab = 'login' | 'signup'
 

@@ -1,8 +1,8 @@
-import { checkRateLimit } from '@/lib/ratelimit'
 import { ALLOWED_STAGE_KEYS, getAgeMonths, getRecommendations, getStageKey } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const requestSchema = z.object({
   childId: z.string().uuid(),

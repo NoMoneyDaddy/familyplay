@@ -1,18 +1,19 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": [
-      "node_modules/**",
-      ".next/**",
-      "dist/**",
-      "build/**",
-      "coverage/**",
-      "packages/db/src/generated.ts"
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/dist",
+      "!**/build",
+      "!**/coverage",
+      "!**/packages/db/src/generated.ts"
     ]
   },
   "formatter": {
@@ -24,7 +25,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "security": {
         "noDangerouslySetInnerHtml": "error",
         "noGlobalEval": "error"
@@ -34,8 +35,11 @@
         "useConst": "error"
       },
       "suspicious": {
-        "noConsoleLog": "warn",
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noConsole": {
+          "level": "warn",
+          "options": { "allow": ["warn", "error", "info", "dir", "table"] }
+        }
       }
     }
   },
@@ -46,13 +50,18 @@
       "semicolons": "asNeeded"
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "overrides": [
     {
-      "include": ["**/*.test.ts", "**/*.test.tsx", "**/tests/**"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/tests/**"],
       "linter": {
         "rules": {
           "suspicious": {
-            "noConsoleLog": "off"
+            "noConsole": "off"
           }
         }
       }
