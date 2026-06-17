@@ -18,20 +18,23 @@ export async function GET() {
     },
   })
 
-  const { data } = await supabase.auth.getSession()
-  if (!data.session?.user) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('id,display_name,avatar_url')
-    .eq('auth_user_id', data.session.user.id)
+    .eq('auth_user_id', user.id)
     .single()
 
   if (!profile) {
     return NextResponse.json({
-      displayName: data.session.user.user_metadata?.name || 'User',
+      displayName: user.user_metadata?.name || 'User',
       avatarUrl: null,
       householdId: null,
       role: null,
@@ -56,7 +59,7 @@ export async function GET() {
     .single()
 
   return NextResponse.json({
-    displayName: profile.display_name || data.session.user.user_metadata?.name || 'User',
+    displayName: profile.display_name || user.user_metadata?.name || 'User',
     avatarUrl: profile.avatar_url,
     householdId: householdMember?.household_id || null,
     role: householdMember?.role || null,

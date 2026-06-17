@@ -29,8 +29,11 @@ export async function GET() {
       },
     })
 
-    const { data: session } = await supabase.auth.getSession()
-    if (!session.session?.user) {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -38,7 +41,7 @@ export async function GET() {
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('id')
-      .eq('auth_user_id', session.session.user.id)
+      .eq('auth_user_id', user.id)
       .single()
 
     if (!profile) {

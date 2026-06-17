@@ -62,8 +62,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     },
   })
 
-  const { data } = await supabase.auth.getSession()
-  if (!data.session?.user) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -71,7 +74,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select('id')
-      .eq('auth_user_id', data.session.user.id)
+      .eq('auth_user_id', user.id)
       .single()
 
     if (!userProfile) {
@@ -144,8 +147,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     },
   })
 
-  const { data } = await supabase.auth.getSession()
-  if (!data.session?.user) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -153,7 +159,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select('id')
-      .eq('auth_user_id', data.session.user.id)
+      .eq('auth_user_id', user.id)
       .single()
 
     if (!userProfile) {

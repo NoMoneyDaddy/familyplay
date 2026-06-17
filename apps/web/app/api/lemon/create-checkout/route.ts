@@ -30,8 +30,11 @@ export async function POST(request: Request) {
       },
     })
 
-    const { data: session } = await supabase.auth.getSession()
-    if (!session.session?.user) {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -43,16 +46,16 @@ export async function POST(request: Request) {
     let { data: profile } = await supabase
       .from('user_profiles')
       .select('id')
-      .eq('auth_user_id', session.session.user.id)
+      .eq('auth_user_id', user.id)
       .single()
 
     if (!profile) {
       const { data: newProfile } = await supabase
         .from('user_profiles')
         .insert({
-          auth_user_id: session.session.user.id,
-          display_name: session.session.user.user_metadata?.name || 'User',
-          avatar_url: session.session.user.user_metadata?.avatar_url || null,
+          auth_user_id: user.id,
+          display_name: user.user_metadata?.name || 'User',
+          avatar_url: user.user_metadata?.avatar_url || null,
         })
         .select('id')
         .single()
@@ -84,7 +87,7 @@ export async function POST(request: Request) {
     // Create LemonSqueezy checkout
     const checkoutUrl = await createLemonSqueezyCheckout(
       variantId,
-      session.session.user.email || '',
+      user.email || '',
       profile.id,
       returnUrl,
     )
