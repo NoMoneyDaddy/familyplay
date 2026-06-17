@@ -48,7 +48,7 @@ INSERT INTO public.companion_activities (
 ('輕唱搖籃曲', '用穩定的聲音與輕搖安撫，幫助情緒調節與入睡。', '噓～聽把拔/馬麻唱歌，慢慢放鬆。',
  '["把寶寶抱在胸前","用低而穩的聲音哼一首歌","配合呼吸輕輕搖","感覺他放鬆就漸漸放慢"]',
  NULL, '搖動要輕柔，支撐好頭頸。', '晚安，做個好夢。',
- 0, 6, '{}', '{}', '{"selfSoothing"}', '{"emotional_regulation"}',
+ 0, 6, '{}', '{}', '{"selfSoothing"}', '{"emotional"}',
  'low', 'solitary', '{}', 'anywhere', 3, 10, TRUE, TRUE, TRUE, 'calm_down', FALSE, TRUE),
 
 -- ===================== EARLY_INFANT 3–6m =====================
@@ -75,13 +75,13 @@ INSERT INTO public.companion_activities (
  '["讓寶寶坐穩（必要時用枕頭護背）","給他一個安全的杯子與湯匙","示範敲一敲發出聲音","讓他自己試"]',
  NULL, '物件需大於寶寶口腔、無小零件，避免吞食。', '叮叮咚咚，好好玩！',
  6, 10, '{"canSitUnsupported"}', '{"canPincerGrip"}', '{"canPincerGrip"}', '{"fine_motor"}',
- 'medium', 'solitary', '{"household_items"}', 'anywhere', 5, 12, FALSE, TRUE, TRUE, 'sensory', FALSE, TRUE),
+ 'medium', 'solitary', '{}', 'anywhere', 5, 12, FALSE, TRUE, TRUE, 'sensory', FALSE, TRUE),
 
 ('杯子不見了', '用杯子蓋住玩具，培養物體恆存概念。', '小車車躲起來囉，找得到嗎？',
  '["在寶寶面前放一個玩具","用杯子蓋住它","問「車車在哪裡？」","掀開說「在這裡！」"]',
  '["他會去掀杯子嗎？"]', '杯口無銳邊。', '原來躲在這裡呀！',
  6, 12, '{"canSitUnsupported"}', '{"objectPermanence"}', '{"objectPermanence"}', '{"social_cognitive"}',
- 'low', 'parallel', '{"household_items"}', 'anywhere', 5, 10, TRUE, TRUE, TRUE, 'play', FALSE, TRUE),
+ 'low', 'parallel', '{}', 'anywhere', 5, 10, TRUE, TRUE, TRUE, 'play', FALSE, TRUE),
 
 ('咿咿呀呀對話', '模仿寶寶的牙牙語，建立輪流發聲。', '咿～呀～換你說說看！',
  '["寶寶發出聲音時，你模仿同樣的音","停頓，等他再發聲","你再回應一次","像在對話一樣輪流"]',
@@ -100,7 +100,7 @@ INSERT INTO public.companion_activities (
  '["把寶寶能吃的小塊食物放在餐盤","示範用拇指食指夾起","讓他自己夾","夾到就鼓勵"]',
  '["他比較會用哪隻手？"]', '全程看顧避免嗆咳，食物切到適口大小、軟硬適中。', '小手指越來越靈巧了。',
  9, 14, '{"canSitUnsupported"}', '{"canPincerGrip"}', '{"canPincerGrip"}', '{"fine_motor"}',
- 'low', 'solitary', '{"snacks"}', 'anywhere', 5, 12, FALSE, TRUE, TRUE, 'sensory', FALSE, TRUE),
+ 'low', 'solitary', '{}', 'anywhere', 5, 12, FALSE, TRUE, TRUE, 'sensory', FALSE, TRUE),
 
 ('揮手再見', '模仿揮手等社交動作，建立模仿與互動。', '揮揮手，跟玩具說再見～',
  '["示範揮手說「掰掰」","握著寶寶的手一起揮","對著玩偶練習","他自己揮就歡呼"]',
@@ -113,7 +113,7 @@ INSERT INTO public.companion_activities (
  '["找一個夠重、不會滑的箱子或推車","讓孩子扶著推","在旁邊保護","走到目標點歡呼"]',
  NULL, '地面防滑、清空障礙，全程在旁保護避免跌撞。', '你走得好穩！',
  12, 18, '{"canPullToStand"}', '{"canWalkIndependently"}', '{"canWalkIndependently"}', '{"gross_motor"}',
- 'high', 'solitary', '{"household_items"}', 'living_room', 5, 15, FALSE, FALSE, FALSE, 'play', FALSE, TRUE),
+ 'high', 'solitary', '{}', 'living_room', 5, 15, FALSE, FALSE, FALSE, 'play', FALSE, TRUE),
 
 ('疊疊小高塔', '疊積木練習手部控制與因果。', '我們來疊高高，看會不會倒！',
  '["拿 3–4 塊大積木","示範疊起來","讓孩子試著疊","倒了就一起笑著再來"]',
@@ -137,14 +137,14 @@ INSERT INTO public.companion_activities (
 ('你一個我一個', '輪流放積木，練習輪流與合作雛形。', '換你放一個，再換我，好嗎？',
  '["準備一堆積木","你放一個說「換你」","等孩子放","輪流直到疊完或排成一排"]',
  '["他願意等待輪流嗎？"]', NULL, '我們一起完成了！',
- 18, 30, '{"imitatesActions"}', '{"canTakeTurns"}', '{"canTakeTurns","cooperativePlay"}', '{"social_cognitive","emotional_regulation"}',
+ 18, 30, '{"imitatesActions"}', '{"canTakeTurns"}', '{"canTakeTurns","cooperativePlay"}', '{"social_cognitive","emotional"}',
  'medium', 'associative', '{"blocks"}', 'anywhere', 8, 15, TRUE, TRUE, TRUE, 'play', FALSE, TRUE),
 
 ('餵娃娃吃飯', '假扮餵食，啟動象徵性遊戲。', '娃娃肚子餓了，我們餵牠吃飯！',
  '["拿玩偶與空碗湯匙","示範「餵」娃娃","問「娃娃飽了嗎？」","讓孩子自己餵"]',
  '["他會幫娃娃做什麼？"]', NULL, '娃娃吃飽飽，謝謝你照顧牠。',
  18, 36, '{"imitatesActions"}', '{"symbolicPlay","usesTwoWordPhrases"}', '{"symbolicPlay"}', '{"social_cognitive","language"}',
- 'low', 'solitary', '{"household_items"}', 'anywhere', 8, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
+ 'low', 'solitary', '{}', 'anywhere', 8, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
 
 -- ===================== TODDLER_PLAYER 24–36m =====================
 ('雙腳跳格子', '在地上跳格子，練習雙腳跳與控制。', '我們來跳格子，準備好了嗎？',
@@ -157,12 +157,12 @@ INSERT INTO public.companion_activities (
  '["鋪紙、給粗蠟筆","讓孩子自由塗鴉","問「這是什麼呀？」","把他說的寫在旁邊"]',
  '["他幫他的畫取了什麼名字？"]', '使用無毒粗蠟筆，避免放入口中。', '這幅畫好有故事，我們貼起來。',
  24, 48, '{"canGrasp"}', '{"canScribble","usesSentences"}', '{"canDrawCircle","usesSentences"}', '{"fine_motor","language"}',
- 'low', 'solitary', '{"paper","crayons"}', 'anywhere', 8, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
+ 'low', 'solitary', '{"paper_crayons"}', 'anywhere', 8, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
 
 ('深呼吸吹泡泡', '用想像吹泡泡的方式練習情緒平復。', '我們一起慢慢吹一個大泡泡，呼～',
  '["坐下面對孩子","示範深吸氣，再慢慢吹氣","想像吹出一個大泡泡","重複 3 次直到平靜"]',
  NULL, NULL, '你的身體放鬆下來了，好棒。',
- 24, 60, '{}', '{"toleratesFrustration"}', '{"toleratesFrustration","selfSoothing"}', '{"emotional_regulation"}',
+ 24, 60, '{}', '{"toleratesFrustration"}', '{"toleratesFrustration","selfSoothing"}', '{"emotional"}',
  'low', 'parallel', '{}', 'anywhere', 3, 10, TRUE, TRUE, TRUE, 'calm_down', FALSE, TRUE),
 
 -- ===================== PRESCHOOLER 36–48m =====================
@@ -176,7 +176,7 @@ INSERT INTO public.companion_activities (
  '["準備兒童安全剪刀、紙、膠水","示範剪直線","讓孩子剪下形狀","貼到底紙上完成作品"]',
  '["他想把作品送給誰？"]', '使用兒童安全剪刀，全程看顧。', '這張卡片好特別，你做到了！',
  36, 60, '{"canScribble"}', '{"canUseScissors"}', '{"canUseScissors","canWriteName"}', '{"fine_motor"}',
- 'low', 'solitary', '{"paper","scissors"}', 'anywhere', 10, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
+ 'low', 'solitary', '{"paper_crayons"}', 'anywhere', 10, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
 
 ('今天發生什麼事', '引導孩子描述一天，練習完整敘事。', '跟我說說，你今天做了哪些事？',
  '["坐下來面對孩子","問「今天最好玩的是什麼？」","追問「然後呢？」","用「哇／真的嗎」回應"]',
@@ -189,12 +189,12 @@ INSERT INTO public.companion_activities (
  '["把孩子的名字寫成淡淡的範字","讓他沿著描","再試著自己仿寫","完成就貼在牆上展示"]',
  '["你最喜歡名字裡哪個字？"]', '使用粗握筆，姿勢輕鬆不強求工整。', '這是你親手寫的名字，真棒！',
  48, 60, '{"canScribble"}', '{"canWriteName"}', '{"canWriteName"}', '{"fine_motor","language"}',
- 'low', 'solitary', '{"paper","crayons"}', 'anywhere', 8, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
+ 'low', 'solitary', '{"paper_crayons"}', 'anywhere', 8, 20, TRUE, TRUE, TRUE, 'creative', FALSE, TRUE),
 
 ('我們訂規則玩', '玩有簡單規則的小遊戲，練習遵守規則。', '我們來玩一二三木頭人，要守規則喔！',
  '["說明規則：喊停就不能動","你當鬼，孩子前進","喊「木頭人」大家定格","換孩子當鬼再玩"]',
  '["守規則會不會很難？"]', '在空曠處避免碰撞。', '你今天好會守規則，玩得真開心！',
- 48, 60, '{"canRun"}', '{"canFollowRules","canTakeTurns"}', '{"canFollowRules","cooperativePlay"}', '{"social_cognitive","emotional_regulation"}',
+ 48, 60, '{"canRun"}', '{"canFollowRules","canTakeTurns"}', '{"canFollowRules","cooperativePlay"}', '{"social_cognitive","emotional"}',
  'high', 'cooperative', '{}', 'living_room', 10, 20, FALSE, TRUE, FALSE, 'play', FALSE, TRUE),
 
 ('一來一往聊天', '進行有來有回的對話，練習傾聽與表達。', '我問你答，你也可以問我喔！',
@@ -207,7 +207,7 @@ INSERT INTO public.companion_activities (
 ('抱一抱充電', '不需任何道具的安撫式陪伴，任何時刻都適用。', '來，我們抱一抱，充滿電再出發。',
  '["放下手邊的事，蹲到孩子的高度","給一個溫暖的擁抱","輕拍背部，配合呼吸","待孩子準備好再放開"]',
  NULL, NULL, '抱飽了，我們一起做下一件事。',
- NULL, NULL, '{}', '{}', '{"selfSoothing"}', '{"emotional_regulation"}',
+ NULL, NULL, '{}', '{}', '{"selfSoothing"}', '{"emotional"}',
  'low', NULL, '{}', 'anywhere', 2, 10, TRUE, TRUE, TRUE, 'calm_down', TRUE, TRUE),
 
 ('一起看窗外', '觀察窗外並描述所見，零準備的輕陪伴。', '我們來看看窗外有什麼？',
