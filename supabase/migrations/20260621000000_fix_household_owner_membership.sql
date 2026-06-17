@@ -12,8 +12,10 @@
 --   2. 建立 household 時以 trigger 自動把 owner 加為成員（成員制 RLS 對 owner 生效）
 
 -- 1) owner 可讀自己建立的 household
+-- 條件順序：便宜的 owner_id 比對放前面，利用 OR 短路求值——owner 本人操作時
+-- 直接命中，略過較昂貴的 my_household_ids() 子查詢（會再查 household_members）。
 ALTER POLICY members_can_read_household ON public.households
-  USING ((id IN (SELECT my_household_ids())) OR (owner_id = auth_profile_id()));
+  USING ((owner_id = auth_profile_id()) OR (id IN (SELECT my_household_ids())));
 
 -- 2) 建立 household 時自動把 owner 加為成員
 CREATE OR REPLACE FUNCTION public.add_owner_as_member()
