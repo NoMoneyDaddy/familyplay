@@ -39,6 +39,13 @@ function JoinPageInner() {
         body: JSON.stringify({ code: inviteCode.trim().toUpperCase() }),
       })
 
+      // 未登入：先帶著邀請碼去登入，登入後自動回到本頁接受（避免死路）
+      if (res.status === 401) {
+        const next = `/join?code=${encodeURIComponent(inviteCode.trim().toUpperCase())}`
+        router.push(`/auth?next=${encodeURIComponent(next)}`)
+        return
+      }
+
       const data = await res.json()
 
       if (res.ok) {
@@ -59,10 +66,10 @@ function JoinPageInner() {
     }
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only auto-accept on initial load when code is provided
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only auto-accept once on initial load when code is in URL
   useEffect(() => {
-    // If code provided in URL, try to accept it automatically
-    if (codeFromUrl && !code) {
+    // 連結帶 code 時自動嘗試接受（未登入會被導去登入再自動回來）
+    if (codeFromUrl) {
       handleAcceptInvite(codeFromUrl)
     }
   }, [codeFromUrl])
@@ -79,15 +86,15 @@ function JoinPageInner() {
       ) : (
         // Input State
         <Card className="space-y-4">
-          <Field label="邀請碼 (6 個字母)" htmlFor="code">
+          <Field label="邀請碼（8 碼英數）" htmlFor="code">
             <TextInput
               id="code"
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="例如: ABC123"
-              maxLength={6}
-              className="text-center font-mono text-lg"
+              placeholder="例如：A1B2C3D4"
+              maxLength={8}
+              className="text-center font-mono text-lg tracking-widest"
               disabled={loading}
             />
           </Field>

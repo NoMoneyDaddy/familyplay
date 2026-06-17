@@ -29,9 +29,11 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // Land on '/' which routes to onboarding vs select based on whether the
-      // user already has children — returning users shouldn't re-onboard.
-      return NextResponse.redirect(new URL('/', request.url))
+      // 帶 next（站內路徑）時回原頁，例如帶邀請碼的 /join；否則回 '/' 由其判斷
+      // onboarding vs select（既有使用者不應重新引導）。只接受站內路徑，避免 open redirect。
+      const rawNext = requestUrl.searchParams.get('next')
+      const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/'
+      return NextResponse.redirect(new URL(next, request.url))
     }
   }
 

@@ -50,14 +50,21 @@ function AuthPageInner() {
   const [error, setError] = useState(searchParams.get('error') ? '登入未完成，請再試一次。' : '')
   const [loading, setLoading] = useState<'google' | 'guest' | null>(null)
 
+  // 登入後要回到的內部路徑（例如帶邀請碼的 /join）。只接受站內路徑，避免 open redirect。
+  const rawNext = searchParams.get('next')
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null
+
   const handleGoogle = async () => {
     setError('')
     setLoading('google')
     try {
       const supabase = createClient()
+      const callback = next
+        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+        : `${window.location.origin}/auth/callback`
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: callback },
       })
       if (authError) {
         setError(authError.message || 'Google 登入失敗，請稍後再試')
@@ -81,8 +88,8 @@ function AuthPageInner() {
         setLoading(null)
         return
       }
-      // 完整重新載入，確保伺服器讀到新的 session cookie 後正確導流
-      window.location.href = '/'
+      // 完整重新載入，確保伺服器讀到新的 session cookie 後正確導流（帶 next 則回原頁）
+      window.location.href = next || '/'
     } catch {
       setError('訪客登入暫時無法使用，請改用 Google 登入')
       setLoading(null)
