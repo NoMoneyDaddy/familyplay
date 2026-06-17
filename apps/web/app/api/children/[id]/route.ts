@@ -26,15 +26,17 @@ async function validateChildOwnership(
 
   if (!userProfile) return false
 
-  const { data: households } = await supabase
-    .from('households')
-    .select('id')
-    .eq('owner_id', userProfileId)
+  // Owners AND caregivers can manage children (matches the RLS policy).
+  const { data: memberships } = await supabase
+    .from('household_members')
+    .select('household_id')
+    .eq('user_profile_id', userProfileId)
+    .in('role', ['owner', 'caregiver'])
 
-  if (!households || households.length === 0) return false
+  if (!memberships || memberships.length === 0) return false
 
   // biome-ignore lint/suspicious/noExplicitAny: Supabase response type
-  const householdIds = households.map((h: any) => h.id)
+  const householdIds = memberships.map((m: any) => m.household_id)
 
   const { data: child } = await supabase
     .from('child_profiles')
@@ -46,7 +48,8 @@ async function validateChildOwnership(
   return !!child
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -62,8 +65,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     },
   })
 
-  const { data } = await supabase.auth.getSession()
-  if (!data.session?.user) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -71,7 +77,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select('id')
-      .eq('auth_user_id', data.session.user.id)
+      .eq('auth_user_id', user.id)
       .single()
 
     if (!userProfile) {
@@ -79,7 +85,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     // Verify ownership
-    const isOwner = await validateChildOwnership(supabase, params.id, userProfile.id)
+    const isOwner = await validateChildOwnership(supabase, id, userProfile.id)
     if (!isOwner) {
       return NextResponse.json({ error: 'Child not found' }, { status: 404 })
     }
@@ -106,7 +112,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { data: updated, error } = await supabase
       .from('child_profiles')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -128,7 +134,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -144,8 +151,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     },
   })
 
-  const { data } = await supabase.auth.getSession()
-  if (!data.session?.user) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -153,7 +163,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select('id')
-      .eq('auth_user_id', data.session.user.id)
+      .eq('auth_user_id', user.id)
       .single()
 
     if (!userProfile) {
@@ -161,14 +171,14 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
 
     // Verify ownership
-    const isOwner = await validateChildOwnership(supabase, params.id, userProfile.id)
+    const isOwner = await validateChildOwnership(supabase, id, userProfile.id)
     if (!isOwner) {
       return NextResponse.json({ error: 'Child not found' }, { status: 404 })
     }
 
     // Soft delete by marking as inactive (if schema supports it)
     // For now, do a hard delete since the schema doesn't have an isActive field for children
-    const { error } = await supabase.from('child_profiles').delete().eq('id', params.id)
+    const { error } = await supabase.from('child_profiles').delete().eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

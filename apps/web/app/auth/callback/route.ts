@@ -18,12 +18,10 @@ export async function GET(request: Request) {
     const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookies: { name: string; value: string; options: CookieOptions }[]) => {
-          const response = NextResponse.next()
-          for (const { name, value, options } of cookies) {
-            response.cookies.set(name, value, options)
+        setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+          for (const { name, value, options } of cookiesToSet) {
+            cookieStore.set(name, value, options)
           }
-          return response
         },
       },
     })
@@ -31,7 +29,9 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      return NextResponse.redirect(new URL('/onboarding', request.url))
+      // Land on '/' which routes to onboarding vs select based on whether the
+      // user already has children — returning users shouldn't re-onboard.
+      return NextResponse.redirect(new URL('/', request.url))
     }
   }
 

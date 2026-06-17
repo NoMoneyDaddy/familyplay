@@ -18,15 +18,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Detect migration changes
+        id: changes
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -q '^supabase/migrations/'; then
+            echo "migrations_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "migrations_changed=false" >> "$GITHUB_OUTPUT"
+            echo "No migration changes in this push — skipping db push."
+          fi
       - uses: pnpm/action-setup@v4
+        if: steps.changes.outputs.migrations_changed == 'true'
       - uses: actions/setup-node@v4
+        if: steps.changes.outputs.migrations_changed == 'true'
         with:
           node-version: '20'
           cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
+      - name: Install (pinned supabase CLI)
+        if: steps.changes.outputs.migrations_changed == 'true'
+        run: pnpm install --frozen-lockfile
       - name: Push Migrations to Production Supabase
-        continue-on-error: true
-        run: npx supabase db push --db-url=${{ secrets.PRODUCTION_DATABASE_URL }}
+        # No continue-on-error: a failed migration MUST fail the job so the
+        # Telegram notify reflects reality, not a false success.
+        if: steps.changes.outputs.migrations_changed == 'true'
+        run: pnpm exec supabase db push --db-url="${{ secrets.PRODUCTION_DATABASE_URL }}"
 
   build-mobile-production:
     name: Build Mobile Production (EAS)
@@ -44,10 +61,19 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: |
-          cd apps/mobile
-          eas build --platform ios --profile production --non-interactive
+      # Android AAB → 自動上傳到 Google Play internal（封測）軌道。
+      # 需要：EXPO_TOKEN secret、eas.json submit 的 google-play-key.json。
+      # 等待建置完成 (--wait 預設) 才能 submit。
+      - name: Build + submit Android (Google Play internal)
+        working-directory: apps/mobile
+        run: |
           eas build --platform android --profile production --non-interactive
+          eas submit --platform android --profile production --non-interactive --latest
+      # iOS 建置在 commit 含 [ios] 時才跑（需要 Apple 憑證）
+      - name: Build iOS
+        if: contains(github.event.head_commit.message, '[ios]')
+        working-directory: apps/mobile
+        run: eas build --platform ios --profile production --non-interactive
 
   notify:
     name: Telegram Notification

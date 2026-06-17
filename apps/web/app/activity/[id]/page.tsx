@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 
 interface Activity {
   id: string
@@ -14,7 +14,23 @@ interface Activity {
   maxDurationMinutes: number
 }
 
-export default function ActivityPage({ params }: { params: { id: string } }) {
+const REACTION_LABELS: Record<string, string> = {
+  happy: '開心 😊',
+  engaged: '投入 ✨',
+  neutral: '普通 😐',
+  leaving: '想離開 🚶',
+  disinterested: '沒興趣 😶',
+  calmed: '平靜了 😌',
+}
+
+const OUTCOME_LABELS: Record<string, string> = {
+  completed: '完成 ✅',
+  tried: '嘗試了 🔸',
+  abandoned: '中途放棄 ⏹️',
+}
+
+export default function ActivityPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [activity, setActivity] = useState<Activity | null>(null)
   const [activityLoading, setActivityLoading] = useState(true)
@@ -26,12 +42,12 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/activities/${params.id}`)
+    fetch(`/api/activities/${id}`)
       .then((res) => res.json())
       .then((data) => setActivity(data))
       .catch(() => setActivity(null))
       .finally(() => setActivityLoading(false))
-  }, [params.id])
+  }, [id])
 
   const handleComplete = async () => {
     setLoading(true)
@@ -45,7 +61,7 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           childId,
-          activityId: params.id,
+          activityId: id,
           outcome,
           childReaction,
           durationSecs,
@@ -128,6 +144,7 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
                 <button
                   key={r}
                   type="button"
+                  aria-pressed={childReaction === r}
                   onClick={() =>
                     setChildReaction(
                       r as 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed',
@@ -137,7 +154,7 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
                     childReaction === r ? 'bg-[--color-brand] text-white' : 'bg-[--color-bg]'
                   }`}
                 >
-                  {r}
+                  {REACTION_LABELS[r]}
                 </button>
               ))}
             </div>
@@ -150,12 +167,13 @@ export default function ActivityPage({ params }: { params: { id: string } }) {
                 <button
                   key={o}
                   type="button"
+                  aria-pressed={outcome === o}
                   onClick={() => setOutcome(o as 'completed' | 'tried' | 'abandoned')}
                   className={`rounded-lg p-2 text-xs font-medium ${
                     outcome === o ? 'bg-[--color-brand] text-white' : 'bg-[--color-bg]'
                   }`}
                 >
-                  {o}
+                  {OUTCOME_LABELS[o]}
                 </button>
               ))}
             </div>

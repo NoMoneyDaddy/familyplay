@@ -177,3 +177,13 @@ perf: 性能優化
 **✅ API 核心功能完成 | UI 待實現**
 
 準備 Beta 測試，API 層 100% 可用。
+
+---
+
+## 技能啟用：task-observer（One Skill to Rule Them All）
+
+每個任務型工作階段開始時，先呼叫 `task-observer` 技能（位於
+`.claude/skills/task-observer/`）。它在背景觀察工作流程、捕捉可重複的模式與修正，
+建議技能的新增與改進（不會自動修改，需經人工核可）。
+
+> 注意：技能描述比對本身不保證觸發；此 CLAUDE.md 指令即為其建議的可靠啟用方式。

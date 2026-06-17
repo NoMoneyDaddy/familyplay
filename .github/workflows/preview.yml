@@ -52,11 +52,12 @@ jobs:
       - run: pnpm turbo type-check
       - run: pnpm turbo test
 
-  build-mobile-preview:
-    name: Build Mobile Preview (EAS)
+  build-apk-preview:
+    name: Build Android APK Preview (EAS)
     runs-on: ubuntu-latest
     needs: test
-    # commit message 含 [mobile] 才觸發，省 EAS 額度
+    # commit message 含 [mobile] 才觸發，省 EAS 額度。
+    # 只建 Android APK：不需要 Apple 憑證，且 iOS 失敗不會擋住 APK 產出。
     if: |
       github.event_name == 'push' &&
       contains(github.event.head_commit.message, '[mobile]')
@@ -72,10 +73,9 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: |
-          cd apps/mobile
-          eas build --platform ios --profile preview --non-interactive
-          eas build --platform android --profile preview --non-interactive
+      # preview profile 的 android.buildType = apk → 產出可直接安裝的 APK
+      - run: eas build --platform android --profile preview --non-interactive --no-wait
+        working-directory: apps/mobile
 
   notify:
     name: Telegram Notification

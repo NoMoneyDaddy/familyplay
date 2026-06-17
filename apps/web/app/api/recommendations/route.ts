@@ -1,4 +1,5 @@
-import { STAGE_KEYS, getRecommendations } from '@familyplay/core'
+import { checkRateLimit } from '@/lib/ratelimit'
+import { ALLOWED_STAGE_KEYS, getAgeMonths, getRecommendations, getStageKey } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
@@ -28,9 +29,18 @@ export async function POST(request: Request) {
     },
   })
 
-  const { data } = await supabase.auth.getSession()
-  if (!data.session?.user) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Rate limit: 30 recommendation requests per user per minute
+  const rl = await checkRateLimit(`recommend:${user.id}`, 30)
+  if (!rl.success) {
+    return Response.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
   try {
@@ -55,14 +65,34 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Child not found' }, { status: 404 })
     }
 
-    // Fetch activities
+    // birth_year_month is required to compute age safety — don't guess
+    if (!child.birth_year_month) {
+      return Response.json({ error: '孩子的年齡資料不完整，請先補上出生年月' }, { status: 400 })
+    }
+
+    let ageMonths: number
+    try {
+      ageMonths = getAgeMonths(child.birth_year_month)
+    } catch {
+      return Response.json({ error: '孩子的出生年月格式不正確' }, { status: 400 })
+    }
+    if (ageMonths < 0) {
+      return Response.json({ error: '孩子的出生年月不能在未來' }, { status: 400 })
+    }
+
+    // Pre-filter activities by age in SQL (only columns the engine needs)
     const { data: activities, error: activitiesError } = await supabase
       .from('companion_activities')
-      .select('*')
+      .select(
+        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
+      )
       .eq('is_active', true)
+      .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
+      .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`)
 
     if (activitiesError) {
-      return Response.json({ error: 'Failed to fetch activities' }, { status: 500 })
+      console.error('Failed to fetch activities', activitiesError)
+      return Response.json({ error: '無法載入活動資料' }, { status: 500 })
     }
 
     // Fetch recent logs for recency penalty
@@ -88,12 +118,10 @@ export async function POST(request: Request) {
       ),
     )
 
-    // Calculate age from birth_year_month
-    const [year, month] = (child.birth_year_month || '2024-06').split('-').map(Number)
-    const birthDate = new Date(year, month - 1, 1)
-    const now = new Date()
-    const ageMonths =
-      (now.getFullYear() - birthDate.getFullYear()) * 12 + (now.getMonth() - birthDate.getMonth())
+    // Validate the cached stage_key against the whitelist; recompute if invalid
+    const stageKey = ALLOWED_STAGE_KEYS.includes(child.stage_key as never)
+      ? (child.stage_key as (typeof ALLOWED_STAGE_KEYS)[number])
+      : getStageKey(ageMonths)
 
     // Get recommendations
     const recs = getRecommendations(
@@ -118,8 +146,7 @@ export async function POST(request: Request) {
       {
         child: {
           id: childId,
-          // biome-ignore lint/suspicious/noExplicitAny: Supabase column type
-          stageKey: (child.stage_key as any) || STAGE_KEYS.TODDLER_PLAYER,
+          stageKey,
           ageMonths,
           acquiredCapabilities,
         },

@@ -1,5 +1,7 @@
 'use client'
 
+import { Suspense } from 'react'
+
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -11,7 +13,7 @@ interface Recommendation {
   reasons: string[]
 }
 
-export default function RecommendationsPage() {
+function RecommendationsPageInner() {
   const searchParams = useSearchParams()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [loading, setLoading] = useState(true)
@@ -129,5 +131,19 @@ export default function RecommendationsPage() {
         </button>
       </div>
     </main>
+  )
+}
+
+export default function RecommendationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <p className="text-[--color-muted]">載入推薦中...</p>
+        </main>
+      }
+    >
+      <RecommendationsPageInner />
+    </Suspense>
   )
 }
