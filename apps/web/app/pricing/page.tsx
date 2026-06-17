@@ -23,7 +23,7 @@ interface PlanCard {
   highlight?: boolean
 }
 
-// 輕營利取向：核心功能永久免費；付費為選擇性的「支持開發」，價格溫和、隨時可取消。
+// 輕營利取向：大部分功能免費（以輕度廣告支撐）；付費可移除廣告並解鎖進階，價格溫和、隨時可取消。
 // 顯示價格須與 LemonSqueezy variant 設定一致（見 README / env）。
 const PLAN_CARDS: PlanCard[] = [
   {
@@ -31,21 +31,27 @@ const PLAN_CARDS: PlanCard[] = [
     name: '免費',
     price: 'NT$0',
     period: '永久',
-    tagline: '核心陪伴功能，永久免費',
-    features: ['30 秒個人化陪伴方案', '完整親子活動庫', '發展階段與能力追蹤', '近 7 天活動歷史'],
+    tagline: '大部分功能免費，僅有少量不干擾的廣告',
+    features: [
+      '30 秒個人化陪伴方案',
+      '完整親子活動庫',
+      '發展階段與能力追蹤',
+      '近 7 天活動歷史',
+      '少量輕度廣告（可付費移除）',
+    ],
   },
   {
     id: 'supporter',
     name: '支持者',
     price: 'NT$90',
     period: '/月',
-    tagline: '喜歡這個 App？請我們喝杯咖啡，一起支持開發 ☕',
+    tagline: '移除廣告、解鎖便利，一起支持開發 ☕',
     features: [
+      '移除廣告，乾淨體驗',
       '免費版的全部功能',
       '完整活動歷史（不限天數）',
       '家庭成員共享（配偶／長輩一起用）',
       '匯出陪伴紀錄',
-      '無廣告',
     ],
   },
   {
@@ -173,7 +179,9 @@ export default function PricingPage() {
       <div className="mx-auto max-w-[480px] space-y-8">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold text-[--color-brand]">方案與支持</h1>
-          <p className="text-[--color-muted]">核心功能永久免費，付費是選擇性的支持 💛</p>
+          <p className="text-[--color-muted]">
+            大部分功能免費（含少量廣告）；付費可移除廣告並解鎖進階 💛
+          </p>
         </div>
 
         {/* 錯誤 live region 常駐 DOM */}

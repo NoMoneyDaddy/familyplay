@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Noto_Sans_TC } from 'next/font/google'
+import Script from 'next/script'
 import { ServiceWorkerRegister } from './components/sw-register'
 import './globals.css'
+
+const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
 
 const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
@@ -52,6 +55,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-[--color-bg] font-sans antialiased">
         <ServiceWorkerRegister />
         <div className="mx-auto max-w-[480px] min-h-screen">{children}</div>
+        {/* 輕度廣告：僅在設定 AdSense client 時載入腳本（未設定則完全不載入） */}
+        {adsenseClient && (
+          <Script
+            id="adsbygoogle-init"
+            async
+            strategy="lazyOnload"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+          />
+        )}
       </body>
     </html>
   )
