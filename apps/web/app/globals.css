@@ -12,9 +12,9 @@
   --color-muted: #6b615a; /* 暖灰，AA 安全（取代偏冷的藍灰） */
   --color-border: #ece5db; /* 暖淺邊框，取代冷灰 */
 
-  --color-success: #2faf76;
-  --color-warning: #e6892f;
-  --color-info: #3f8fd6;
+  --color-success: #1b7a4e;
+  --color-warning: #b25e00;
+  --color-info: #1d6fa5;
 
   /* ── Special modes ── */
   --color-bedtime-bg: #1a1428;
@@ -44,22 +44,17 @@
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
     /* iOS safe area */
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
 
-  /* 標題質感：略收字距、避免孤行，讓大標更俐落溫潤 */
+  /* 標題質感：避免孤行。中文字形方正密集，不使用負字距以免筆畫擁擠。 */
   h1,
   h2,
   h3 {
-    letter-spacing: -0.012em;
     text-wrap: balance;
-  }
-  h1 {
-    letter-spacing: -0.022em;
   }
 
   /* Respect system animation preference */
