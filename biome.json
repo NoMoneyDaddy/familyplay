@@ -36,7 +36,10 @@
       },
       "suspicious": {
         "noExplicitAny": "warn",
-        "noConsole": { "level": "warn", "options": { "allow": ["log"] } }
+        "noConsole": {
+          "level": "warn",
+          "options": { "allow": ["warn", "error", "info", "dir", "table"] }
+        }
       }
     }
   },
@@ -58,7 +61,7 @@
       "linter": {
         "rules": {
           "suspicious": {
-            "noConsole": { "level": "off", "options": { "allow": ["log"] } }
+            "noConsole": "off"
           }
         }
       }
