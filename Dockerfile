@@ -30,7 +30,13 @@ COPY packages/db/package.json      ./packages/db/
 COPY packages/assessment/package.json    ./packages/assessment/
 COPY packages/capabilities/package.json  ./packages/capabilities/
 
-RUN pnpm install --frozen-lockfile
+# --prod=false：強制安裝 devDependencies。
+# Zeabur build 環境帶有 NODE_ENV=production，pnpm 會因此略過 devDependencies；
+# 但 next build 需要 typescript（載入 next.config.ts + 型別檢查）、tailwindcss、
+# @types/* 等 devDeps，缺了會出現
+#   "Installing TypeScript as it was not found while loading next.config.ts" → build 失敗。
+# 用命令列旗標確保 devDeps 一定安裝（旗標優先於 env 變數）。
+RUN pnpm install --frozen-lockfile --prod=false
 
 # 再複製原始碼並建置（node_modules 已在本階段就位，無跨階段 COPY）
 COPY . .
