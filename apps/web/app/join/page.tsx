@@ -2,6 +2,16 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import {
+  Button,
+  Callout,
+  Card,
+  ErrorAlert,
+  Field,
+  PageHeader,
+  PageShell,
+  TextInput,
+} from '@/app/components/ui'
 
 function JoinPageInner() {
   const router = useRouter()
@@ -58,78 +68,60 @@ function JoinPageInner() {
   }, [codeFromUrl])
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
-        {/* Header */}
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-brand">加入家庭</h1>
-          <p className="text-sm text-muted">使用邀請碼加入家庭陪伴計畫</p>
+    <PageShell withNav={false}>
+      <PageHeader title="加入家庭" subtitle="使用邀請碼加入家庭陪伴計畫" align="center" />
+
+      {success ? (
+        // Success State
+        <Callout tone="success" title="邀請已接受">
+          歡迎加入家庭！正在重新導向...
+        </Callout>
+      ) : (
+        // Input State
+        <Card className="space-y-4">
+          <Field label="邀請碼 (6 個字母)" htmlFor="code">
+            <TextInput
+              id="code"
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="例如: ABC123"
+              maxLength={6}
+              className="text-center font-mono text-lg"
+              disabled={loading}
+            />
+          </Field>
+
+          <ErrorAlert message={error} />
+
+          <Button
+            size="lg"
+            loading={loading}
+            disabled={loading || !code.trim()}
+            onClick={() => handleAcceptInvite(code)}
+          >
+            接受邀請
+          </Button>
+
+          <Callout tone="tip" title="提示">
+            邀請碼由家庭擁有者或照顧者生成。如果還沒有收到邀請碼，請聯繫你的家庭成員。
+          </Callout>
+        </Card>
+      )}
+
+      {/* Alternative: Go Back */}
+      {!success && (
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => router.push('/select')}
+            className="text-sm text-muted transition-colors hover:text-text"
+          >
+            返回選擇頁面
+          </button>
         </div>
-
-        {success ? (
-          // Success State
-          <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4 text-center">
-            <div className="text-4xl">✅</div>
-            <div>
-              <h2 className="font-semibold text-text">邀請已接受</h2>
-              <p className="mt-2 text-sm text-muted">歡迎加入家庭！正在重新導向...</p>
-            </div>
-          </div>
-        ) : (
-          // Input State
-          <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-text">邀請碼 (6 個字母)</span>
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="例如: ABC123"
-                maxLength={6}
-                className="w-full rounded-lg border border-border px-4 py-3 text-lg font-mono text-center text-text placeholder-muted focus:outline-none focus:ring-2 focus:ring-brand"
-                disabled={loading}
-              />
-            </label>
-
-            <div
-              role="alert"
-              className={error ? 'rounded-lg bg-red-50 p-3 text-sm text-red-700' : 'sr-only'}
-            >
-              {error}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleAcceptInvite(code)}
-              disabled={loading || !code.trim()}
-              className="w-full rounded-lg bg-brand px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
-            >
-              {loading ? '驗證中...' : '接受邀請'}
-            </button>
-
-            <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
-              <p className="font-semibold">💡 提示</p>
-              <p className="mt-1 text-xs">
-                邀請碼由家庭擁有者或照顧者生成。如果還沒有收到邀請碼，請聯繫你的家庭成員。
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Alternative: Go Back */}
-        {!success && (
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => router.push('/select')}
-              className="text-sm text-muted hover:text-text"
-            >
-              返回選擇頁面
-            </button>
-          </div>
-        )}
-      </div>
-    </main>
+      )}
+    </PageShell>
   )
 }
 
@@ -137,7 +129,7 @@ export default function JoinPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center">
+        <main className="flex min-h-dvh items-center justify-center">
           <p className="text-muted">載入中...</p>
         </main>
       }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { DM_Sans, Noto_Sans_TC } from 'next/font/google'
+import { Baloo_2, Noto_Sans_TC } from 'next/font/google'
 import Script from 'next/script'
+import { BottomNav } from './components/bottom-nav'
 import { ServiceWorkerRegister } from './components/sw-register'
 import './globals.css'
 
@@ -13,10 +14,11 @@ const notoSansTC = Noto_Sans_TC({
   display: 'swap',
 })
 
-const dmSans = DM_Sans({
+// 圓潤 display 字體：給品牌字與大數字個性，刻意避開 Inter/Roboto 的 AI 預設感
+const baloo2 = Baloo_2({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-dm',
+  weight: ['500', '600', '700'],
+  variable: '--font-baloo',
   display: 'swap',
 })
 
@@ -51,12 +53,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-TW" className={`${notoSansTC.variable} ${dmSans.variable}`}>
+    <html lang="zh-TW" className={`${notoSansTC.variable} ${baloo2.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
         <ServiceWorkerRegister />
         {/* mobile-first 聚焦欄：手機滿版；平板/桌機置中並加環境陰影，框成「被設計過的 App」 */}
-        <div className="mx-auto min-h-dvh w-full max-w-[480px] bg-bg shadow-none sm:shadow-[0_0_90px_-28px_rgba(74,49,28,0.3)]">
+        <div className="relative mx-auto min-h-dvh w-full max-w-[480px] bg-bg shadow-none sm:shadow-[0_0_90px_-28px_rgba(74,49,28,0.3)]">
           {children}
+          {/* 常駐底部導覽：只在主要功能頁顯示，框出一致的「App」骨架 */}
+          <BottomNav />
         </div>
         {/* 輕度廣告：僅在設定 AdSense client 時載入腳本（未設定則完全不載入） */}
         {adsenseClient && (

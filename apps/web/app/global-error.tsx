@@ -17,15 +17,45 @@ export default function GlobalError({
 
   return (
     <html lang="zh-TW">
-      <body className="min-h-screen bg-[#FAFAF8] antialiased">
-        <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-          <div className="text-5xl">😵</div>
-          <h1 className="text-xl font-bold">應用程式發生錯誤</h1>
-          <p className="text-sm text-gray-500">請重新整理頁面，問題已自動回報。</p>
+      <body
+        style={{
+          minHeight: '100vh',
+          margin: 0,
+          backgroundColor: '#FBF7F0',
+          WebkitFontSmoothing: 'antialiased',
+        }}
+      >
+        <main
+          style={{
+            display: 'flex',
+            minHeight: '100vh',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1rem',
+            padding: '0 1.5rem',
+            textAlign: 'center',
+            fontFamily: 'system-ui, sans-serif',
+            color: '#3D3A36',
+          }}
+        >
+          <div style={{ fontSize: '3rem' }}>😵</div>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>應用程式發生錯誤</h1>
+          <p style={{ fontSize: '0.875rem', color: '#8A847B', margin: 0 }}>
+            請重新整理頁面，問題已自動回報。
+          </p>
           <button
             type="button"
             onClick={reset}
-            className="rounded-lg bg-[#FF6B35] px-5 py-2.5 font-medium text-white"
+            style={{
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#E8742C',
+              padding: '0.625rem 1.25rem',
+              fontWeight: 500,
+              color: '#fff',
+              cursor: 'pointer',
+            }}
           >
             重試
           </button>

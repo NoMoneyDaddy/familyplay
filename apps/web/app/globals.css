@@ -5,28 +5,49 @@
      暖色系收斂：中性色一律偏暖，與橘色品牌協調，營造「溫暖平靜的陪伴 companion」質感。
      所有作為文字用途的色彩皆通過 WCAG AA 對比（muted 在暖奶油底上 ≥5:1）。 */
   --color-brand: #ff6b35;
+  --color-brand-strong: #e8551f; /* hover / 深一階品牌色 */
   --color-brand-tint: #fff1ea; /* 品牌淺色暈染，供柔和背景/標記使用 */
+  --color-brand-tint-strong: #ffe2d2; /* 稍深的品牌底，做 selected / chip */
   --color-bg: #faf6f0; /* 暖奶油，取代偏冷的近白 */
+  --color-surface: #fffdfb; /* 比卡片再暖一點的次表面 */
   --color-card: #ffffff;
   --color-text: #241f1b; /* 暖墨黑，取代純冷黑 */
   --color-muted: #6b615a; /* 暖灰，AA 安全（取代偏冷的藍灰） */
+  --color-faint: #9b9089; /* 更淡的輔助文字（僅用於非必要說明） */
   --color-border: #ece5db; /* 暖淺邊框，取代冷灰 */
+  --color-border-strong: #ddd2c5;
 
+  /* ── 語意狀態（全部收進暖色系，停止散用 blue-50 / yellow-50 / green-50）── */
   --color-success: #1b7a4e;
-  --color-warning: #b25e00;
+  --color-success-tint: #e7f3ec;
+  --color-warning: #9a5400;
+  --color-warning-tint: #fbeed9;
+  --color-danger: #b42318;
+  --color-danger-tint: #fdecea;
   --color-info: #1d6fa5;
+  --color-info-tint: #e8f1f8;
 
   /* ── Special modes ── */
   --color-bedtime-bg: #1a1428;
   --color-emotion-bg: #1c1410;
 
-  /* ── Typography ── */
+  /* ── Typography ──
+     body 用 Noto Sans TC（中文）；display 用 Baloo 2（拉丁字／數字），給品牌字與大數字
+     一點圓潤的手感與個性——刻意避開 Inter/Roboto 那種「AI 預設感」。中文標題仍落回 Noto。 */
   --font-sans: "Noto Sans TC", "DM Sans", system-ui, sans-serif;
+  --font-display: "Baloo 2", "Noto Sans TC", system-ui, sans-serif;
 
   /* ── Soft warm elevation（暖調柔和陰影，取代生硬黑影，營造手感層次） ── */
   --shadow-sm: 0 1px 2px 0 rgb(74 49 28 / 0.05), 0 2px 8px -2px rgb(74 49 28 / 0.06);
   --shadow-md: 0 4px 14px -3px rgb(74 49 28 / 0.09);
   --shadow-lg: 0 12px 28px -6px rgb(74 49 28 / 0.12);
+  --shadow-brand: 0 10px 24px -8px rgb(255 107 53 / 0.45);
+
+  /* ── Radii（刻意分級，不讓所有東西都同一個圓角——那是 AI slop 的特徵之一）── */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
 
   /* ── Spacing ── */
   --spacing: 8px;
@@ -73,4 +94,10 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* 品牌字／大數字用圓潤 display 字體（拉丁字才生效，中文落回 Noto） */
+.font-display {
+  font-family: var(--font-display);
+  font-feature-settings: "ss01";
 }

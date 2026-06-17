@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
+import { Button } from '@/app/components/ui'
 
 export default function ErrorPage({
   error,
@@ -19,13 +20,9 @@ export default function ErrorPage({
       <div className="text-5xl">😵</div>
       <h1 className="text-xl font-bold text-text">發生了一點問題</h1>
       <p className="text-sm text-muted">請稍後再試，問題已自動回報給我們。</p>
-      <button
-        type="button"
-        onClick={reset}
-        className="rounded-lg bg-brand px-5 py-2.5 font-medium text-white hover:opacity-90"
-      >
+      <Button onClick={reset} size="md" icon="refresh">
         重試
-      </button>
+      </Button>
     </main>
   )
 }

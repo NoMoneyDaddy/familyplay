@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
+import { Button, Card, Icon, PageShell } from '@/app/components/ui'
 
 interface Activity {
   id: string
@@ -77,134 +78,121 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
   if (activityLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-muted" role="status">
+      <PageShell>
+        <p className="py-12 text-center text-muted" role="status">
           加載活動中...
         </p>
-      </main>
+      </PageShell>
     )
   }
 
   if (!activity) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600" role="alert">
+      <PageShell>
+        <p className="py-12 text-center text-danger" role="alert">
           活動不存在
         </p>
-      </main>
+      </PageShell>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
-        <div className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-text">{activity.title}</h1>
+    <PageShell>
+      <Card className="space-y-4">
+        <h1 className="text-2xl font-bold text-text">{activity.title}</h1>
 
-          <div className="space-y-4">
-            <div>
-              <p className="text-lg font-semibold text-brand">{activity.openingLine}</p>
-            </div>
+        <div className="space-y-4">
+          <div>
+            <p className="text-lg font-semibold text-brand">{activity.openingLine}</p>
+          </div>
 
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-text">步驟</h2>
+            <ol className="space-y-2">
+              {activity.steps.map((step, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: Activity steps are static and ordered
+                <li key={i} className="flex gap-3">
+                  <span className="font-semibold text-brand">{i + 1}</span>
+                  <span className="text-text">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {activity.followUpQuestions.length > 0 && (
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold text-text">步驟</h2>
-              <ol className="space-y-2">
-                {activity.steps.map((step, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: Activity steps are static and ordered
-                  <li key={i} className="flex gap-3">
-                    <span className="font-semibold text-brand">{i + 1}</span>
-                    <span className="text-text">{step}</span>
+              <h2 className="text-sm font-semibold text-text">跟進問題</h2>
+              <ul className="space-y-1">
+                {activity.followUpQuestions.map((q, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Follow-up questions are static and ordered
+                  <li key={i} className="text-sm text-muted">
+                    • {q}
                   </li>
                 ))}
-              </ol>
+              </ul>
             </div>
+          )}
 
-            {activity.followUpQuestions.length > 0 && (
-              <div className="space-y-2">
-                <h2 className="text-sm font-semibold text-text">跟進問題</h2>
-                <ul className="space-y-1">
-                  {activity.followUpQuestions.map((q, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: Follow-up questions are static and ordered
-                    <li key={i} className="text-sm text-muted">
-                      • {q}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="text-xs text-muted">
-              <span aria-hidden="true">⏱️ </span>約 {activity.minDurationMinutes}–
-              {activity.maxDurationMinutes} 分鐘
-            </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted">
+            <Icon name="clock" className="h-[14px] w-[14px]" />約 {activity.minDurationMinutes}–
+            {activity.maxDurationMinutes} 分鐘
           </div>
         </div>
+      </Card>
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-          <h2 className="font-semibold text-text">活動結果</h2>
+      <Card className="space-y-4">
+        <h2 className="font-semibold text-text">活動結果</h2>
 
-          {/* 孩子的反應：單選 radio 群組 */}
-          <fieldset className="space-y-2">
-            <legend className="block text-sm font-semibold text-text">孩子的反應</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {REACTIONS.map((r) => (
-                <label
-                  key={r.value}
-                  className="cursor-pointer rounded-lg bg-bg p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
-                >
-                  <input
-                    type="radio"
-                    name="reaction"
-                    value={r.value}
-                    checked={childReaction === r.value}
-                    onChange={() => setChildReaction(r.value)}
-                    className="sr-only"
-                  />
-                  {r.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+        {/* 孩子的反應：單選 radio 群組 */}
+        <fieldset className="space-y-2">
+          <legend className="block text-sm font-semibold text-text">孩子的反應</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {REACTIONS.map((r) => (
+              <label
+                key={r.value}
+                className="cursor-pointer rounded-lg border border-border bg-card p-2 text-center text-xs font-medium text-text transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+              >
+                <input
+                  type="radio"
+                  name="reaction"
+                  value={r.value}
+                  checked={childReaction === r.value}
+                  onChange={() => setChildReaction(r.value)}
+                  className="sr-only"
+                />
+                {r.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-          {/* 活動完成度：單選 radio 群組 */}
-          <fieldset className="space-y-2">
-            <legend className="block text-sm font-semibold text-text">活動完成度</legend>
-            <div className="grid grid-cols-3 gap-2">
-              {OUTCOMES.map((o) => (
-                <label
-                  key={o.value}
-                  className="cursor-pointer rounded-lg bg-bg p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
-                >
-                  <input
-                    type="radio"
-                    name="outcome"
-                    value={o.value}
-                    checked={outcome === o.value}
-                    onChange={() => setOutcome(o.value)}
-                    className="sr-only"
-                  />
-                  {o.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+        {/* 活動完成度：單選 radio 群組 */}
+        <fieldset className="space-y-2">
+          <legend className="block text-sm font-semibold text-text">活動完成度</legend>
+          <div className="grid grid-cols-3 gap-2">
+            {OUTCOMES.map((o) => (
+              <label
+                key={o.value}
+                className="cursor-pointer rounded-lg border border-border bg-card p-2 text-center text-xs font-medium text-text transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+              >
+                <input
+                  type="radio"
+                  name="outcome"
+                  value={o.value}
+                  checked={outcome === o.value}
+                  onChange={() => setOutcome(o.value)}
+                  className="sr-only"
+                />
+                {o.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-          <button
-            type="button"
-            onClick={handleComplete}
-            disabled={loading}
-            className="w-full rounded-lg bg-brand py-3 font-semibold text-white disabled:opacity-50"
-          >
-            {loading ? (
-              '記錄中...'
-            ) : (
-              <>
-                <span aria-hidden="true">✅ </span>完成並記錄
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </main>
+        <Button type="button" onClick={handleComplete} loading={loading} size="lg" icon="check">
+          {loading ? '記錄中...' : '完成並記錄'}
+        </Button>
+      </Card>
+    </PageShell>
   )
 }
