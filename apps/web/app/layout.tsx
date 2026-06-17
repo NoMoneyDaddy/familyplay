@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Noto_Sans_TC } from 'next/font/google'
 import './globals.css'
+import { Providers } from './providers'
 
 const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
@@ -44,7 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-TW" className={`${notoSansTC.variable} ${dmSans.variable}`}>
       <body className="min-h-screen bg-[--color-bg] font-sans antialiased">
-        <div className="mx-auto max-w-[480px] min-h-screen">{children}</div>
+        <div className="mx-auto max-w-[480px] min-h-screen">
+          <Providers>{children}</Providers>
+        </div>
       </body>
     </html>
   )

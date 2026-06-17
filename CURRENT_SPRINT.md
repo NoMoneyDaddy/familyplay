@@ -22,15 +22,28 @@
 - ✅ 推薦引擎七步（`packages/core/src/recommendation.ts`，純 TS、無外部依賴）
 - ✅ 內建啟動活動庫（`activity-catalog.ts`，9 筆覆蓋各階段）
 - ✅ 推薦 API `POST /api/recommend`（Zod 白名單驗證，stageKey 由年齡推算不信任前端）
-- ✅ 測試：core 43 + ai 10 + assessment 7 + web 12 = 72 個，全綠
+
+**完成「30 秒拿到方案」完整前端流程（Sprint 3 提前落地）：**
+- ✅ 首頁互動流程 `components/companion-flow.tsx`（年齡 / 家長狀態 / 情境 / 場景 / 時間 / 資源）
+- ✅ Zustand 狀態 `lib/companion-store.ts`、TanStack Query `lib/use-recommendations.ts`、Provider `app/providers.tsx`
+- ✅ 無障礙選項元件（`aria-pressed`、最小 44px 點擊區、`prefers-reduced-motion` 已於 globals 處理）
+- ✅ **年齡基線能力**（`getBaselineCapabilities`）：免做完整評估也能給出合理推薦；未指定 ZPD 時自動推算
+- ✅ 已實機驗證：睡前/低電量/2–3 歲 → 回傳「一起看圖畫書」（非保底）；4 歲一般情境 → 3 筆合理排序
+
+**測試：core 43 + ai 10 + assessment 12 + web 22 = 87 個，全綠**
 
 **驗證指令（全部通過）：**
 ```bash
 pnpm biome check .       # 0 error
 pnpm turbo type-check    # 7/7
-pnpm turbo test          # 72 tests pass
-pnpm --filter @familyplay/web exec next build  # 含 /api/recommend
+pnpm turbo test          # 87 tests pass
+pnpm --filter @familyplay/web exec next build  # 首頁互動 + /api/recommend
 ```
+
+**尚待你提供雲端金鑰後才能接通（roadmap）：**
+- Supabase Auth（Google 登入）+ RLS + 由 `companion_activities` 載入活動取代內建庫
+- LemonSqueezy / RevenueCat 付費；Sentry 錯誤監控；Upstash 速率限制與快取
+- Mobile（Expo）對應畫面；shadcn/ui 元件化
 
 ---
 

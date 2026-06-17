@@ -2,9 +2,11 @@
 // 與 Next.js Route Handler 分離，方便單元測試。
 
 import { ALLOWED_RESOURCE_KEYS, ALLOWED_SPACE_CONTEXTS } from '@familyplay/ai'
+import { getBaselineCapabilities, getZpdTargets } from '@familyplay/assessment'
 import {
   ALLOWED_CAPABILITY_KEYS,
   ALLOWED_STAGE_KEYS,
+  type CapabilityKey,
   type RecommendationContext,
   type RecommendationResult,
   STARTER_ACTIVITIES,
@@ -32,13 +34,23 @@ export const recommendInputSchema = z.object({
 export type RecommendInput = z.infer<typeof recommendInputSchema>
 
 export function buildContext(input: RecommendInput): RecommendationContext {
+  // 沒做完整評估時，以年齡推估的保守能力作為基線，並併入家長明確勾選的能力。
+  const explicit = input.achievedCapabilities as CapabilityKey[]
+  const achievedCapabilities = Array.from(
+    new Set<CapabilityKey>([...getBaselineCapabilities(input.ageMonths), ...explicit]),
+  )
+  // 未指定 ZPD 時，由已達能力自動推算發展中目標。
+  const zpdTargets =
+    input.zpdTargets.length > 0
+      ? (input.zpdTargets as CapabilityKey[])
+      : getZpdTargets(achievedCapabilities)
+
   return {
     ageMonths: input.ageMonths,
     // stageKey 由年齡推算，不信任客戶端傳入（避免繞過年齡安全規則）
     stageKey: getStageKey(input.ageMonths),
-    achievedCapabilities:
-      input.achievedCapabilities as RecommendationContext['achievedCapabilities'],
-    zpdTargets: input.zpdTargets as RecommendationContext['zpdTargets'],
+    achievedCapabilities,
+    zpdTargets,
     parentEnergy: input.parentEnergy,
     companionContext: input.companionContext,
     space: input.space,

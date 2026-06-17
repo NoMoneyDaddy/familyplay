@@ -231,6 +231,25 @@ export const MILESTONES: MilestoneItem[] = [
 
 export const MILESTONE_MAP = new Map(MILESTONES.map((m) => [m.key, m]))
 
+/** 解析 typicalMonths（如 '6–8 個月'）的月齡上界 */
+export function parseTypicalUpperMonth(typicalMonths: string): number | null {
+  const matches = typicalMonths.match(/\d+/g)
+  if (!matches || matches.length === 0) return null
+  return Number(matches[matches.length - 1])
+}
+
+/**
+ * 由年齡推估「典型上應已具備」的能力，作為沒有正式評估時的保守預設。
+ * 規則：孩子月齡已超過該里程碑的典型上界，就假設已達成。
+ * 這讓「30 秒快速流程」不需先做完整評估也能給出合理推薦。
+ */
+export function getBaselineCapabilities(ageMonths: number): CapabilityKey[] {
+  return MILESTONES.filter((m) => {
+    const upper = parseTypicalUpperMonth(m.typicalMonths)
+    return upper !== null && ageMonths >= upper
+  }).map((m) => m.key)
+}
+
 export function getZpdTargets(achievedKeys: CapabilityKey[]): CapabilityKey[] {
   const achieved = new Set(achievedKeys)
   const zpd: CapabilityKey[] = []

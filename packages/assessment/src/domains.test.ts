@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { MILESTONES, MILESTONE_MAP, getZpdTargets } from './domains'
+import {
+  MILESTONES,
+  MILESTONE_MAP,
+  getBaselineCapabilities,
+  getZpdTargets,
+  parseTypicalUpperMonth,
+} from './domains'
 
 describe('MILESTONES 資料完整性', () => {
   it('每個里程碑都有唯一 key', () => {
@@ -39,5 +45,33 @@ describe('getZpdTargets', () => {
   it('結果去除重複', () => {
     const zpd = getZpdTargets(['canRoll', 'canRoll'])
     expect(zpd).toEqual([...new Set(zpd)])
+  })
+})
+
+describe('parseTypicalUpperMonth', () => {
+  it('取出範圍的上界', () => {
+    expect(parseTypicalUpperMonth('6–8 個月')).toBe(8)
+    expect(parseTypicalUpperMonth('48–60 個月')).toBe(60)
+  })
+
+  it('沒有數字時回傳 null', () => {
+    expect(parseTypicalUpperMonth('未知')).toBeNull()
+  })
+})
+
+describe('getBaselineCapabilities', () => {
+  it('新生兒沒有任何已達能力', () => {
+    expect(getBaselineCapabilities(0)).toEqual([])
+  })
+
+  it('30 個月幼兒已具備早期里程碑但尚未到完整句子', () => {
+    const caps = getBaselineCapabilities(30)
+    expect(caps).toContain('canSitUnsupported')
+    expect(caps).toContain('usesTwoWordPhrases')
+    expect(caps).not.toContain('usesSentences') // 典型 30–36，上界 36 > 30
+  })
+
+  it('年齡越大涵蓋的能力越多', () => {
+    expect(getBaselineCapabilities(60).length).toBeGreaterThan(getBaselineCapabilities(12).length)
   })
 })

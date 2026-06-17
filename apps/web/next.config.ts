@@ -60,7 +60,12 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 
   // Transpile shared packages
-  transpilePackages: ['@familyplay/core', '@familyplay/ai', '@familyplay/db'],
+  transpilePackages: [
+    '@familyplay/core',
+    '@familyplay/ai',
+    '@familyplay/assessment',
+    '@familyplay/db',
+  ],
 }
 
 export default nextConfig
