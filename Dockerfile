@@ -1,7 +1,12 @@
 FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+# Node 20 ships an older corepack whose signature check rejects pnpm 9
+# ("Cannot find matching keyid"), which breaks the Zeabur build. Update corepack
+# first so `prepare pnpm@9.15.0` verifies correctly.
+RUN npm install -g corepack@latest \
+  && corepack enable \
+  && corepack prepare pnpm@9.15.0 --activate
 
 # ── 安裝依賴 ──────────────────────────────────────────────
 FROM base AS deps
