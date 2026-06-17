@@ -61,10 +61,19 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: |
-          cd apps/mobile
-          eas build --platform ios --profile production --non-interactive
+      # Android AAB → 自動上傳到 Google Play internal（封測）軌道。
+      # 需要：EXPO_TOKEN secret、eas.json submit 的 google-play-key.json。
+      # 等待建置完成 (--wait 預設) 才能 submit。
+      - name: Build + submit Android (Google Play internal)
+        working-directory: apps/mobile
+        run: |
           eas build --platform android --profile production --non-interactive
+          eas submit --platform android --profile production --non-interactive --latest
+      # iOS 建置在 commit 含 [ios] 時才跑（需要 Apple 憑證）
+      - name: Build iOS
+        if: contains(github.event.head_commit.message, '[ios]')
+        working-directory: apps/mobile
+        run: eas build --platform ios --profile production --non-interactive
 
   notify:
     name: Telegram Notification

@@ -17,11 +17,12 @@ const BLOCKED_PATTERNS: RegExp[] = [
 
 const MAX_OUTPUT_LENGTH = 2000
 
-// Strip zero-width characters and collapse whitespace so simple obfuscation
-// can't slip past the pattern checks.
+// Strip zero-width characters (ZWSP, ZWNJ, ZWJ, BOM) and collapse whitespace so
+// simple obfuscation can't slip past the pattern checks. Uses an explicit
+// alternation rather than a character-class range (which is misleading for
+// joining sequences).
 function normalize(output: string): string {
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: intentionally stripping zero-width chars
-  return output.replace(/[​-‍﻿]/g, '').replace(/\s+/g, ' ').trim()
+  return output.replace(/​|‌|‍|﻿/g, '').replace(/\s+/g, ' ').trim()
 }
 
 export function safetyFilter(output: string): boolean {
