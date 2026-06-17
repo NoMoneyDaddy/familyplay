@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Colors ── */
+  /* ── Colors ──
+     暖色系收斂：中性色一律偏暖，與橘色品牌協調，營造「溫暖平靜的陪伴 companion」質感。
+     所有作為文字用途的色彩皆通過 WCAG AA 對比（muted 在暖奶油底上 ≥5:1）。 */
   --color-brand: #ff6b35;
-  --color-bg: #fafaf8;
+  --color-brand-tint: #fff1ea; /* 品牌淺色暈染，供柔和背景/標記使用 */
+  --color-bg: #faf6f0; /* 暖奶油，取代偏冷的近白 */
   --color-card: #ffffff;
-  --color-text: #1a1a1a;
-  --color-muted: #6b7280;
-  --color-border: #e5e7eb;
+  --color-text: #241f1b; /* 暖墨黑，取代純冷黑 */
+  --color-muted: #6b615a; /* 暖灰，AA 安全（取代偏冷的藍灰） */
+  --color-border: #ece5db; /* 暖淺邊框，取代冷灰 */
 
-  --color-success: #3ecf8e;
-  --color-warning: #ffb347;
-  --color-info: #4da6ff;
+  --color-success: #2faf76;
+  --color-warning: #e6892f;
+  --color-info: #3f8fd6;
 
   /* ── Special modes ── */
   --color-bedtime-bg: #1a1428;
@@ -19,6 +22,11 @@
 
   /* ── Typography ── */
   --font-sans: "Noto Sans TC", "DM Sans", system-ui, sans-serif;
+
+  /* ── Soft warm elevation（暖調柔和陰影，取代生硬黑影，營造手感層次） ── */
+  --shadow-sm: 0 1px 2px 0 rgb(74 49 28 / 0.05), 0 2px 8px -2px rgb(74 49 28 / 0.06);
+  --shadow-md: 0 4px 14px -3px rgb(74 49 28 / 0.09);
+  --shadow-lg: 0 12px 28px -6px rgb(74 49 28 / 0.12);
 
   /* ── Spacing ── */
   --spacing: 8px;
@@ -33,6 +41,27 @@
     font-size: 16px;
   }
 
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* iOS safe area */
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* 標題質感：略收字距、避免孤行，讓大標更俐落溫潤 */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+  h1 {
+    letter-spacing: -0.022em;
+  }
+
   /* Respect system animation preference */
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -42,12 +71,5 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
-  }
-
-  /* iOS safe area */
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
 }
