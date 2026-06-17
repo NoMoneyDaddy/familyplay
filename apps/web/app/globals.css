@@ -35,13 +35,19 @@
 @layer base {
   html {
     font-family: var(--font-sans);
-    background-color: var(--color-bg);
     color: var(--color-text);
     /* System font scaling — use rem everywhere */
     font-size: 16px;
   }
 
   body {
+    /* 暖色氛圍背景：手機被 App 欄蓋住，平板/桌機在置中欄四周顯示出層次 */
+    background-color: #f3ece1;
+    background-image: radial-gradient(
+      120% 70% at 50% 0%,
+      color-mix(in oklab, var(--color-brand) 9%, transparent),
+      transparent 55%
+    );
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* iOS safe area */
