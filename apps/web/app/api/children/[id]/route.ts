@@ -46,7 +46,8 @@ async function validateChildOwnership(
   return !!child
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -82,7 +83,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     // Verify ownership
-    const isOwner = await validateChildOwnership(supabase, params.id, userProfile.id)
+    const isOwner = await validateChildOwnership(supabase, id, userProfile.id)
     if (!isOwner) {
       return NextResponse.json({ error: 'Child not found' }, { status: 404 })
     }
@@ -109,7 +110,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { data: updated, error } = await supabase
       .from('child_profiles')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -131,7 +132,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -167,14 +169,14 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
 
     // Verify ownership
-    const isOwner = await validateChildOwnership(supabase, params.id, userProfile.id)
+    const isOwner = await validateChildOwnership(supabase, id, userProfile.id)
     if (!isOwner) {
       return NextResponse.json({ error: 'Child not found' }, { status: 404 })
     }
 
     // Soft delete by marking as inactive (if schema supports it)
     // For now, do a hard delete since the schema doesn't have an isActive field for children
-    const { error } = await supabase.from('child_profiles').delete().eq('id', params.id)
+    const { error } = await supabase.from('child_profiles').delete().eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

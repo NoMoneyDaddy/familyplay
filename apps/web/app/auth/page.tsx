@@ -1,12 +1,14 @@
 'use client'
 
+import { Suspense } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 
 type AuthMode = 'google' | 'email'
 type EmailTab = 'login' | 'signup' | 'reset'
 
-export default function AuthPage() {
+function AuthPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const errorParam = searchParams.get('error')
@@ -270,5 +272,19 @@ export default function AuthPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <p className="text-[--color-muted]">載入中...</p>
+        </main>
+      }
+    >
+      <AuthPageInner />
+    </Suspense>
   )
 }

@@ -1,9 +1,11 @@
 'use client'
 
+import { Suspense } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-export default function JoinPage() {
+function JoinPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const codeFromUrl = searchParams.get('code')
@@ -127,5 +129,19 @@ export default function JoinPage() {
         )}
       </div>
     </main>
+  )
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <p className="text-[--color-muted]">載入中...</p>
+        </main>
+      }
+    >
+      <JoinPageInner />
+    </Suspense>
   )
 }
