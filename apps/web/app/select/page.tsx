@@ -35,11 +35,19 @@ export default function SelectPage() {
     e.preventDefault()
     if (!selectedChildId) return
 
+    const formData = new FormData(e.currentTarget)
+    const parentEnergy = formData.get('parentEnergy') as string | null
+    const context = formData.get('context') as string | null
+
+    // 以 JS 驗證取代原生 required：精力選項的 radio 為 sr-only（視覺隱藏），
+    // 瀏覽器原生 required 驗證會因「不可聚焦」而靜默擋住送出。
+    if (!parentEnergy || !context) {
+      setError('請先選擇你的精力狀態與現在的情境')
+      return
+    }
+
     setError(null)
     setLoading(true)
-    const formData = new FormData(e.currentTarget)
-    const parentEnergy = formData.get('parentEnergy') as string
-    const context = formData.get('context') as string
 
     try {
       const res = await fetch('/api/recommendations', {
@@ -92,7 +100,6 @@ export default function SelectPage() {
                     type="radio"
                     name="parentEnergy"
                     value={option.value}
-                    required
                     className="sr-only"
                   />
                   <span className="text-2xl" aria-hidden="true">
@@ -117,8 +124,7 @@ export default function SelectPage() {
                     type="radio"
                     name="context"
                     value={option.value}
-                    required
-                    className="h-4 w-4 accent-[--color-brand]"
+                    className="h-4 w-4 accent-[--color-brand] focus:outline-none"
                   />
                   <span aria-hidden="true">{option.emoji}</span>
                   <span className="text-sm font-medium text-[--color-text]">{option.label}</span>
@@ -127,11 +133,12 @@ export default function SelectPage() {
             </div>
           </fieldset>
 
-          {error && (
-            <p role="alert" className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-600">
-              {error}
-            </p>
-          )}
+          {/* live region 常駐 DOM，僅更新內部文字，確保螢幕報讀器可靠播報 */}
+          <div role="alert" aria-live="assertive">
+            {error && (
+              <p className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-600">{error}</p>
+            )}
+          </div>
 
           <button
             type="submit"
