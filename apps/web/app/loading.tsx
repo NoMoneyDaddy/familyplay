@@ -5,7 +5,7 @@ export default function Loading() {
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[--color-brand] border-t-transparent" />
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
       <span className="sr-only">載入中</span>
     </main>
   )

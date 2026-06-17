@@ -77,7 +77,7 @@ export default function EntitlementsPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
           <div className="h-96 animate-pulse rounded-2xl bg-gray-200" />
         </div>
@@ -87,10 +87,10 @@ export default function EntitlementsPage() {
 
   if (!entitlements) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
         <div className="mx-auto max-w-[480px] space-y-6">
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold text-[--color-brand]">Account</h1>
+            <h1 className="text-3xl font-bold text-brand">Account</h1>
           </div>
           <div className="rounded-lg bg-red-50 p-4">
             <p className="text-sm text-red-900">Failed to load entitlements. Please try again.</p>
@@ -103,12 +103,12 @@ export default function EntitlementsPage() {
   const planInfo = getPlanDisplay(entitlements.plan)
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
         {/* Header */}
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">Subscription</h1>
-          <p className="text-[--color-muted]">Manage your FamilyPlay plan</p>
+          <h1 className="text-3xl font-bold text-brand">Subscription</h1>
+          <p className="text-muted">Manage your FamilyPlay plan</p>
         </div>
 
         {/* Current Plan Card */}
@@ -123,10 +123,10 @@ export default function EntitlementsPage() {
         >
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-[--color-muted]">Current Plan</p>
+              <p className="text-sm font-medium text-muted">Current Plan</p>
               <div className="mt-2 flex items-center gap-2">
                 <span className="text-3xl">{planInfo.icon}</span>
-                <h2 className="text-2xl font-bold text-[--color-text]">{planInfo.name}</h2>
+                <h2 className="text-2xl font-bold text-text">{planInfo.name}</h2>
               </div>
             </div>
           </div>
@@ -135,8 +135,8 @@ export default function EntitlementsPage() {
           <div className="space-y-3 border-t pt-4">
             {entitlements.plan === 'supporter' && entitlements.supporterPurchasedAt && (
               <div className="flex justify-between">
-                <span className="text-sm text-[--color-muted]">Purchased</span>
-                <span className="text-sm font-medium text-[--color-text]">
+                <span className="text-sm text-muted">Purchased</span>
+                <span className="text-sm font-medium text-text">
                   {formatDate(entitlements.supporterPurchasedAt)}
                 </span>
               </div>
@@ -145,15 +145,15 @@ export default function EntitlementsPage() {
             {entitlements.plan === 'plus' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-sm text-[--color-muted]">Started</span>
-                  <span className="text-sm font-medium text-[--color-text]">
+                  <span className="text-sm text-muted">Started</span>
+                  <span className="text-sm font-medium text-text">
                     {formatDate(entitlements.plusStartedAt)}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-sm text-[--color-muted]">Renewal Date</span>
-                  <span className="text-sm font-medium text-[--color-text]">
+                  <span className="text-sm text-muted">Renewal Date</span>
+                  <span className="text-sm font-medium text-text">
                     {formatDate(entitlements.plusEndsAt)}
                   </span>
                 </div>
@@ -161,8 +161,8 @@ export default function EntitlementsPage() {
                 {/* AI calls remaining */}
                 <div className="space-y-2 border-t pt-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-[--color-muted]">AI Calls Remaining</span>
-                    <span className="text-sm font-bold text-[--color-brand]">
+                    <span className="text-sm text-muted">AI Calls Remaining</span>
+                    <span className="text-sm font-bold text-brand">
                       {entitlements.plusAiCallsRemaining}
                     </span>
                   </div>
@@ -170,13 +170,13 @@ export default function EntitlementsPage() {
                   {/* Progress bar */}
                   <div className="h-2 w-full overflow-hidden rounded-full bg-gray-300">
                     <div
-                      className="h-full bg-[--color-brand] transition-all"
+                      className="h-full bg-brand transition-all"
                       style={{
                         width: `${Math.min(100, (entitlements.plusAiCallsRemaining / 100) * 100)}%`,
                       }}
                     />
                   </div>
-                  <p className="text-xs text-[--color-muted]">
+                  <p className="text-xs text-muted">
                     Resets {formatDate(entitlements.plusAiCallsResetAt)}
                   </p>
                 </div>
@@ -191,7 +191,7 @@ export default function EntitlementsPage() {
             <button
               type="button"
               onClick={() => router.push('/pricing')}
-              className="w-full rounded-lg bg-[--color-brand] px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
+              className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
             >
               Explore Plans
             </button>
@@ -201,7 +201,7 @@ export default function EntitlementsPage() {
             <button
               type="button"
               onClick={() => router.push('/pricing')}
-              className="w-full rounded-lg bg-[--color-brand] px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
+              className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
             >
               Upgrade to Plus
             </button>
@@ -211,7 +211,7 @@ export default function EntitlementsPage() {
             <button
               type="button"
               disabled
-              className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-semibold text-[--color-muted]"
+              className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-semibold text-muted"
             >
               Manage Subscription via LemonSqueezy
             </button>
@@ -219,7 +219,7 @@ export default function EntitlementsPage() {
 
           <a
             href="/pricing"
-            className="block rounded-lg border-2 border-gray-200 px-4 py-3 text-center font-semibold text-[--color-text] transition-colors hover:bg-gray-50"
+            className="block rounded-lg border-2 border-gray-200 px-4 py-3 text-center font-semibold text-text transition-colors hover:bg-gray-50"
           >
             View All Plans
           </a>
@@ -254,7 +254,7 @@ export default function EntitlementsPage() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="text-center text-sm text-[--color-brand] transition-opacity hover:opacity-70"
+          className="text-center text-sm text-brand transition-opacity hover:opacity-70"
         >
           ← Back
         </button>

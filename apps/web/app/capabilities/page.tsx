@@ -32,9 +32,9 @@ export default function CapabilitiesPage() {
 
   if (!selectedChildId) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-[--color-muted]" role="status">
+          <div className="text-center text-muted" role="status">
             加載中...
           </div>
         </div>
@@ -43,18 +43,18 @@ export default function CapabilitiesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <ChildSwitcher />
       <div className="mx-auto max-w-[480px] space-y-6 pt-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">能力追踪</h1>
-          <p className="text-[--color-muted]">
+          <h1 className="text-3xl font-bold text-brand">能力追踪</h1>
+          <p className="text-muted">
             {achievedCount} / {capabilities.length} 已達成
           </p>
         </div>
 
         {loading ? (
-          <div className="text-center text-[--color-muted]" role="status">
+          <div className="text-center text-muted" role="status">
             加載中...
           </div>
         ) : (
@@ -63,7 +63,7 @@ export default function CapabilitiesPage() {
               <div
                 key={cap.key}
                 className={`rounded-lg p-4 ${
-                  cap.achieved ? 'bg-green-50 text-green-700' : 'bg-white text-[--color-text]'
+                  cap.achieved ? 'bg-green-50 text-green-700' : 'bg-white text-text'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -75,7 +75,7 @@ export default function CapabilitiesPage() {
           </div>
         )}
 
-        <p className="text-center text-xs text-[--color-muted]">基於陪伴活動和里程碑自動更新</p>
+        <p className="text-center text-xs text-muted">基於陪伴活動和里程碑自動更新</p>
       </div>
     </main>
   )

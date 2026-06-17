@@ -175,13 +175,11 @@ export default function PricingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-8">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">方案與支持</h1>
-          <p className="text-[--color-muted]">
-            大部分功能免費（含少量廣告）；付費可移除廣告並解鎖進階 💛
-          </p>
+          <h1 className="text-3xl font-bold text-brand">方案與支持</h1>
+          <p className="text-muted">大部分功能免費（含少量廣告）；付費可移除廣告並解鎖進階 💛</p>
         </div>
 
         {/* 錯誤 live region 常駐 DOM */}
@@ -201,7 +199,7 @@ export default function PricingPage() {
         ) : (
           <>
             {state.currentPlan === null && (
-              <div className="rounded-lg bg-[--color-bg] p-4 text-center text-sm text-[--color-text]">
+              <div className="rounded-lg bg-bg p-4 text-center text-sm text-text">
                 免費版無需付費即可開始；登入後即可選擇付費方案支持我們。
               </div>
             )}
@@ -224,37 +222,29 @@ export default function PricingPage() {
                   <li
                     key={plan.id}
                     className={`relative rounded-2xl border-2 p-6 transition-all ${
-                      plan.highlight
-                        ? 'border-[--color-brand] bg-white'
-                        : 'border-[--color-border] bg-white'
+                      plan.highlight ? 'border-brand bg-white' : 'border-border bg-white'
                     }`}
                   >
                     {isCurrent && (
-                      <div className="absolute -right-3 -top-3 rounded-full bg-[--color-brand] px-3 py-1 text-xs font-semibold text-white">
+                      <div className="absolute -right-3 -top-3 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white">
                         目前方案
                       </div>
                     )}
 
                     <div className="mb-4 space-y-1">
-                      <h2 className="text-xl font-bold text-[--color-text]">{plan.name}</h2>
-                      <p className="text-sm text-[--color-muted]">{plan.tagline}</p>
+                      <h2 className="text-xl font-bold text-text">{plan.name}</h2>
+                      <p className="text-sm text-muted">{plan.tagline}</p>
                     </div>
 
                     <div className="mb-6 flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-[--color-brand]">{plan.price}</span>
-                      <span className="text-[--color-muted]">{plan.period}</span>
+                      <span className="text-4xl font-bold text-brand">{plan.price}</span>
+                      <span className="text-muted">{plan.period}</span>
                     </div>
 
                     <ul className="mb-6 space-y-2">
                       {plan.features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-start gap-3 text-sm text-[--color-text]"
-                        >
-                          <span
-                            className="mt-0.5 flex-shrink-0 text-[--color-brand]"
-                            aria-hidden="true"
-                          >
+                        <li key={feature} className="flex items-start gap-3 text-sm text-text">
+                          <span className="mt-0.5 flex-shrink-0 text-brand" aria-hidden="true">
                             ✓
                           </span>
                           <span>{feature}</span>
@@ -271,7 +261,7 @@ export default function PricingPage() {
                             : handleSubscribe(plan.id as PaidPlan)
                         }
                         disabled={state.authenticating}
-                        className="w-full rounded-lg bg-[--color-brand] px-4 py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                        className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                       >
                         {state.authenticating && plan.id === state.selectedPlan ? (
                           <span className="flex items-center justify-center gap-2">
@@ -289,12 +279,12 @@ export default function PricingPage() {
                       <button
                         type="button"
                         onClick={() => router.push('/account/entitlements')}
-                        className="w-full rounded-lg border border-[--color-border] px-4 py-3 font-semibold text-[--color-brand] transition-colors hover:bg-[--color-bg]"
+                        className="w-full rounded-lg border border-border px-4 py-3 font-semibold text-brand transition-colors hover:bg-bg"
                       >
                         {cta.label}
                       </button>
                     ) : (
-                      <p className="rounded-lg bg-[--color-bg] py-3 text-center text-sm font-medium text-[--color-muted]">
+                      <p className="rounded-lg bg-bg py-3 text-center text-sm font-medium text-muted">
                         {cta.label}
                       </p>
                     )}
@@ -303,25 +293,25 @@ export default function PricingPage() {
               })}
             </ul>
 
-            <div className="space-y-4 rounded-xl bg-[--color-bg] p-6">
-              <h2 className="font-semibold text-[--color-text]">常見問題</h2>
+            <div className="space-y-4 rounded-xl bg-bg p-6">
+              <h2 className="font-semibold text-text">常見問題</h2>
               <div className="space-y-3 text-sm">
                 <div>
-                  <p className="font-medium text-[--color-text]">免費版會不會有功能限制？</p>
-                  <p className="mt-1 text-[--color-muted]">
+                  <p className="font-medium text-text">免費版會不會有功能限制？</p>
+                  <p className="mt-1 text-muted">
                     核心的「30
                     秒陪伴方案」與活動庫永久免費、不限次數。付費方案只是額外的便利與支持。
                   </p>
                 </div>
                 <div>
-                  <p className="font-medium text-[--color-text]">可以隨時取消嗎？</p>
-                  <p className="mt-1 text-[--color-muted]">
+                  <p className="font-medium text-text">可以隨時取消嗎？</p>
+                  <p className="mt-1 text-muted">
                     可以。隨時在帳號設定取消，當期到期後即回到免費版，不綁約。
                   </p>
                 </div>
                 <div>
-                  <p className="font-medium text-[--color-text]">付費方案之間可以調整嗎？</p>
-                  <p className="mt-1 text-[--color-muted]">可以隨時在支持者與 Plus 之間升降級。</p>
+                  <p className="font-medium text-text">付費方案之間可以調整嗎？</p>
+                  <p className="mt-1 text-muted">可以隨時在支持者與 Plus 之間升降級。</p>
                 </div>
               </div>
             </div>
@@ -331,7 +321,7 @@ export default function PricingPage() {
                 <button
                   type="button"
                   onClick={() => router.push('/account/entitlements')}
-                  className="font-medium text-[--color-brand] hover:underline"
+                  className="font-medium text-brand hover:underline"
                 >
                   管理我的訂閱（目前：{PLAN_LABELS[state.currentPlan] ?? state.currentPlan}）
                 </button>

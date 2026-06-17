@@ -46,9 +46,9 @@ export default function HistoryPage() {
 
   if (!selectedChildId) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-[--color-muted]" role="status">
+          <div className="text-center text-muted" role="status">
             加載中...
           </div>
         </div>
@@ -57,22 +57,22 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <ChildSwitcher />
       <div className="mx-auto max-w-[480px] space-y-6 pt-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">陪伴紀錄</h1>
-          <p className="text-[--color-muted]">回顧過去的親子時光</p>
+          <h1 className="text-3xl font-bold text-brand">陪伴紀錄</h1>
+          <p className="text-muted">回顧過去的親子時光</p>
         </div>
 
         {loading ? (
-          <div className="text-center text-[--color-muted]" role="status">
+          <div className="text-center text-muted" role="status">
             加載中...
           </div>
         ) : logs.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
-            <p className="text-[--color-muted]">還沒有紀錄</p>
-            <p className="text-xs text-[--color-muted]">完成活動後會顯示在這裡</p>
+            <p className="text-muted">還沒有紀錄</p>
+            <p className="text-xs text-muted">完成活動後會顯示在這裡</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -80,14 +80,14 @@ export default function HistoryPage() {
               <div key={log.id} className="rounded-lg bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <p className="font-semibold text-[--color-text]">{log.activityTitle}</p>
-                    <p className="text-xs text-[--color-muted]">
+                    <p className="font-semibold text-text">{log.activityTitle}</p>
+                    <p className="text-xs text-muted">
                       {new Date(log.createdAt).toLocaleDateString('zh-TW')}
                     </p>
                   </div>
                   <span className="text-2xl">{getOutcomeEmoji(log.outcome)}</span>
                 </div>
-                <div className="mt-2 flex gap-2 text-xs text-[--color-muted]">
+                <div className="mt-2 flex gap-2 text-xs text-muted">
                   <span>反應: {log.childReaction}</span>
                   {log.durationSecs && <span>• {Math.round(log.durationSecs / 60)} 分鐘</span>}
                 </div>

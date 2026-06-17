@@ -60,7 +60,7 @@ function RecommendationsPageInner() {
           <div className="mb-4 text-4xl" aria-hidden="true">
             🤔
           </div>
-          <p className="text-[--color-muted]">正在思考最好的方案...</p>
+          <p className="text-muted">正在思考最好的方案...</p>
         </div>
       </main>
     )
@@ -73,7 +73,7 @@ function RecommendationsPageInner() {
           <p className="text-red-600">錯誤：{error}</p>
           <Link
             href="/select"
-            className="mt-4 inline-block rounded-lg border border-[--color-border] px-4 py-2 font-semibold text-[--color-text]"
+            className="mt-4 inline-block rounded-lg border border-border px-4 py-2 font-semibold text-text"
           >
             <span aria-hidden="true">↺ </span>重新選擇狀態
           </Link>
@@ -83,33 +83,33 @@ function RecommendationsPageInner() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">今天的陪伴方案</h1>
-          <p className="text-[--color-muted]">根據現在的狀態，這些活動最適合你</p>
+          <h1 className="text-3xl font-bold text-brand">今天的陪伴方案</h1>
+          <p className="text-muted">根據現在的狀態，這些活動最適合你</p>
         </div>
 
         {recommendations.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
-            <p className="text-[--color-muted]">暫時沒有合適的推薦</p>
+            <p className="text-muted">暫時沒有合適的推薦</p>
           </div>
         ) : (
           <ol className="space-y-4">
             {recommendations.map((rec, idx) => (
               <li key={rec.id} className="rounded-2xl bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-start justify-between">
-                  <h2 className="flex-1 text-xl font-semibold text-[--color-text]">
+                  <h2 className="flex-1 text-xl font-semibold text-text">
                     {idx + 1}. {rec.title}
                   </h2>
-                  <div className="text-lg font-bold text-[--color-brand]">
+                  <div className="text-lg font-bold text-brand">
                     <span className="sr-only">適合度 </span>
                     {rec.score.toFixed(1)}
                   </div>
                 </div>
 
                 {rec.reasons.length > 0 && (
-                  <ul className="mb-4 space-y-1 text-xs text-[--color-muted]">
+                  <ul className="mb-4 space-y-1 text-xs text-muted">
                     {rec.reasons.map((reason, i) => (
                       // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
                       <li key={i}>
@@ -122,7 +122,7 @@ function RecommendationsPageInner() {
 
                 <Link
                   href={`/activity/${rec.id}?childId=${childId}`}
-                  className="block w-full rounded-lg bg-[--color-brand] py-3 text-center font-semibold text-white transition-transform active:scale-[0.97]"
+                  className="block w-full rounded-lg bg-brand py-3 text-center font-semibold text-white transition-transform active:scale-[0.97]"
                 >
                   <span aria-hidden="true">📖 </span>開始這個活動
                 </Link>
@@ -133,7 +133,7 @@ function RecommendationsPageInner() {
 
         <Link
           href="/select"
-          className="block w-full rounded-lg border border-[--color-border] py-3 text-center font-semibold text-[--color-text]"
+          className="block w-full rounded-lg border border-border py-3 text-center font-semibold text-text"
         >
           <span aria-hidden="true">↺ </span>重新選擇狀態
         </Link>
@@ -150,7 +150,7 @@ export default function RecommendationsPage() {
     <Suspense
       fallback={
         <main className="flex min-h-screen items-center justify-center">
-          <p className="text-[--color-muted]" role="status">
+          <p className="text-muted" role="status">
             載入推薦中...
           </p>
         </main>
