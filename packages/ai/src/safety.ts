@@ -1,17 +1,31 @@
-const BLOCKED_PATTERNS = [
-  /硬幣|鈕扣|鈕釦|電池|磁鐵|彈珠|小零件|氣球/,
+import { BLOCKED_MATERIALS_UNDER_3 } from '@familyplay/core'
+
+// Single source of truth for under-3 choking hazards comes from core, so the AI
+// safety filter and the rule-based engine can never diverge.
+const blockedMaterialsPattern = new RegExp(BLOCKED_MATERIALS_UNDER_3.join('|'))
+
+const BLOCKED_PATTERNS: RegExp[] = [
+  blockedMaterialsPattern,
   /窒息|割傷|燙傷|觸電|溺水/,
   /醫療|診斷|治療|症狀|疾病|療程|處方/,
   /發展遲緩|遲緩|落後|異常|障礙/,
-  /system:|assistant:|<\|im_start\|>|<\|im_end\|>/i,
-  /https?:\/\//,
-] as const
+  // Prompt-injection markers (EN + ZH variants)
+  /system:|assistant:|<\|im_start\|>|<\|im_end\|>|\[INST\]|###\s*system|ignore (previous|above)|忽略(以上|上述|前面)/i,
+  // URLs, including scheme-relative //host and bare www.
+  /https?:\/\/|\/\/[\w.-]+|www\.[\w.-]+/i,
+]
 
 const MAX_OUTPUT_LENGTH = 2000
 
+// Strip zero-width characters and collapse whitespace so simple obfuscation
+// can't slip past the pattern checks.
+function normalize(output: string): string {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: intentionally stripping zero-width chars
+  return output.replace(/[​-‍﻿]/g, '').replace(/\s+/g, ' ').trim()
+}
+
 export function safetyFilter(output: string): boolean {
-  if (output.length > MAX_OUTPUT_LENGTH) return false
-  return BLOCKED_PATTERNS.every((pattern) => !pattern.test(output))
+  return checkSafety(output).passed
 }
 
 export type SafetyCheckResult =
@@ -23,7 +37,8 @@ export function checkSafety(output: string): SafetyCheckResult {
     return { passed: false, reason: 'too_long' }
   }
 
-  const blocked = BLOCKED_PATTERNS.find((pattern) => pattern.test(output))
+  const normalized = normalize(output)
+  const blocked = BLOCKED_PATTERNS.find((pattern) => pattern.test(normalized))
   if (blocked) {
     return { passed: false, reason: 'blocked_pattern' }
   }
