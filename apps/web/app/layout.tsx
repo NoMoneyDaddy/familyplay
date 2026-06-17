@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Noto_Sans_TC } from 'next/font/google'
+import { ServiceWorkerRegister } from './components/sw-register'
 import './globals.css'
 
 const notoSansTC = Noto_Sans_TC({
@@ -25,6 +26,11 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'FamilyPlay',
   },
+  icons: {
+    icon: '/icon-192.png',
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
+  },
   openGraph: {
     title: 'FamilyPlay',
     description: '給疲憊家長的親子陪伴導航',
@@ -36,7 +42,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  // No maximumScale/userScalable lock — users must be able to zoom (WCAG 1.4.4).
   themeColor: '#FF6B35',
 }
 
@@ -44,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-TW" className={`${notoSansTC.variable} ${dmSans.variable}`}>
       <body className="min-h-screen bg-[--color-bg] font-sans antialiased">
+        <ServiceWorkerRegister />
         <div className="mx-auto max-w-[480px] min-h-screen">{children}</div>
       </body>
     </html>
