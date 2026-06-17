@@ -64,11 +64,13 @@ export function ChildForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
-      {error && (
-        <div role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {/* live region 常駐 DOM，僅以樣式切換顯示 */}
+      <div
+        role="alert"
+        className={error ? 'rounded-lg bg-red-50 p-3 text-sm text-red-700' : 'sr-only'}
+      >
+        {error}
+      </div>
 
       <div className="space-y-2">
         <label htmlFor="nickname" className="block text-sm font-semibold text-[--color-text]">
