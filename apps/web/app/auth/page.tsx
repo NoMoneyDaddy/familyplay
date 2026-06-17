@@ -107,13 +107,19 @@ function AuthPageInner() {
           <p className="text-center font-semibold text-[--color-text]">選擇登入方式</p>
 
           {error && (
-            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+            <div
+              role="alert"
+              className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200"
+            >
               {error}
             </div>
           )}
 
           {success && (
-            <div className="rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">
+            <div
+              role="status"
+              className="rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200"
+            >
               {success}
             </div>
           )}
@@ -122,6 +128,7 @@ function AuthPageInner() {
           <div className="flex gap-2 rounded-lg bg-[--color-bg] p-1">
             <button
               type="button"
+              aria-pressed={authMode === 'google'}
               onClick={() => {
                 setAuthMode('google')
                 setError('')
@@ -135,6 +142,7 @@ function AuthPageInner() {
             </button>
             <button
               type="button"
+              aria-pressed={authMode === 'email'}
               onClick={() => {
                 setAuthMode('email')
                 setError('')
@@ -160,7 +168,7 @@ function AuthPageInner() {
                 type="submit"
                 className="w-full rounded-lg border-2 border-[--color-border] py-4 text-center font-semibold text-[--color-text] transition-all hover:border-[--color-brand]"
               >
-                🔐 用 Google 帳號登入
+                <span aria-hidden="true">🔐 </span>用 Google 帳號登入
               </button>
             </form>
           )}
@@ -172,6 +180,7 @@ function AuthPageInner() {
               <div className="flex gap-1 rounded-lg bg-[--color-bg] p-1">
                 <button
                   type="button"
+                  aria-pressed={emailTab === 'login'}
                   onClick={() => {
                     setEmailTab('login')
                     setError('')
@@ -185,6 +194,7 @@ function AuthPageInner() {
                 </button>
                 <button
                   type="button"
+                  aria-pressed={emailTab === 'signup'}
                   onClick={() => {
                     setEmailTab('signup')
                     setError('')
@@ -198,6 +208,7 @@ function AuthPageInner() {
                 </button>
                 <button
                   type="button"
+                  aria-pressed={emailTab === 'reset'}
                   onClick={() => {
                     setEmailTab('reset')
                     setError('')
@@ -213,8 +224,13 @@ function AuthPageInner() {
 
               {/* Email Form */}
               <form onSubmit={handleEmailAuth} className="space-y-3">
+                <label htmlFor="auth-email" className="sr-only">
+                  電子信箱
+                </label>
                 <input
+                  id="auth-email"
                   type="email"
+                  autoComplete="email"
                   placeholder="你的 email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -225,8 +241,13 @@ function AuthPageInner() {
 
                 {emailTab !== 'reset' && (
                   <div className="relative">
+                    <label htmlFor="auth-password" className="sr-only">
+                      密碼
+                    </label>
                     <input
+                      id="auth-password"
                       type={showPassword ? 'text' : 'password'}
+                      autoComplete={emailTab === 'signup' ? 'new-password' : 'current-password'}
                       placeholder="密碼 (至少 8 個字元)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -237,8 +258,9 @@ function AuthPageInner() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+                      aria-pressed={showPassword}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[--color-muted] hover:text-[--color-text]"
-                      tabIndex={-1}
                     >
                       {showPassword ? '隱藏' : '顯示'}
                     </button>
@@ -278,7 +300,9 @@ export default function AuthPage() {
     <Suspense
       fallback={
         <main className="flex min-h-screen items-center justify-center">
-          <p className="text-[--color-muted]">載入中...</p>
+          <p className="text-[--color-muted]" role="status">
+            載入中...
+          </p>
         </main>
       }
     >
