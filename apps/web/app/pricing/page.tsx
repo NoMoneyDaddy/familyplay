@@ -150,17 +150,22 @@ export default function PricingPage() {
     }
   }
 
-  const ctaFor = (plan: PlanCard) => {
+  // action：'auth' 導去登入/註冊；'subscribe' 建立結帳；'manage' 導去訂閱管理（避免重複訂閱）；'none' 靜態
+  const ctaFor = (
+    plan: PlanCard,
+  ): { label: string; action: 'auth' | 'subscribe' | 'manage' | 'none' } => {
+    const cp = state.currentPlan
     if (plan.id === 'free') {
-      return {
-        label: state.currentPlan === 'free' ? '你目前的方案' : '免費開始使用',
-        disabled: true,
-      }
+      if (cp === null) return { label: '免費開始使用', action: 'auth' }
+      if (cp === 'free') return { label: '你目前的方案', action: 'none' }
+      return { label: '已包含在你的方案', action: 'none' }
     }
-    if (state.currentPlan === plan.id) {
-      return { label: '你目前的方案', disabled: true }
-    }
-    return { label: plan.id === 'supporter' ? '成為支持者' : '升級 Plus', disabled: false }
+    // 付費方案
+    if (cp === plan.id) return { label: '你目前的方案', action: 'none' }
+    // 已在另一個付費方案 → 不可直接結帳（會重複扣款），導去訂閱管理升降級
+    if (cp && cp !== 'free') return { label: '至訂閱管理變更方案', action: 'manage' }
+    // 未登入或免費 → 可訂閱（未登入時 handleSubscribe 會導去 /auth）
+    return { label: plan.id === 'supporter' ? '成為支持者' : '升級 Plus', action: 'subscribe' }
   }
 
   return (
@@ -185,21 +190,13 @@ export default function PricingPage() {
               <div key={i} className="h-72 animate-pulse rounded-2xl bg-gray-200" />
             ))}
           </div>
-        ) : state.currentPlan === null ? (
-          <div className="space-y-4 rounded-xl bg-[--color-bg] p-6 text-center">
-            <p className="text-sm text-[--color-text]">
-              登入後即可選擇方案。免費版無需付費即可使用。
-            </p>
-            <button
-              type="button"
-              onClick={() => router.push('/auth')}
-              className="rounded-lg bg-[--color-brand] px-6 py-2 font-semibold text-white transition-opacity hover:opacity-90"
-            >
-              登入
-            </button>
-          </div>
         ) : (
           <>
+            {state.currentPlan === null && (
+              <div className="rounded-lg bg-[--color-bg] p-4 text-center text-sm text-[--color-text]">
+                免費版無需付費即可開始；登入後即可選擇付費方案支持我們。
+              </div>
+            )}
             {state.currentPlan === 'free' && (
               <div className="rounded-lg bg-amber-50 p-4 text-sm">
                 <p className="font-semibold text-amber-900">
@@ -257,20 +254,16 @@ export default function PricingPage() {
                       ))}
                     </ul>
 
-                    {plan.id === 'free' ? (
-                      <p className="rounded-lg bg-[--color-bg] py-3 text-center text-sm font-medium text-[--color-muted]">
-                        {cta.label}
-                      </p>
-                    ) : (
+                    {cta.action === 'subscribe' || cta.action === 'auth' ? (
                       <button
                         type="button"
-                        onClick={() => handleSubscribe(plan.id as PaidPlan)}
-                        disabled={cta.disabled || state.authenticating}
-                        className={`w-full rounded-lg px-4 py-3 font-semibold transition-all ${
-                          cta.disabled
-                            ? 'cursor-default bg-[--color-bg] text-[--color-muted]'
-                            : 'bg-[--color-brand] text-white hover:opacity-90 disabled:opacity-50'
-                        }`}
+                        onClick={() =>
+                          cta.action === 'auth'
+                            ? router.push('/auth')
+                            : handleSubscribe(plan.id as PaidPlan)
+                        }
+                        disabled={state.authenticating}
+                        className="w-full rounded-lg bg-[--color-brand] px-4 py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                       >
                         {state.authenticating && plan.id === state.selectedPlan ? (
                           <span className="flex items-center justify-center gap-2">
@@ -284,6 +277,18 @@ export default function PricingPage() {
                           cta.label
                         )}
                       </button>
+                    ) : cta.action === 'manage' ? (
+                      <button
+                        type="button"
+                        onClick={() => router.push('/account/entitlements')}
+                        className="w-full rounded-lg border border-[--color-border] px-4 py-3 font-semibold text-[--color-brand] transition-colors hover:bg-[--color-bg]"
+                      >
+                        {cta.label}
+                      </button>
+                    ) : (
+                      <p className="rounded-lg bg-[--color-bg] py-3 text-center text-sm font-medium text-[--color-muted]">
+                        {cta.label}
+                      </p>
                     )}
                   </li>
                 )
