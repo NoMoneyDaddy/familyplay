@@ -17,6 +17,7 @@ export default function ChildrenPage() {
   const [children, setChildren] = useState<Child[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchChildren = async () => {
@@ -42,6 +43,7 @@ export default function ChildrenPage() {
     }
 
     setDeleting(childId)
+    setError(null)
     try {
       const res = await fetch(`/api/children/${childId}`, {
         method: 'DELETE',
@@ -50,11 +52,11 @@ export default function ChildrenPage() {
       if (res.ok) {
         setChildren(children.filter((c) => c.id !== childId))
       } else {
-        alert('刪除失敗，請重試')
+        setError('刪除失敗，請重試')
       }
     } catch (error) {
       console.error('Delete error:', error)
-      alert('刪除失敗，請重試')
+      setError('刪除失敗，請重試')
     } finally {
       setDeleting(null)
     }
@@ -64,7 +66,9 @@ export default function ChildrenPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-[--color-muted]" role="status">
+            加載中...
+          </div>
         </div>
       </main>
     )
@@ -76,6 +80,14 @@ export default function ChildrenPage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[--color-brand]">管理孩子</h1>
           <p className="text-[--color-muted]">編輯和管理你的孩子檔案</p>
+        </div>
+
+        {/* live region 常駐 DOM */}
+        <div
+          role="alert"
+          className={error ? 'rounded-lg bg-red-50 p-3 text-sm text-red-700' : 'sr-only'}
+        >
+          {error}
         </div>
 
         {children.length === 0 ? (
@@ -97,7 +109,7 @@ export default function ChildrenPage() {
                   className="rounded-lg border border-[--color-border] p-4 flex items-center justify-between"
                 >
                   <div className="flex-1">
-                    <h3 className="font-semibold text-[--color-text]">{child.nickname}</h3>
+                    <h2 className="font-semibold text-[--color-text]">{child.nickname}</h2>
                     {child.birthYearMonth && (
                       <p className="text-sm text-[--color-muted]">出生: {child.birthYearMonth}</p>
                     )}
