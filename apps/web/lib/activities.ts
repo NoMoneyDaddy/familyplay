@@ -94,25 +94,14 @@ export function mapRowToActivity(row: ActivityRow): Activity {
 
 /**
  * 以登入使用者的 session 從 Supabase 載入啟用中的活動（RLS 生效）。
- * 任何失敗都回傳 null，讓呼叫端優雅降級到內建活動庫。
+ * 任何失敗（未登入、未設定、查詢錯誤）都回傳 null，呼叫端據此降級到內建活動庫。
+ * 以動態 import 載入伺服器 client，讓 mapRowToActivity 可在 Node 測試環境直接使用。
  */
 export async function loadActivitiesFromDb(): Promise<Activity[] | null> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) return null
-
   try {
-    const { cookies } = await import('next/headers')
-    const { createServerClient } = await import('@supabase/ssr')
-    const cookieStore = await cookies()
-
-    const supabase = createServerClient(url, anonKey, {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        // Route Handler 內不需要寫回 cookie
-        setAll: () => {},
-      },
-    })
+    const { createClient } = await import('./supabase/server')
+    const supabase = await createClient()
+    if (!supabase) return null
 
     const { data, error } = await supabase
       .from('companion_activities')
