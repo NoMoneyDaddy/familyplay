@@ -13,7 +13,8 @@
       "!**/dist",
       "!**/build",
       "!**/coverage",
-      "!**/packages/db/src/generated.ts"
+      "!**/packages/db/src/generated.ts",
+      "!**/next-env.d.ts"
     ]
   },
   "formatter": {
