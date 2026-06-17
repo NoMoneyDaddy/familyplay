@@ -41,7 +41,16 @@ BEGIN
     RAISE EXCEPTION 'expired' USING ERRCODE = 'raise_exception';
   END IF;
 
-  -- 加入成員（冪等：重複接受不報錯）
+  -- 已是成員：直接報錯，且「不」往下標記邀請為已用——避免把原本要給其他家人的
+  -- 一次性邀請碼誤燒掉（例如擁有者自己點了連結）。
+  IF EXISTS (
+    SELECT 1 FROM public.household_members
+    WHERE household_id = v_invite.household_id AND user_profile_id = v_profile_id
+  ) THEN
+    RAISE EXCEPTION 'already_member' USING ERRCODE = 'raise_exception';
+  END IF;
+
+  -- 加入成員（ON CONFLICT 僅作為並發競態的保險）
   INSERT INTO public.household_members (household_id, user_profile_id, role)
   VALUES (v_invite.household_id, v_profile_id, v_invite.role)
   ON CONFLICT (household_id, user_profile_id) DO NOTHING;

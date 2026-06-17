@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         invalid_code: { status: 400, message: '邀請碼無效' },
         expired: { status: 400, message: '邀請已過期' },
         already_used: { status: 400, message: '邀請碼已被使用' },
+        already_member: { status: 400, message: '你已經是這個家庭的成員' },
         unauthorized: { status: 401, message: 'Unauthorized' },
       }
       const hit = map[rpcError.message]

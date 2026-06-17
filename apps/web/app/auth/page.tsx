@@ -50,9 +50,11 @@ function AuthPageInner() {
   const [error, setError] = useState(searchParams.get('error') ? '登入未完成，請再試一次。' : '')
   const [loading, setLoading] = useState<'google' | 'guest' | null>(null)
 
-  // 登入後要回到的內部路徑（例如帶邀請碼的 /join）。只接受站內路徑，避免 open redirect。
+  // 登入後要回到的內部路徑（例如帶邀請碼的 /join）。只接受純站內路徑，避免 open redirect。
+  // 注意：不能只擋 '//'——'/\evil.com' 會被 URL 正規化成 '//evil.com' 導向外站，
+  // 因此第二個字元也要排除反斜線。
   const rawNext = searchParams.get('next')
-  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null
+  const next = rawNext && (rawNext === '/' || /^\/[^/\\]/.test(rawNext)) ? rawNext : null
 
   const handleGoogle = async () => {
     setError('')
