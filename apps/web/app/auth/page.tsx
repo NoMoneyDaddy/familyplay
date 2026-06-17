@@ -142,16 +142,18 @@ function AuthPageInner() {
               type="button"
               onClick={handleGoogle}
               disabled={loading !== null}
+              aria-busy={loading === 'google'}
               className={`${btnBase} bg-[--color-card] text-[--color-text] ring-[--color-border]`}
             >
               {loading === 'google' ? <Spinner /> : <GoogleIcon />}
-              <span>用 Google 登入</span>
+              <span>{loading === 'google' ? '正在導向 Google…' : '用 Google 登入'}</span>
             </button>
 
             <button
               type="button"
               onClick={handleGuest}
               disabled={loading !== null}
+              aria-busy={loading === 'guest'}
               className={`${btnBase} bg-[--color-brand-tint] text-[--color-text] ring-[--color-border]`}
             >
               {loading === 'guest' ? (
@@ -161,7 +163,7 @@ function AuthPageInner() {
                   <GuestIcon />
                 </span>
               )}
-              <span>以訪客身分開始</span>
+              <span>{loading === 'guest' ? '正在建立訪客身分…' : '以訪客身分開始'}</span>
             </button>
           </div>
 
