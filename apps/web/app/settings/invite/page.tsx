@@ -28,6 +28,7 @@ export default function InvitePage() {
   const [generating, setGenerating] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
   const [userRole, setUserRole] = useState<'owner' | 'caregiver' | 'viewer' | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadHouseholdData = async () => {
@@ -82,11 +83,11 @@ export default function InvitePage() {
       if (res.ok) {
         setGeneratedInvite(data)
       } else {
-        alert(`Error: ${data.error}`)
+        setError(data.error || '生成邀請碼失敗，請重試')
       }
     } catch (error) {
       console.error('Failed to generate invite:', error)
-      alert('Failed to generate invite code')
+      setError('生成邀請碼失敗，請重試')
     } finally {
       setGenerating(false)
     }
@@ -116,8 +117,18 @@ export default function InvitePage() {
           <p className="text-sm text-[--color-muted]">分享邀請碼，讓其他家長加入陪伴</p>
         </div>
 
+        {/* live region 常駐 DOM */}
+        <div
+          role="alert"
+          className={error ? 'rounded-lg bg-red-50 p-3 text-sm text-red-700' : 'sr-only'}
+        >
+          {error}
+        </div>
+
         {loading ? (
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-[--color-muted]" role="status">
+            加載中...
+          </div>
         ) : (
           <>
             {/* Generate Invite Section */}

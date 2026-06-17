@@ -93,7 +93,12 @@ function JoinPageInner() {
               />
             </label>
 
-            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+            <div
+              role="alert"
+              className={error ? 'rounded-lg bg-red-50 p-3 text-sm text-red-700' : 'sr-only'}
+            >
+              {error}
+            </div>
 
             <button
               type="button"

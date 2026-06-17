@@ -48,7 +48,9 @@ export default function HistoryPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-[--color-muted]" role="status">
+            加載中...
+          </div>
         </div>
       </main>
     )
@@ -64,7 +66,9 @@ export default function HistoryPage() {
         </div>
 
         {loading ? (
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-[--color-muted]" role="status">
+            加載中...
+          </div>
         ) : logs.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
             <p className="text-[--color-muted]">還沒有紀錄</p>
