@@ -73,7 +73,7 @@ export function ChildForm({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="nickname" className="block text-sm font-semibold text-[--color-text]">
+        <label htmlFor="nickname" className="block text-sm font-semibold text-text">
           孩子的暱稱
         </label>
         <input
@@ -83,19 +83,19 @@ export function ChildForm({
           onChange={(e) => setNickname(e.target.value)}
           placeholder="例：小寶、Amy"
           required
-          className="w-full rounded-lg border border-[--color-border] px-4 py-2"
+          className="w-full rounded-lg border border-border px-4 py-2"
         />
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="block text-sm font-semibold text-[--color-text]">出生年月</legend>
+        <legend className="block text-sm font-semibold text-text">出生年月</legend>
         <div className="grid grid-cols-2 gap-3">
           <select
             value={birthYear}
             onChange={(e) => setBirthYear(e.target.value)}
             required
             aria-label="出生年份"
-            className="rounded-lg border border-[--color-border] px-4 py-2"
+            className="rounded-lg border border-border px-4 py-2"
           >
             <option value="">年份</option>
             {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((year) => (
@@ -109,7 +109,7 @@ export function ChildForm({
             onChange={(e) => setBirthMonth(e.target.value)}
             required
             aria-label="出生月份"
-            className="rounded-lg border border-[--color-border] px-4 py-2"
+            className="rounded-lg border border-border px-4 py-2"
           >
             <option value="">月份</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
@@ -119,13 +119,13 @@ export function ChildForm({
             ))}
           </select>
         </div>
-        <p className="text-xs text-[--color-muted]">我們只記錄年月，不記錄完整生日</p>
+        <p className="text-xs text-muted">我們只記錄年月，不記錄完整生日</p>
       </fieldset>
 
       <button
         type="submit"
         disabled={loading || !nickname || !birthYear || !birthMonth}
-        className="w-full rounded-lg bg-[--color-brand] py-3 font-semibold text-white disabled:opacity-50"
+        className="w-full rounded-lg bg-brand py-3 font-semibold text-white disabled:opacity-50"
       >
         {loading
           ? isEditMode

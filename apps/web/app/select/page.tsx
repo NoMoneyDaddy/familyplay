@@ -78,23 +78,23 @@ export default function SelectPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <ChildSwitcher />
       <div className="mx-auto max-w-[480px] space-y-8 pt-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">你今天怎麼樣？</h1>
-          <p className="text-[--color-muted]">選擇你的狀態，30 秒拿到陪伴方案</p>
+          <h1 className="text-3xl font-bold text-brand">你今天怎麼樣？</h1>
+          <p className="text-muted">選擇你的狀態，30 秒拿到陪伴方案</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* 精力狀態：原生 radio 群組（sr-only 保留可存取性），卡片以 :has(:checked) 顯示選中 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-semibold text-[--color-text]">你的精力狀態</legend>
+            <legend className="text-sm font-semibold text-text">你的精力狀態</legend>
             <div className="grid grid-cols-2 gap-3">
               {ENERGY_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-[--color-border] p-3 text-center transition-all hover:border-[--color-brand] has-[:checked]:border-[--color-brand] has-[:checked]:bg-[--color-bg] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
+                  className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-border p-3 text-center transition-all hover:border-brand has-[:checked]:border-brand has-[:checked]:bg-bg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
                 >
                   <input
                     type="radio"
@@ -105,7 +105,7 @@ export default function SelectPage() {
                   <span className="text-2xl" aria-hidden="true">
                     {option.emoji}
                   </span>
-                  <span className="text-xs font-medium text-[--color-text]">{option.label}</span>
+                  <span className="text-xs font-medium text-text">{option.label}</span>
                 </label>
               ))}
             </div>
@@ -113,21 +113,21 @@ export default function SelectPage() {
 
           {/* 情境 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-semibold text-[--color-text]">現在的情境</legend>
+            <legend className="text-sm font-semibold text-text">現在的情境</legend>
             <div className="grid gap-2">
               {CONTEXT_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-[--color-border] p-3 transition-colors hover:bg-[--color-bg] has-[:checked]:border-[--color-brand] has-[:checked]:bg-[--color-bg] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-bg has-[:checked]:border-brand has-[:checked]:bg-bg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
                 >
                   <input
                     type="radio"
                     name="context"
                     value={option.value}
-                    className="h-4 w-4 accent-[--color-brand] focus:outline-none"
+                    className="h-4 w-4 accent-brand focus:outline-none"
                   />
                   <span aria-hidden="true">{option.emoji}</span>
-                  <span className="text-sm font-medium text-[--color-text]">{option.label}</span>
+                  <span className="text-sm font-medium text-text">{option.label}</span>
                 </label>
               ))}
             </div>
@@ -143,7 +143,7 @@ export default function SelectPage() {
           <button
             type="submit"
             disabled={loading || !selectedChildId}
-            className="w-full rounded-xl bg-[--color-brand] py-4 text-lg font-bold text-white transition-transform active:scale-[0.97] disabled:opacity-50"
+            className="w-full rounded-xl bg-brand py-4 text-lg font-bold text-white transition-transform active:scale-[0.97] disabled:opacity-50"
           >
             {loading ? '取得中…' : '🎯 給我陪伴方案'}
           </button>

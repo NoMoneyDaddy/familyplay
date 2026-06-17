@@ -58,12 +58,12 @@ function JoinPageInner() {
   }, [codeFromUrl])
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
         {/* Header */}
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">加入家庭</h1>
-          <p className="text-sm text-[--color-muted]">使用邀請碼加入家庭陪伴計畫</p>
+          <h1 className="text-3xl font-bold text-brand">加入家庭</h1>
+          <p className="text-sm text-muted">使用邀請碼加入家庭陪伴計畫</p>
         </div>
 
         {success ? (
@@ -71,24 +71,22 @@ function JoinPageInner() {
           <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4 text-center">
             <div className="text-4xl">✅</div>
             <div>
-              <h2 className="font-semibold text-[--color-text]">邀請已接受</h2>
-              <p className="mt-2 text-sm text-[--color-muted]">歡迎加入家庭！正在重新導向...</p>
+              <h2 className="font-semibold text-text">邀請已接受</h2>
+              <p className="mt-2 text-sm text-muted">歡迎加入家庭！正在重新導向...</p>
             </div>
           </div>
         ) : (
           // Input State
           <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-[--color-text]">
-                邀請碼 (6 個字母)
-              </span>
+              <span className="mb-2 block text-sm font-medium text-text">邀請碼 (6 個字母)</span>
               <input
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="例如: ABC123"
                 maxLength={6}
-                className="w-full rounded-lg border border-[--color-border] px-4 py-3 text-lg font-mono text-center text-[--color-text] placeholder-[--color-muted] focus:outline-none focus:ring-2 focus:ring-[--color-brand]"
+                className="w-full rounded-lg border border-border px-4 py-3 text-lg font-mono text-center text-text placeholder-muted focus:outline-none focus:ring-2 focus:ring-brand"
                 disabled={loading}
               />
             </label>
@@ -104,7 +102,7 @@ function JoinPageInner() {
               type="button"
               onClick={() => handleAcceptInvite(code)}
               disabled={loading || !code.trim()}
-              className="w-full rounded-lg bg-[--color-brand] px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
+              className="w-full rounded-lg bg-brand px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
             >
               {loading ? '驗證中...' : '接受邀請'}
             </button>
@@ -124,7 +122,7 @@ function JoinPageInner() {
             <button
               type="button"
               onClick={() => router.push('/select')}
-              className="text-sm text-[--color-muted] hover:text-[--color-text]"
+              className="text-sm text-muted hover:text-text"
             >
               返回選擇頁面
             </button>
@@ -140,7 +138,7 @@ export default function JoinPage() {
     <Suspense
       fallback={
         <main className="flex min-h-screen items-center justify-center">
-          <p className="text-[--color-muted]">載入中...</p>
+          <p className="text-muted">載入中...</p>
         </main>
       }
     >

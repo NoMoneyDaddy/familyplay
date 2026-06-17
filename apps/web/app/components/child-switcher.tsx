@@ -49,14 +49,14 @@ export function ChildSwitcher() {
   const currentChild = children.find((c) => c.id === selectedChildId)
 
   return (
-    <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-[--color-border]">
+    <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-border">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-[--color-muted]">現在照顧</span>
+        <span className="text-sm text-muted">現在照顧</span>
         {currentChild && (
           <select
             value={selectedChildId || ''}
             onChange={(e) => setSelectedChildId(e.target.value)}
-            className="text-lg font-semibold text-[--color-brand] bg-transparent border-none cursor-pointer focus:outline-none"
+            className="text-lg font-semibold text-brand bg-transparent border-none cursor-pointer focus:outline-none"
           >
             {children.map((child) => (
               <option key={child.id} value={child.id}>
@@ -66,7 +66,7 @@ export function ChildSwitcher() {
           </select>
         )}
       </div>
-      <Link href="/children" className="text-sm text-[--color-brand] hover:underline font-medium">
+      <Link href="/children" className="text-sm text-brand hover:underline font-medium">
         編輯
       </Link>
     </div>

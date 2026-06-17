@@ -64,9 +64,9 @@ export default function ChildrenPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-[--color-muted]" role="status">
+          <div className="text-center text-muted" role="status">
             加載中...
           </div>
         </div>
@@ -75,11 +75,11 @@ export default function ChildrenPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-[--color-brand]">管理孩子</h1>
-          <p className="text-[--color-muted]">編輯和管理你的孩子檔案</p>
+          <h1 className="text-3xl font-bold text-brand">管理孩子</h1>
+          <p className="text-muted">編輯和管理你的孩子檔案</p>
         </div>
 
         {/* live region 常駐 DOM */}
@@ -92,10 +92,10 @@ export default function ChildrenPage() {
 
         {children.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 text-center space-y-4">
-            <p className="text-[--color-muted]">還沒有孩子檔案</p>
+            <p className="text-muted">還沒有孩子檔案</p>
             <Link
               href="/children/add"
-              className="inline-block rounded-lg bg-[--color-brand] px-6 py-2 font-semibold text-white hover:opacity-90"
+              className="inline-block rounded-lg bg-brand px-6 py-2 font-semibold text-white hover:opacity-90"
             >
               新增孩子
             </Link>
@@ -106,21 +106,21 @@ export default function ChildrenPage() {
               {children.map((child) => (
                 <div
                   key={child.id}
-                  className="rounded-lg border border-[--color-border] p-4 flex items-center justify-between"
+                  className="rounded-lg border border-border p-4 flex items-center justify-between"
                 >
                   <div className="flex-1">
-                    <h2 className="font-semibold text-[--color-text]">{child.nickname}</h2>
+                    <h2 className="font-semibold text-text">{child.nickname}</h2>
                     {child.birthYearMonth && (
-                      <p className="text-sm text-[--color-muted]">出生: {child.birthYearMonth}</p>
+                      <p className="text-sm text-muted">出生: {child.birthYearMonth}</p>
                     )}
                     {child.stageKey && (
-                      <p className="text-xs text-[--color-muted] mt-1">階段: {child.stageKey}</p>
+                      <p className="text-xs text-muted mt-1">階段: {child.stageKey}</p>
                     )}
                   </div>
                   <div className="flex gap-2">
                     <Link
                       href={`/children/${child.id}/edit`}
-                      className="px-3 py-1 rounded-md bg-[--color-bg] text-sm font-medium text-[--color-brand] hover:bg-[--color-border]"
+                      className="px-3 py-1 rounded-md bg-bg text-sm font-medium text-brand hover:bg-border"
                     >
                       編輯
                     </Link>
@@ -139,7 +139,7 @@ export default function ChildrenPage() {
 
             <Link
               href="/children/add"
-              className="block text-center rounded-lg bg-[--color-brand] py-3 font-semibold text-white hover:opacity-90"
+              className="block text-center rounded-lg bg-brand py-3 font-semibold text-white hover:opacity-90"
             >
               新增孩子
             </Link>

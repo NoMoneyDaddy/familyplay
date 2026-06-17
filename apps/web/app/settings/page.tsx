@@ -27,40 +27,40 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">設定</h1>
+          <h1 className="text-3xl font-bold text-brand">設定</h1>
         </div>
 
         {loading ? (
-          <div className="text-center text-[--color-muted]" role="status">
+          <div className="text-center text-muted" role="status">
             加載中...
           </div>
         ) : (
           <div className="space-y-4">
             <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <h3 className="mb-4 font-semibold text-[--color-text]">帳號</h3>
-              {user?.displayName && <p className="text-[--color-text]">👤 {user.displayName}</p>}
-              <p className="mt-2 text-xs text-[--color-muted]">FamilyPlay MVP v0.1</p>
+              <h3 className="mb-4 font-semibold text-text">帳號</h3>
+              {user?.displayName && <p className="text-text">👤 {user.displayName}</p>}
+              <p className="mt-2 text-xs text-muted">FamilyPlay MVP v0.1</p>
             </div>
 
             <div className="space-y-2">
               <a
                 href="/account/entitlements"
-                className="block rounded-lg bg-white p-4 text-[--color-text] shadow-sm hover:bg-[--color-bg]"
+                className="block rounded-lg bg-white p-4 text-text shadow-sm hover:bg-bg"
               >
                 💳 Subscription
               </a>
               <a
                 href="/settings/invite"
-                className="block rounded-lg bg-white p-4 text-[--color-text] shadow-sm hover:bg-[--color-bg]"
+                className="block rounded-lg bg-white p-4 text-text shadow-sm hover:bg-bg"
               >
                 👨‍👩‍👧 家庭成員
               </a>
               <a
                 href="/history"
-                className="block rounded-lg bg-white p-4 text-[--color-text] shadow-sm hover:bg-[--color-bg]"
+                className="block rounded-lg bg-white p-4 text-text shadow-sm hover:bg-bg"
               >
                 📊 陪伴紀錄
               </a>

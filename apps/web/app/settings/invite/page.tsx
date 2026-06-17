@@ -103,19 +103,19 @@ export default function InvitePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
         {/* Header */}
         <div className="space-y-2">
           <button
             type="button"
             onClick={() => router.back()}
-            className="text-sm text-[--color-muted] hover:text-[--color-text]"
+            className="text-sm text-muted hover:text-text"
           >
             ← 返回
           </button>
-          <h1 className="text-3xl font-bold text-[--color-brand]">邀請家庭成員</h1>
-          <p className="text-sm text-[--color-muted]">分享邀請碼，讓其他家長加入陪伴</p>
+          <h1 className="text-3xl font-bold text-brand">邀請家庭成員</h1>
+          <p className="text-sm text-muted">分享邀請碼，讓其他家長加入陪伴</p>
         </div>
 
         {/* live region 常駐 DOM */}
@@ -127,7 +127,7 @@ export default function InvitePage() {
         </div>
 
         {loading ? (
-          <div className="text-center text-[--color-muted]" role="status">
+          <div className="text-center text-muted" role="status">
             加載中...
           </div>
         ) : (
@@ -135,18 +135,18 @@ export default function InvitePage() {
             {/* Generate Invite Section */}
             {userRole === 'owner' || userRole === 'caregiver' ? (
               <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-                <h2 className="font-semibold text-[--color-text]">生成邀請碼</h2>
+                <h2 className="font-semibold text-text">生成邀請碼</h2>
 
                 {/* Role Selection */}
                 <div className="space-y-2">
-                  <label htmlFor="role" className="block text-sm font-medium text-[--color-text]">
+                  <label htmlFor="role" className="block text-sm font-medium text-text">
                     角色
                   </label>
                   <select
                     id="role"
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value as 'caregiver' | 'viewer')}
-                    className="w-full rounded-lg border border-[--color-border] px-3 py-2 text-[--color-text]"
+                    className="w-full rounded-lg border border-border px-3 py-2 text-text"
                   >
                     <option value="caregiver">照顧者 (可以記錄和建議)</option>
                     <option value="viewer">檢視者 (只可查看)</option>
@@ -158,7 +158,7 @@ export default function InvitePage() {
                   type="button"
                   onClick={handleGenerateInvite}
                   disabled={generating}
-                  className="w-full rounded-lg bg-[--color-brand] px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
+                  className="w-full rounded-lg bg-brand px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
                 >
                   {generating ? '生成中...' : '生成邀請碼'}
                 </button>
@@ -167,9 +167,9 @@ export default function InvitePage() {
                 {generatedInvite && (
                   <div className="space-y-3 rounded-lg bg-blue-50 p-4">
                     <div>
-                      <p className="text-xs text-[--color-muted] mb-1">邀請碼</p>
+                      <p className="text-xs text-muted mb-1">邀請碼</p>
                       <div className="flex items-center gap-2">
-                        <code className="flex-1 rounded bg-white px-3 py-2 font-mono text-lg font-bold text-[--color-brand]">
+                        <code className="flex-1 rounded bg-white px-3 py-2 font-mono text-lg font-bold text-brand">
                           {generatedInvite.code}
                         </code>
                         <button
@@ -179,7 +179,7 @@ export default function InvitePage() {
                             setCopySuccess(true)
                             setTimeout(() => setCopySuccess(false), 2000)
                           }}
-                          className="rounded bg-[--color-brand] px-3 py-2 text-xs text-white hover:opacity-90"
+                          className="rounded bg-brand px-3 py-2 text-xs text-white hover:opacity-90"
                         >
                           複製
                         </button>
@@ -187,18 +187,18 @@ export default function InvitePage() {
                     </div>
 
                     <div>
-                      <p className="text-xs text-[--color-muted] mb-1">完整邀請連結</p>
+                      <p className="text-xs text-muted mb-1">完整邀請連結</p>
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
                           readOnly
                           value={generatedInvite.inviteLink}
-                          className="flex-1 rounded bg-white px-3 py-2 text-xs text-[--color-text]"
+                          className="flex-1 rounded bg-white px-3 py-2 text-xs text-text"
                         />
                         <button
                           type="button"
                           onClick={handleCopyLink}
-                          className="rounded bg-[--color-brand] px-3 py-2 text-xs text-white hover:opacity-90"
+                          className="rounded bg-brand px-3 py-2 text-xs text-white hover:opacity-90"
                         >
                           {copySuccess ? '已複製' : '複製'}
                         </button>
@@ -220,27 +220,27 @@ export default function InvitePage() {
 
             {/* Household Members List */}
             <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-              <h2 className="font-semibold text-[--color-text]">家庭成員 ({members.length})</h2>
+              <h2 className="font-semibold text-text">家庭成員 ({members.length})</h2>
 
               {members.length === 0 ? (
-                <p className="text-sm text-[--color-muted]">暫無其他成員</p>
+                <p className="text-sm text-muted">暫無其他成員</p>
               ) : (
                 <div className="space-y-2">
                   {members.map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between rounded-lg bg-[--color-bg] p-3"
+                      className="flex items-center justify-between rounded-lg bg-bg p-3"
                     >
                       <div>
-                        <p className="font-medium text-[--color-text]">{member.displayName}</p>
-                        <p className="text-xs text-[--color-muted]">
+                        <p className="font-medium text-text">{member.displayName}</p>
+                        <p className="text-xs text-muted">
                           {member.role === 'owner' && '家庭擁有者'}
                           {member.role === 'caregiver' && '照顧者'}
                           {member.role === 'viewer' && '檢視者'}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-[--color-muted]">
+                        <p className="text-xs text-muted">
                           加入於 {new Date(member.joinedAt).toLocaleDateString('zh-TW')}
                         </p>
                       </div>

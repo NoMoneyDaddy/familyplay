@@ -78,7 +78,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   if (activityLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-muted]" role="status">
+        <p className="text-muted" role="status">
           加載活動中...
         </p>
       </main>
@@ -96,24 +96,24 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6">
         <div className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-[--color-text]">{activity.title}</h1>
+          <h1 className="text-2xl font-bold text-text">{activity.title}</h1>
 
           <div className="space-y-4">
             <div>
-              <p className="text-lg font-semibold text-[--color-brand]">{activity.openingLine}</p>
+              <p className="text-lg font-semibold text-brand">{activity.openingLine}</p>
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold text-[--color-text]">步驟</h2>
+              <h2 className="text-sm font-semibold text-text">步驟</h2>
               <ol className="space-y-2">
                 {activity.steps.map((step, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: Activity steps are static and ordered
                   <li key={i} className="flex gap-3">
-                    <span className="font-semibold text-[--color-brand]">{i + 1}</span>
-                    <span className="text-[--color-text]">{step}</span>
+                    <span className="font-semibold text-brand">{i + 1}</span>
+                    <span className="text-text">{step}</span>
                   </li>
                 ))}
               </ol>
@@ -121,11 +121,11 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
             {activity.followUpQuestions.length > 0 && (
               <div className="space-y-2">
-                <h2 className="text-sm font-semibold text-[--color-text]">跟進問題</h2>
+                <h2 className="text-sm font-semibold text-text">跟進問題</h2>
                 <ul className="space-y-1">
                   {activity.followUpQuestions.map((q, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: Follow-up questions are static and ordered
-                    <li key={i} className="text-sm text-[--color-muted]">
+                    <li key={i} className="text-sm text-muted">
                       • {q}
                     </li>
                   ))}
@@ -133,7 +133,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
               </div>
             )}
 
-            <div className="text-xs text-[--color-muted]">
+            <div className="text-xs text-muted">
               <span aria-hidden="true">⏱️ </span>約 {activity.minDurationMinutes}–
               {activity.maxDurationMinutes} 分鐘
             </div>
@@ -141,16 +141,16 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
         </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-          <h2 className="font-semibold text-[--color-text]">活動結果</h2>
+          <h2 className="font-semibold text-text">活動結果</h2>
 
           {/* 孩子的反應：單選 radio 群組 */}
           <fieldset className="space-y-2">
-            <legend className="block text-sm font-semibold text-[--color-text]">孩子的反應</legend>
+            <legend className="block text-sm font-semibold text-text">孩子的反應</legend>
             <div className="grid grid-cols-2 gap-2">
               {REACTIONS.map((r) => (
                 <label
                   key={r.value}
-                  className="cursor-pointer rounded-lg bg-[--color-bg] p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-[--color-brand] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
+                  className="cursor-pointer rounded-lg bg-bg p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
                 >
                   <input
                     type="radio"
@@ -168,12 +168,12 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
           {/* 活動完成度：單選 radio 群組 */}
           <fieldset className="space-y-2">
-            <legend className="block text-sm font-semibold text-[--color-text]">活動完成度</legend>
+            <legend className="block text-sm font-semibold text-text">活動完成度</legend>
             <div className="grid grid-cols-3 gap-2">
               {OUTCOMES.map((o) => (
                 <label
                   key={o.value}
-                  className="cursor-pointer rounded-lg bg-[--color-bg] p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-[--color-brand] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
+                  className="cursor-pointer rounded-lg bg-bg p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
                 >
                   <input
                     type="radio"
@@ -193,7 +193,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             type="button"
             onClick={handleComplete}
             disabled={loading}
-            className="w-full rounded-lg bg-[--color-brand] py-3 font-semibold text-white disabled:opacity-50"
+            className="w-full rounded-lg bg-brand py-3 font-semibold text-white disabled:opacity-50"
           >
             {loading ? (
               '記錄中...'

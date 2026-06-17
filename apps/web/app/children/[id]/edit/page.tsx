@@ -40,9 +40,9 @@ export default function EditChildPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-muted">加載中...</div>
         </div>
       </main>
     )
@@ -50,13 +50,13 @@ export default function EditChildPage() {
 
   if (!child) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
         <div className="mx-auto max-w-[480px] text-center">
-          <p className="text-[--color-muted]">找不到這個孩子</p>
+          <p className="text-muted">找不到這個孩子</p>
           <button
             type="button"
             onClick={() => router.push('/children')}
-            className="mt-4 text-[--color-brand] hover:underline font-medium"
+            className="mt-4 text-brand hover:underline font-medium"
           >
             返回
           </button>
@@ -72,11 +72,11 @@ export default function EditChildPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-6 pt-4">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">編輯孩子</h1>
-          <p className="text-[--color-muted]">{child.nickname}</p>
+          <h1 className="text-3xl font-bold text-brand">編輯孩子</h1>
+          <p className="text-muted">{child.nickname}</p>
         </div>
 
         <ChildForm
@@ -87,11 +87,11 @@ export default function EditChildPage() {
           onSuccess={handleSuccess}
         />
 
-        <p className="text-center text-xs text-[--color-muted]">
+        <p className="text-center text-xs text-muted">
           <button
             type="button"
             onClick={() => router.back()}
-            className="text-[--color-brand] hover:underline font-medium"
+            className="text-brand hover:underline font-medium"
           >
             返回
           </button>

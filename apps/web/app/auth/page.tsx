@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -46,7 +46,6 @@ function Spinner() {
 }
 
 function AuthPageInner() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState(searchParams.get('error') ? '登入未完成，請再試一次。' : '')
   const [loading, setLoading] = useState<'google' | 'guest' | null>(null)
@@ -99,30 +98,28 @@ function AuthPageInner() {
       {/* 暖色氛圍背景（多層次製造深度） */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[--color-brand-tint] via-[--color-bg] to-[--color-bg]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-brand-tint via-bg to-bg"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[--color-brand] opacity-20 blur-3xl"
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-brand opacity-20 blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-[--color-warning] opacity-10 blur-3xl"
+        className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-warning opacity-10 blur-3xl"
       />
 
       <div className="w-full max-w-[400px] space-y-6">
         {/* 主卡片：給入口頁結構與質感 */}
-        <div className="space-y-7 rounded-[28px] bg-[--color-card] p-7 shadow-lg ring-1 ring-[--color-border]/70">
+        <div className="space-y-7 rounded-[28px] bg-card p-7 shadow-lg ring-1 ring-border/70">
           {/* Hero */}
           <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[--color-brand] text-3xl shadow-lg ring-4 ring-[--color-brand-tint]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-brand text-3xl shadow-lg ring-4 ring-brand-tint">
               <span aria-hidden="true">🧸</span>
             </div>
             <div className="space-y-1.5">
-              <h1 className="text-[28px] font-bold leading-tight text-[--color-text]">
-                FamilyPlay
-              </h1>
-              <p className="text-[--color-muted]">給疲憊的你，30 秒就有今天的陪伴方案</p>
+              <h1 className="text-[28px] font-bold leading-tight text-text">FamilyPlay</h1>
+              <p className="text-muted">給疲憊的你，30 秒就有今天的陪伴方案</p>
             </div>
           </div>
 
@@ -143,7 +140,7 @@ function AuthPageInner() {
               onClick={handleGoogle}
               disabled={loading !== null}
               aria-busy={loading === 'google'}
-              className={`${btnBase} bg-[--color-card] text-[--color-text] ring-[--color-border]`}
+              className={`${btnBase} bg-card text-text ring-border`}
             >
               {loading === 'google' ? <Spinner /> : <GoogleIcon />}
               <span>{loading === 'google' ? '正在導向 Google…' : '用 Google 登入'}</span>
@@ -154,12 +151,12 @@ function AuthPageInner() {
               onClick={handleGuest}
               disabled={loading !== null}
               aria-busy={loading === 'guest'}
-              className={`${btnBase} bg-[--color-brand-tint] text-[--color-text] ring-[--color-border]`}
+              className={`${btnBase} bg-brand-tint text-text ring-border`}
             >
               {loading === 'guest' ? (
                 <Spinner />
               ) : (
-                <span className="text-[--color-brand]">
+                <span className="text-brand">
                   <GuestIcon />
                 </span>
               )}
@@ -168,13 +165,11 @@ function AuthPageInner() {
           </div>
 
           {/* 信任元素 */}
-          <p className="text-center text-xs text-[--color-muted]">
-            免費開始 · 免信用卡 · 30 秒上手
-          </p>
+          <p className="text-center text-xs text-muted">免費開始 · 免信用卡 · 30 秒上手</p>
         </div>
 
         {/* 卡片外的安心說明 */}
-        <p className="px-2 text-center text-xs leading-relaxed text-[--color-muted]">
+        <p className="px-2 text-center text-xs leading-relaxed text-muted">
           登入 Google 可在不同裝置同步孩子的紀錄。訪客模式免註冊、資料僅存於此帳號，之後可隨時改用
           Google 登入保存。
         </p>
@@ -188,7 +183,7 @@ export default function AuthPage() {
     <Suspense
       fallback={
         <main className="flex min-h-screen items-center justify-center">
-          <p className="text-[--color-muted]" role="status">
+          <p className="text-muted" role="status">
             載入中...
           </p>
         </main>
