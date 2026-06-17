@@ -34,7 +34,9 @@ export default function CapabilitiesPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
         <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-[--color-muted]" role="status">
+            加載中...
+          </div>
         </div>
       </main>
     )
@@ -52,7 +54,9 @@ export default function CapabilitiesPage() {
         </div>
 
         {loading ? (
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-[--color-muted]" role="status">
+            加載中...
+          </div>
         ) : (
           <div className="grid gap-2">
             {capabilities.map((cap) => (

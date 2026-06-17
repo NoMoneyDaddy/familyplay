@@ -34,7 +34,9 @@ export default function SettingsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center text-[--color-muted]">加載中...</div>
+          <div className="text-center text-[--color-muted]" role="status">
+            加載中...
+          </div>
         ) : (
           <div className="space-y-4">
             <div className="rounded-2xl bg-white p-6 shadow-sm">
