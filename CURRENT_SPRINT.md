@@ -30,18 +30,26 @@
 - ✅ **年齡基線能力**（`getBaselineCapabilities`）：免做完整評估也能給出合理推薦；未指定 ZPD 時自動推算
 - ✅ 已實機驗證：睡前/低電量/2–3 歲 → 回傳「一起看圖畫書」（非保底）；4 歲一般情境 → 3 筆合理排序
 
-**測試：core 43 + ai 10 + assessment 12 + web 22 = 87 個，全綠**
+**接上 Supabase（已驗證連線）：**
+- ✅ `lib/activities.ts`：`/api/recommend` 優先以 **使用者 session（RLS 生效）** 從 `companion_activities` 載入活動
+- ✅ 未登入 / 缺環境變數 / 任何錯誤 → 優雅降級回內建活動庫（已實機驗證 fallback）
+- ✅ 純對應函式 `mapRowToActivity`（snake_case → camelCase）有完整測試
+- ℹ️ 遠端 `familyplay` 專案（ap-south-1）健康、13 張表全開 RLS、`companion_activities` 已有 6 筆 seed
+- ⚠️ 安全建議待處理（屬 DB migration 擁有者）：3 個 `SECURITY DEFINER` RLS 輔助函式對 `authenticated` 開放 RPC 執行，建議 `REVOKE EXECUTE`
+
+**測試：core 43 + ai 10 + assessment 12 + web 27 = 92 個，全綠**
 
 **驗證指令（全部通過）：**
 ```bash
 pnpm biome check .       # 0 error
 pnpm turbo type-check    # 7/7
-pnpm turbo test          # 87 tests pass
+pnpm turbo test          # 92 tests pass
 pnpm --filter @familyplay/web exec next build  # 首頁互動 + /api/recommend
 ```
 
-**尚待你提供雲端金鑰後才能接通（roadmap）：**
-- Supabase Auth（Google 登入）+ RLS + 由 `companion_activities` 載入活動取代內建庫
+**尚待接通（roadmap）：**
+- Supabase Auth（Google 登入）→ 登入後 `/api/recommend` 即會自動改用 DB 活動（程式已就緒）
+- 在 Zeabur 設定 `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - LemonSqueezy / RevenueCat 付費；Sentry 錯誤監控；Upstash 速率限制與快取
 - Mobile（Expo）對應畫面；shadcn/ui 元件化
 
