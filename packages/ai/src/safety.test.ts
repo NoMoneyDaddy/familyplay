@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { safetyFilter, checkSafety } from './safety'
+import { describe, expect, it } from 'vitest'
+import { checkSafety, safetyFilter } from './safety'
 
 describe('safetyFilter', () => {
   it('passes clean content', () => {
@@ -45,11 +45,12 @@ describe('checkSafety', () => {
     }
   })
 
-  it('returns reason for blocked pattern', () => {
+  it('returns reason and detail for blocked pattern', () => {
     const result = checkSafety('電池遊戲')
     expect(result.passed).toBe(false)
     if (!result.passed) {
       expect(result.reason).toBe('blocked_pattern')
+      expect(result.detail).toBeDefined()
     }
   })
 })

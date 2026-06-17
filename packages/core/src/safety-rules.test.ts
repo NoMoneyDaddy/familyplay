@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { containsBlockedMaterial, hasBlockedContextKeyword, isUnder3 } from './safety-rules'
+import type { CompanionContext } from './safety-rules'
 
 describe('isUnder3', () => {
   it('marks crawler as under 3', () => {
@@ -23,6 +24,11 @@ describe('containsBlockedMaterial', () => {
   it('blocks battery for early_infant', () => {
     expect(containsBlockedMaterial('電池當道具', 'early_infant')).toBe(true)
   })
+
+  it('throws on invalid stageKey', () => {
+    // biome-ignore lint/suspicious/noExplicitAny: testing runtime guard
+    expect(() => containsBlockedMaterial('test', 'bogus' as any)).toThrow('Invalid stageKey')
+  })
 })
 
 describe('hasBlockedContextKeyword', () => {
@@ -36,5 +42,11 @@ describe('hasBlockedContextKeyword', () => {
 
   it('allows normal context', () => {
     expect(hasBlockedContextKeyword('跑跳遊戲', 'normal')).toBe(false)
+  })
+
+  it('throws on unknown context', () => {
+    expect(() => hasBlockedContextKeyword('test', 'unknown' as CompanionContext)).toThrow(
+      'Unknown CompanionContext',
+    )
   })
 })

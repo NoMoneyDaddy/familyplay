@@ -11,21 +11,21 @@ const MAX_OUTPUT_LENGTH = 2000
 
 export function safetyFilter(output: string): boolean {
   if (output.length > MAX_OUTPUT_LENGTH) return false
-  return BLOCKED_PATTERNS.every(pattern => !pattern.test(output))
+  return BLOCKED_PATTERNS.every((pattern) => !pattern.test(output))
 }
 
 export type SafetyCheckResult =
   | { passed: true }
-  | { passed: false; reason: 'blocked_pattern' | 'too_long' }
+  | { passed: false; reason: 'blocked_pattern' | 'too_long'; detail?: string }
 
 export function checkSafety(output: string): SafetyCheckResult {
   if (output.length > MAX_OUTPUT_LENGTH) {
     return { passed: false, reason: 'too_long' }
   }
 
-  const blocked = BLOCKED_PATTERNS.find(pattern => pattern.test(output))
+  const blocked = BLOCKED_PATTERNS.find((pattern) => pattern.test(output))
   if (blocked) {
-    return { passed: false, reason: 'blocked_pattern' }
+    return { passed: false, reason: 'blocked_pattern', detail: blocked.source }
   }
 
   return { passed: true }
