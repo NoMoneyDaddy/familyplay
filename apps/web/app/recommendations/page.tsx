@@ -55,8 +55,10 @@ function RecommendationsPageInner() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 text-4xl">🤔</div>
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="mb-4 text-4xl" aria-hidden="true">
+            🤔
+          </div>
           <p className="text-[--color-muted]">正在思考最好的方案...</p>
         </div>
       </main>
@@ -65,9 +67,15 @@ function RecommendationsPageInner() {
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">錯誤: {error}</p>
+      <main className="flex min-h-screen items-center justify-center px-5">
+        <div className="text-center" role="alert">
+          <p className="text-red-600">錯誤：{error}</p>
+          <Link
+            href="/select"
+            className="mt-4 inline-block rounded-lg border border-[--color-border] px-4 py-2 font-semibold text-[--color-text]"
+          >
+            <span aria-hidden="true">↺ </span>重新選擇狀態
+          </Link>
         </div>
       </main>
     )
@@ -86,14 +94,15 @@ function RecommendationsPageInner() {
             <p className="text-[--color-muted]">暫時沒有合適的推薦</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <ul className="space-y-4">
             {recommendations.map((rec, idx) => (
-              <div key={rec.id} className="rounded-2xl bg-white p-6 shadow-sm">
+              <li key={rec.id} className="rounded-2xl bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-start justify-between">
                   <h2 className="flex-1 text-xl font-semibold text-[--color-text]">
                     {idx + 1}. {rec.title}
                   </h2>
                   <div className="text-lg font-bold text-[--color-brand]">
+                    <span className="sr-only">適合度 </span>
                     {rec.score.toFixed(1)}
                   </div>
                 </div>
@@ -102,7 +111,10 @@ function RecommendationsPageInner() {
                   <ul className="mb-4 space-y-1 text-xs text-[--color-muted]">
                     {rec.reasons.map((reason, i) => (
                       // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
-                      <li key={i}>✓ {reason}</li>
+                      <li key={i}>
+                        <span aria-hidden="true">✓ </span>
+                        {reason}
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -111,22 +123,19 @@ function RecommendationsPageInner() {
                   href={`/activity/${rec.id}?childId=${childId}`}
                   className="block w-full rounded-lg bg-[--color-brand] py-3 text-center font-semibold text-white transition-transform active:scale-[0.97]"
                 >
-                  📖 開始這個活動
+                  <span aria-hidden="true">📖 </span>開始這個活動
                 </Link>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href = '/select'
-          }}
-          className="w-full rounded-lg border border-[--color-border] py-3 font-semibold text-[--color-text]"
+        <Link
+          href="/select"
+          className="block w-full rounded-lg border border-[--color-border] py-3 text-center font-semibold text-[--color-text]"
         >
-          ↺ 重新選擇狀態
-        </button>
+          <span aria-hidden="true">↺ </span>重新選擇狀態
+        </Link>
       </div>
     </main>
   )
@@ -137,7 +146,9 @@ export default function RecommendationsPage() {
     <Suspense
       fallback={
         <main className="flex min-h-screen items-center justify-center">
-          <p className="text-[--color-muted]">載入推薦中...</p>
+          <p className="text-[--color-muted]" role="status">
+            載入推薦中...
+          </p>
         </main>
       }
     >
