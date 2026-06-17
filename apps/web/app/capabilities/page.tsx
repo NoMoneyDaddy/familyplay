@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Capability {
@@ -11,7 +12,7 @@ interface Capability {
 }
 
 export default function CapabilitiesPage() {
-  const { selectedChildId } = useChildStore()
+  const { selectedChildId, hasHydrated } = useChildStore()
   const [capabilities, setCapabilities] = useState<Capability[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -21,6 +22,7 @@ export default function CapabilitiesPage() {
       return
     }
 
+    setLoading(true)
     fetch(`/api/capabilities?childId=${selectedChildId}`)
       .then((res) => res.json())
       .then((data) => setCapabilities(data.capabilities || []))
@@ -30,53 +32,50 @@ export default function CapabilitiesPage() {
 
   const achievedCount = capabilities.filter((c) => c.achieved).length
 
-  if (!selectedChildId) {
-    return (
-      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-        <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-muted" role="status">
-            加載中...
-          </div>
-        </div>
-      </main>
-    )
-  }
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
+    <PageShell>
+      {/* ChildSwitcher 一律掛載：它負責抓孩子清單並設定當前孩子 */}
       <ChildSwitcher />
-      <div className="mx-auto max-w-[480px] space-y-6 pt-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-brand">能力追踪</h1>
-          <p className="text-muted">
-            {achievedCount} / {capabilities.length} 已達成
-          </p>
+      <PageHeader title="能力追蹤" subtitle={`${achievedCount} / ${capabilities.length} 已達成`} />
+
+      {!hasHydrated ? (
+        <div className="text-center text-muted" role="status">
+          加載中...
         </div>
+      ) : !selectedChildId ? (
+        <div className="space-y-4 rounded-lg border border-border bg-card p-6 text-center shadow-sm">
+          <p className="text-muted">還沒有孩子檔案</p>
+          <LinkButton href="/children/add" icon="plus">
+            新增孩子
+          </LinkButton>
+        </div>
+      ) : loading ? (
+        <div className="text-center text-muted" role="status">
+          加載中...
+        </div>
+      ) : (
+        <ul className="grid gap-2">
+          {capabilities.map((cap) => (
+            <li
+              key={cap.key}
+              className={`flex items-center justify-between rounded-lg border p-4 ${
+                cap.achieved
+                  ? 'border-transparent bg-success-tint text-success'
+                  : 'border-border bg-bg text-muted'
+              }`}
+            >
+              <span className="font-medium">{cap.label}</span>
+              {cap.achieved ? (
+                <Icon name="check" className="h-[20px] w-[20px]" />
+              ) : (
+                <span className="h-[18px] w-[18px] rounded-full border-2 border-border" />
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
 
-        {loading ? (
-          <div className="text-center text-muted" role="status">
-            加載中...
-          </div>
-        ) : (
-          <div className="grid gap-2">
-            {capabilities.map((cap) => (
-              <div
-                key={cap.key}
-                className={`rounded-lg p-4 ${
-                  cap.achieved ? 'bg-green-50 text-green-700' : 'bg-white text-text'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{cap.label}</span>
-                  <span className="text-xl">{cap.achieved ? '✅' : '⭕'}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <p className="text-center text-xs text-muted">基於陪伴活動和里程碑自動更新</p>
-      </div>
-    </main>
+      <p className="text-center text-xs text-faint">基於陪伴活動和里程碑自動更新</p>
+    </PageShell>
   )
 }

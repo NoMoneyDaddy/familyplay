@@ -2,14 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { Icon } from '@/app/components/ui'
 import { useChildStore } from '@/lib/stores/useChildStore'
-
-interface Child {
-  id: string
-  nickname: string
-  stageKey?: string
-  birthYearMonth?: string
-}
 
 export function ChildSwitcher() {
   const { selectedChildId, children, setSelectedChildId, setChildren, setHasHydrated } =
@@ -49,24 +43,31 @@ export function ChildSwitcher() {
   const currentChild = children.find((c) => c.id === selectedChildId)
 
   return (
-    <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-border">
+    <div className="flex items-center justify-between border-b border-border bg-card px-5 py-4">
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted">現在照顧</span>
         {currentChild && (
-          <select
-            value={selectedChildId || ''}
-            onChange={(e) => setSelectedChildId(e.target.value)}
-            className="text-lg font-semibold text-brand bg-transparent border-none cursor-pointer focus:outline-none"
-          >
-            {children.map((child) => (
-              <option key={child.id} value={child.id}>
-                {child.nickname}
-              </option>
-            ))}
-          </select>
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1">
+            <Icon name="child" className="h-[16px] w-[16px] text-brand" />
+            <select
+              value={selectedChildId || ''}
+              onChange={(e) => setSelectedChildId(e.target.value)}
+              className="cursor-pointer border-none bg-transparent text-base font-semibold text-brand focus:outline-none"
+            >
+              {children.map((child) => (
+                <option key={child.id} value={child.id}>
+                  {child.nickname}
+                </option>
+              ))}
+            </select>
+          </span>
         )}
       </div>
-      <Link href="/children" className="text-sm text-brand hover:underline font-medium">
+      <Link
+        href="/children"
+        className="inline-flex items-center gap-1 text-sm font-medium text-brand transition-colors hover:text-brand-strong"
+      >
+        <Icon name="edit" className="h-[16px] w-[16px]" />
         編輯
       </Link>
     </div>

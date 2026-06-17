@@ -1,8 +1,16 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import {
+  Button,
+  Callout,
+  Card,
+  ErrorAlert,
+  Icon,
+  LinkButton,
+  PageHeader,
+  PageShell,
+} from '@/app/components/ui'
 
 interface Child {
   id: string
@@ -13,7 +21,6 @@ interface Child {
 }
 
 export default function ChildrenPage() {
-  const router = useRouter()
   const [children, setChildren] = useState<Child[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -64,88 +71,80 @@ export default function ChildrenPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-        <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-muted" role="status">
-            加載中...
-          </div>
+      <PageShell>
+        <div className="text-center text-muted" role="status">
+          加載中...
         </div>
-      </main>
+      </PageShell>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-brand">管理孩子</h1>
-          <p className="text-muted">編輯和管理你的孩子檔案</p>
-        </div>
+    <PageShell>
+      <PageHeader title="管理孩子" subtitle="編輯和管理你的孩子檔案" />
 
-        {/* live region 常駐 DOM */}
-        <div
-          role="alert"
-          className={error ? 'rounded-lg bg-red-50 p-3 text-sm text-red-700' : 'sr-only'}
-        >
-          {error}
-        </div>
+      <ErrorAlert message={error} />
 
-        {children.length === 0 ? (
-          <div className="rounded-2xl bg-white p-6 text-center space-y-4">
-            <p className="text-muted">還沒有孩子檔案</p>
-            <Link
-              href="/children/add"
-              className="inline-block rounded-lg bg-brand px-6 py-2 font-semibold text-white hover:opacity-90"
-            >
-              新增孩子
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3">
-              {children.map((child) => (
-                <div
-                  key={child.id}
-                  className="rounded-lg border border-border p-4 flex items-center justify-between"
-                >
+      {children.length === 0 ? (
+        <Card className="space-y-4 text-center">
+          <p className="text-muted">還沒有孩子檔案</p>
+          <LinkButton href="/children/add" icon="plus">
+            新增孩子
+          </LinkButton>
+        </Card>
+      ) : (
+        <>
+          <ul className="space-y-3">
+            {children.map((child) => (
+              <Card as="li" key={child.id} className="space-y-3 p-4">
+                <div className="flex items-start gap-2">
+                  <Icon name="child" className="mt-0.5 h-[18px] w-[18px] text-brand" />
                   <div className="flex-1">
                     <h2 className="font-semibold text-text">{child.nickname}</h2>
                     {child.birthYearMonth && (
                       <p className="text-sm text-muted">出生: {child.birthYearMonth}</p>
                     )}
                     {child.stageKey && (
-                      <p className="text-xs text-muted mt-1">階段: {child.stageKey}</p>
+                      <p className="mt-1 text-xs text-faint">階段: {child.stageKey}</p>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <Link
-                      href={`/children/${child.id}/edit`}
-                      className="px-3 py-1 rounded-md bg-bg text-sm font-medium text-brand hover:bg-border"
-                    >
-                      編輯
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(child.id)}
-                      disabled={deleting === child.id}
-                      className="px-3 py-1 rounded-md bg-red-50 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
-                    >
-                      {deleting === child.id ? '刪除中...' : '刪除'}
-                    </button>
-                  </div>
                 </div>
-              ))}
-            </div>
+                <div className="flex gap-2">
+                  <LinkButton
+                    href={`/children/${child.id}/edit`}
+                    size="md"
+                    variant="secondary"
+                    icon="edit"
+                  >
+                    編輯
+                  </LinkButton>
+                  <Button
+                    size="md"
+                    variant="danger"
+                    icon="trash"
+                    onClick={() => handleDelete(child.id)}
+                    loading={deleting === child.id}
+                    disabled={deleting === child.id}
+                  >
+                    刪除
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </ul>
 
-            <Link
-              href="/children/add"
-              className="block text-center rounded-lg bg-brand py-3 font-semibold text-white hover:opacity-90"
-            >
-              新增孩子
-            </Link>
-          </>
-        )}
-      </div>
-    </main>
+          <LinkButton href="/children/add" size="lg" icon="plus">
+            新增孩子
+          </LinkButton>
+        </>
+      )}
+
+      <Callout tone="tip" title="和家人一起照顧">
+        <p>邀請另一半、長輩或保母加入同一個家庭，一起查看孩子的資料與陪伴紀錄。</p>
+        <LinkButton href="/settings/invite" variant="ghost" icon="family">
+          邀請家人
+        </LinkButton>
+      </Callout>
+    </PageShell>
   )
 }

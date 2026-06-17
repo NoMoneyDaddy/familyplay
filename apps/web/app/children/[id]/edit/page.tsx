@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChildForm } from '@/app/components/child-form'
+import { Button, PageHeader, PageShell } from '@/app/components/ui'
 
 interface Child {
   id: string
@@ -40,28 +41,24 @@ export default function EditChildPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-        <div className="mx-auto max-w-[480px]">
-          <div className="text-center text-muted">加載中...</div>
+      <PageShell>
+        <div className="text-center text-muted" role="status">
+          加載中...
         </div>
-      </main>
+      </PageShell>
     )
   }
 
   if (!child) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-        <div className="mx-auto max-w-[480px] text-center">
+      <PageShell>
+        <div className="space-y-4 text-center">
           <p className="text-muted">找不到這個孩子</p>
-          <button
-            type="button"
-            onClick={() => router.push('/children')}
-            className="mt-4 text-brand hover:underline font-medium"
-          >
+          <Button variant="ghost" onClick={() => router.push('/children')}>
             返回
-          </button>
+          </Button>
         </div>
-      </main>
+      </PageShell>
     )
   }
 
@@ -72,31 +69,16 @@ export default function EditChildPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6 pt-4">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-brand">編輯孩子</h1>
-          <p className="text-muted">{child.nickname}</p>
-        </div>
+    <PageShell>
+      <PageHeader title="編輯孩子" subtitle={child.nickname} backHref="/children" />
 
-        <ChildForm
-          childId={childId}
-          initialNickname={child.nickname}
-          initialBirthYear={year || ''}
-          initialBirthMonth={month || ''}
-          onSuccess={handleSuccess}
-        />
-
-        <p className="text-center text-xs text-muted">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="text-brand hover:underline font-medium"
-          >
-            返回
-          </button>
-        </p>
-      </div>
-    </main>
+      <ChildForm
+        childId={childId}
+        initialNickname={child.nickname}
+        initialBirthYear={year || ''}
+        initialBirthMonth={month || ''}
+        onSuccess={handleSuccess}
+      />
+    </PageShell>
   )
 }

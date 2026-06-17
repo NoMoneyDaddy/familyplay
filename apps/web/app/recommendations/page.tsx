@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
+import { Card, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
 
 interface Recommendation {
   id: string
@@ -55,93 +55,85 @@ function RecommendationsPageInner() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="text-center" role="status" aria-live="polite">
-          <div className="mb-4 text-4xl" aria-hidden="true">
-            🤔
-          </div>
+      <PageShell>
+        <div
+          className="flex flex-col items-center gap-3 py-12 text-center"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="h-[24px] w-[24px] animate-spin rounded-full border-2 border-brand border-t-transparent" />
           <p className="text-muted">正在思考最好的方案...</p>
         </div>
-      </main>
+      </PageShell>
     )
   }
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-5">
-        <div className="text-center" role="alert">
-          <p className="text-red-600">錯誤：{error}</p>
-          <Link
-            href="/select"
-            className="mt-4 inline-block rounded-lg border border-border px-4 py-2 font-semibold text-text"
-          >
-            <span aria-hidden="true">↺ </span>重新選擇狀態
-          </Link>
+      <PageShell>
+        <div className="space-y-4 py-12 text-center" role="alert">
+          <p className="text-danger">錯誤：{error}</p>
+          <LinkButton href="/select" variant="secondary" size="lg" icon="refresh">
+            重新選擇狀態
+          </LinkButton>
         </div>
-      </main>
+      </PageShell>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-brand">今天的陪伴方案</h1>
-          <p className="text-muted">根據現在的狀態，這些活動最適合你</p>
-        </div>
+    <PageShell>
+      <PageHeader
+        title="今天的陪伴方案"
+        subtitle="根據現在的狀態，這些活動最適合你"
+        align="center"
+      />
 
-        {recommendations.length === 0 ? (
-          <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
-            <p className="text-muted">暫時沒有合適的推薦</p>
-          </div>
-        ) : (
-          <ol className="space-y-4">
-            {recommendations.map((rec, idx) => (
-              <li key={rec.id} className="rounded-2xl bg-white p-6 shadow-sm">
-                <div className="mb-4 flex items-start justify-between">
-                  <h2 className="flex-1 text-xl font-semibold text-text">
-                    {idx + 1}. {rec.title}
-                  </h2>
-                  <div className="text-lg font-bold text-brand">
-                    <span className="sr-only">適合度 </span>
-                    {rec.score.toFixed(1)}
-                  </div>
+      {recommendations.length === 0 ? (
+        <Card className="text-center">
+          <p className="text-muted">暫時沒有合適的推薦</p>
+        </Card>
+      ) : (
+        <ol className="space-y-4">
+          {recommendations.map((rec, idx) => (
+            <Card as="li" key={rec.id}>
+              <div className="mb-4 flex items-start justify-between">
+                <h2 className="flex-1 text-xl font-semibold text-text">
+                  {idx + 1}. {rec.title}
+                </h2>
+                <div className="text-lg font-bold text-brand">
+                  <span className="sr-only">適合度 </span>
+                  {rec.score.toFixed(1)}
                 </div>
+              </div>
 
-                {rec.reasons.length > 0 && (
-                  <ul className="mb-4 space-y-1 text-xs text-muted">
-                    {rec.reasons.map((reason, i) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
-                      <li key={i}>
-                        <span aria-hidden="true">✓ </span>
-                        {reason}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              {rec.reasons.length > 0 && (
+                <ul className="mb-4 space-y-1 text-xs text-muted">
+                  {rec.reasons.map((reason, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
+                    <li key={i} className="flex items-start gap-1.5">
+                      <Icon name="check" className="mt-0.5 h-[14px] w-[14px] shrink-0 text-brand" />
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                <Link
-                  href={`/activity/${rec.id}?childId=${childId}`}
-                  className="block w-full rounded-lg bg-brand py-3 text-center font-semibold text-white transition-transform active:scale-[0.97]"
-                >
-                  <span aria-hidden="true">📖 </span>開始這個活動
-                </Link>
-              </li>
-            ))}
-          </ol>
-        )}
+              <LinkButton href={`/activity/${rec.id}?childId=${childId}`} size="lg" icon="book">
+                開始這個活動
+              </LinkButton>
+            </Card>
+          ))}
+        </ol>
+      )}
 
-        <Link
-          href="/select"
-          className="block w-full rounded-lg border border-border py-3 text-center font-semibold text-text"
-        >
-          <span aria-hidden="true">↺ </span>重新選擇狀態
-        </Link>
+      <LinkButton href="/select" variant="secondary" size="lg" icon="refresh">
+        重新選擇狀態
+      </LinkButton>
 
-        {/* 輕度廣告：僅對免費用戶顯示、且需設定 AdSense；放在底部不干擾 */}
-        <AdSlot className="pt-2" />
-      </div>
-    </main>
+      {/* 輕度廣告：僅對免費用戶顯示、且需設定 AdSense；放在底部不干擾 */}
+      <AdSlot className="pt-2" />
+    </PageShell>
   )
 }
 
@@ -149,11 +141,11 @@ export default function RecommendationsPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center">
-          <p className="text-muted" role="status">
+        <PageShell>
+          <p className="py-12 text-center text-muted" role="status">
             載入推薦中...
           </p>
-        </main>
+        </PageShell>
       }
     >
       <RecommendationsPageInner />

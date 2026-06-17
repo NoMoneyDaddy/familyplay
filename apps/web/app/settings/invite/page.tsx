@@ -2,6 +2,17 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import {
+  Button,
+  Callout,
+  Card,
+  ErrorAlert,
+  Field,
+  Icon,
+  PageHeader,
+  PageShell,
+  Select,
+} from '@/app/components/ui'
 import { useHouseholdStore } from '@/lib/stores/useHouseholdStore'
 
 interface HouseholdMember {
@@ -15,6 +26,12 @@ interface HouseholdMember {
 interface GeneratedInvite {
   code: string
   inviteLink: string
+}
+
+const ROLE_LABEL: Record<HouseholdMember['role'], string> = {
+  owner: '家庭擁有者',
+  caregiver: '照顧者',
+  viewer: '檢視者',
 }
 
 export default function InvitePage() {
@@ -103,171 +120,145 @@ export default function InvitePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="text-sm text-muted hover:text-text"
-          >
-            ← 返回
-          </button>
-          <h1 className="text-3xl font-bold text-brand">邀請家庭成員</h1>
-          <p className="text-sm text-muted">分享邀請碼，讓其他家長加入陪伴</p>
+    <PageShell>
+      <PageHeader
+        title="邀請家庭成員"
+        subtitle="分享邀請碼，讓其他家長加入陪伴"
+        backHref="/settings"
+      />
+
+      <ErrorAlert message={error} />
+
+      {loading ? (
+        <div className="text-center text-muted" role="status">
+          加載中...
         </div>
+      ) : (
+        <>
+          {/* Generate Invite Section */}
+          {userRole === 'owner' || userRole === 'caregiver' ? (
+            <Card className="space-y-4">
+              <h2 className="font-semibold text-text">生成邀請碼</h2>
 
-        {/* live region 常駐 DOM */}
-        <div
-          role="alert"
-          className={error ? 'rounded-lg bg-red-50 p-3 text-sm text-red-700' : 'sr-only'}
-        >
-          {error}
-        </div>
-
-        {loading ? (
-          <div className="text-center text-muted" role="status">
-            加載中...
-          </div>
-        ) : (
-          <>
-            {/* Generate Invite Section */}
-            {userRole === 'owner' || userRole === 'caregiver' ? (
-              <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-                <h2 className="font-semibold text-text">生成邀請碼</h2>
-
-                {/* Role Selection */}
-                <div className="space-y-2">
-                  <label htmlFor="role" className="block text-sm font-medium text-text">
-                    角色
-                  </label>
-                  <select
-                    id="role"
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value as 'caregiver' | 'viewer')}
-                    className="w-full rounded-lg border border-border px-3 py-2 text-text"
-                  >
-                    <option value="caregiver">照顧者 (可以記錄和建議)</option>
-                    <option value="viewer">檢視者 (只可查看)</option>
-                  </select>
-                </div>
-
-                {/* Generate Button */}
-                <button
-                  type="button"
-                  onClick={handleGenerateInvite}
-                  disabled={generating}
-                  className="w-full rounded-lg bg-brand px-4 py-3 text-white font-medium hover:opacity-90 disabled:opacity-50"
+              {/* Role Selection */}
+              <Field label="角色" htmlFor="role">
+                <Select
+                  id="role"
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value as 'caregiver' | 'viewer')}
                 >
-                  {generating ? '生成中...' : '生成邀請碼'}
-                </button>
+                  <option value="caregiver">照顧者 (可以記錄和建議)</option>
+                  <option value="viewer">檢視者 (只可查看)</option>
+                </Select>
+              </Field>
 
-                {/* Generated Invite Display */}
-                {generatedInvite && (
-                  <div className="space-y-3 rounded-lg bg-blue-50 p-4">
-                    <div>
-                      <p className="text-xs text-muted mb-1">邀請碼</p>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 rounded bg-white px-3 py-2 font-mono text-lg font-bold text-brand">
-                          {generatedInvite.code}
-                        </code>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(generatedInvite.code)
-                            setCopySuccess(true)
-                            setTimeout(() => setCopySuccess(false), 2000)
-                          }}
-                          className="rounded bg-brand px-3 py-2 text-xs text-white hover:opacity-90"
-                        >
-                          複製
-                        </button>
-                      </div>
+              {/* Generate Button */}
+              <Button
+                size="lg"
+                icon="refresh"
+                loading={generating}
+                disabled={generating}
+                onClick={handleGenerateInvite}
+              >
+                生成邀請碼
+              </Button>
+
+              {/* Generated Invite Display */}
+              {generatedInvite && (
+                <div className="space-y-3 rounded-md bg-brand-tint p-4">
+                  <div>
+                    <p className="mb-1 text-xs text-muted">邀請碼</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 rounded bg-card px-3 py-2 font-mono text-lg font-bold text-brand">
+                        {generatedInvite.code}
+                      </code>
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        icon="copy"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedInvite.code)
+                          setCopySuccess(true)
+                          setTimeout(() => setCopySuccess(false), 2000)
+                        }}
+                      >
+                        複製
+                      </Button>
                     </div>
-
-                    <div>
-                      <p className="text-xs text-muted mb-1">完整邀請連結</p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={generatedInvite.inviteLink}
-                          className="flex-1 rounded bg-white px-3 py-2 text-xs text-text"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleCopyLink}
-                          className="rounded bg-brand px-3 py-2 text-xs text-white hover:opacity-90"
-                        >
-                          {copySuccess ? '已複製' : '複製'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-blue-600">
-                      💡 30 天內有效。家長可以透過連結或手動輸入碼加入。
-                    </p>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-lg bg-yellow-50 p-4 text-sm text-yellow-700">
-                <p className="font-semibold">權限不足</p>
-                <p className="mt-1 text-xs">只有家庭擁有者和照顧者才能邀請成員。</p>
-              </div>
-            )}
 
-            {/* Household Members List */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-              <h2 className="font-semibold text-text">家庭成員 ({members.length})</h2>
-
-              {members.length === 0 ? (
-                <p className="text-sm text-muted">暫無其他成員</p>
-              ) : (
-                <div className="space-y-2">
-                  {members.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center justify-between rounded-lg bg-bg p-3"
-                    >
-                      <div>
-                        <p className="font-medium text-text">{member.displayName}</p>
-                        <p className="text-xs text-muted">
-                          {member.role === 'owner' && '家庭擁有者'}
-                          {member.role === 'caregiver' && '照顧者'}
-                          {member.role === 'viewer' && '檢視者'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted">
-                          加入於 {new Date(member.joinedAt).toLocaleDateString('zh-TW')}
-                        </p>
-                      </div>
+                  <div>
+                    <p className="mb-1 text-xs text-muted">完整邀請連結</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={generatedInvite.inviteLink}
+                        className="flex-1 rounded border border-border bg-card px-3 py-2 text-xs text-text"
+                      />
+                      <Button variant="secondary" size="md" icon="copy" onClick={handleCopyLink}>
+                        {copySuccess ? '已複製' : '複製'}
+                      </Button>
                     </div>
-                  ))}
+                  </div>
+
+                  <p className="text-xs text-brand-strong">
+                    30 天內有效。家長可以透過連結或手動輸入碼加入。
+                  </p>
                 </div>
               )}
-            </div>
+            </Card>
+          ) : (
+            <Callout tone="warning" title="權限不足">
+              只有家庭擁有者和照顧者才能邀請成員。
+            </Callout>
+          )}
 
-            {/* Info Card */}
-            <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
-              <p className="font-semibold">💡 角色說明</p>
-              <ul className="mt-2 space-y-1 text-xs">
-                <li>
-                  <strong>家庭擁有者：</strong>管理家庭、邀請成員、刪除成員
-                </li>
-                <li>
-                  <strong>照顧者：</strong>查看孩子、記錄陪伴、建議活動
-                </li>
-                <li>
-                  <strong>檢視者：</strong>只能查看孩子資訊和陪伴紀錄
-                </li>
-              </ul>
-            </div>
-          </>
-        )}
-      </div>
-    </main>
+          {/* Household Members List */}
+          <Card className="space-y-4">
+            <h2 className="font-semibold text-text">家庭成員 ({members.length})</h2>
+
+            {members.length === 0 ? (
+              <p className="text-sm text-muted">暫無其他成員</p>
+            ) : (
+              <div className="space-y-2">
+                {members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between gap-3 rounded-lg bg-bg p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon name="user" className="h-[20px] w-[20px] text-brand" />
+                      <div>
+                        <p className="font-medium text-text">{member.displayName}</p>
+                        <p className="text-xs text-muted">{ROLE_LABEL[member.role]}</p>
+                      </div>
+                    </div>
+                    <p className="text-right text-xs text-muted">
+                      加入於 {new Date(member.joinedAt).toLocaleDateString('zh-TW')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* Info Card */}
+          <Callout tone="info" title="角色說明">
+            <ul className="mt-1 space-y-1">
+              <li>
+                <strong>家庭擁有者：</strong>管理家庭、邀請成員、刪除成員
+              </li>
+              <li>
+                <strong>照顧者：</strong>查看孩子、記錄陪伴、建議活動
+              </li>
+              <li>
+                <strong>檢視者：</strong>只能查看孩子資訊和陪伴紀錄
+              </li>
+            </ul>
+          </Callout>
+        </>
+      )}
+    </PageShell>
   )
 }

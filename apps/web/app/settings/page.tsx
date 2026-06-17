@@ -2,11 +2,26 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import {
+  Button,
+  Callout,
+  Card,
+  Icon,
+  type IconName,
+  PageHeader,
+  PageShell,
+} from '@/app/components/ui'
 
 interface UserProfile {
   displayName?: string
   avatarUrl?: string
 }
+
+const LINKS: { href: string; label: string; icon: IconName }[] = [
+  { href: '/account/entitlements', label: 'Subscription', icon: 'card' },
+  { href: '/settings/invite', label: '家庭成員', icon: 'family' },
+  { href: '/history', label: '陪伴紀錄', icon: 'chart' },
+]
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -27,59 +42,49 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-brand">設定</h1>
+    <PageShell>
+      <PageHeader title="設定" />
+
+      {loading ? (
+        <div className="text-center text-muted" role="status">
+          加載中...
         </div>
+      ) : (
+        <div className="space-y-4">
+          <Card>
+            <h3 className="mb-4 font-semibold text-text">帳號</h3>
+            {user?.displayName && (
+              <p className="flex items-center gap-2 text-text">
+                <Icon name="user" className="h-[20px] w-[20px] text-brand" />
+                {user.displayName}
+              </p>
+            )}
+            <p className="mt-2 text-xs text-muted">FamilyPlay MVP v0.1</p>
+          </Card>
 
-        {loading ? (
-          <div className="text-center text-muted" role="status">
-            加載中...
+          <div className="space-y-2">
+            {LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 text-text shadow-sm transition-colors hover:bg-bg"
+              >
+                <Icon name={link.icon} className="h-[20px] w-[20px] text-brand" />
+                <span className="flex-1 font-medium">{link.label}</span>
+                <Icon name="chevronRight" className="h-[18px] w-[18px] text-faint" />
+              </a>
+            ))}
+
+            <Button variant="danger" icon="logout" onClick={handleLogout}>
+              登出
+            </Button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <h3 className="mb-4 font-semibold text-text">帳號</h3>
-              {user?.displayName && <p className="text-text">👤 {user.displayName}</p>}
-              <p className="mt-2 text-xs text-muted">FamilyPlay MVP v0.1</p>
-            </div>
 
-            <div className="space-y-2">
-              <a
-                href="/account/entitlements"
-                className="block rounded-lg bg-white p-4 text-text shadow-sm hover:bg-bg"
-              >
-                💳 Subscription
-              </a>
-              <a
-                href="/settings/invite"
-                className="block rounded-lg bg-white p-4 text-text shadow-sm hover:bg-bg"
-              >
-                👨‍👩‍👧 家庭成員
-              </a>
-              <a
-                href="/history"
-                className="block rounded-lg bg-white p-4 text-text shadow-sm hover:bg-bg"
-              >
-                📊 陪伴紀錄
-              </a>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="w-full rounded-lg bg-red-100 p-4 text-red-600 transition-colors hover:bg-red-200"
-              >
-                🚪 登出
-              </button>
-            </div>
-
-            <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
-              <p className="font-semibold">💡 提示</p>
-              <p className="mt-1 text-xs">你的資料已加密保存在 Supabase，符合隱私標準。</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </main>
+          <Callout tone="tip" title="提示">
+            你的資料已加密保存在 Supabase，符合隱私標準。
+          </Callout>
+        </div>
+      )}
+    </PageShell>
   )
 }

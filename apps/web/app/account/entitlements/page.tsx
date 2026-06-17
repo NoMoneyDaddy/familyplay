@@ -2,6 +2,17 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import {
+  Button,
+  Callout,
+  Card,
+  ErrorAlert,
+  Icon,
+  type IconName,
+  LinkButton,
+  PageHeader,
+  PageShell,
+} from '@/app/components/ui'
 
 interface Entitlements {
   plan: 'free' | 'supporter' | 'plus'
@@ -12,15 +23,9 @@ interface Entitlements {
   plusAiCallsResetAt: string | null
 }
 
-interface UserProfile {
-  displayName?: string
-  avatarUrl?: string
-}
-
 export default function EntitlementsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<UserProfile | null>(null)
   const [entitlements, setEntitlements] = useState<Entitlements | null>(null)
 
   useEffect(() => {
@@ -35,9 +40,6 @@ export default function EntitlementsPage() {
           router.push('/auth')
           return
         }
-
-        const profileData = await profileRes.json()
-        setUser(profileData)
 
         if (entitlementsRes.ok) {
           const entitlementsData = await entitlementsRes.json()
@@ -62,203 +64,168 @@ export default function EntitlementsPage() {
     })
   }
 
-  const getPlanDisplay = (plan: string) => {
+  const getPlanDisplay = (plan: string): { name: string; icon: IconName } => {
     switch (plan) {
       case 'free':
-        return { name: 'Free', icon: '🆓', color: 'gray' }
+        return { name: 'Free', icon: 'user' }
       case 'supporter':
-        return { name: 'Supporter', icon: '⭐', color: 'blue' }
+        return { name: 'Supporter', icon: 'sparkle' }
       case 'plus':
-        return { name: 'Plus', icon: '✨', color: 'purple' }
+        return { name: 'Plus', icon: 'star' }
       default:
-        return { name: 'Unknown', icon: '❓', color: 'gray' }
+        return { name: 'Unknown', icon: 'lock' }
     }
   }
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-        <div className="mx-auto max-w-[480px]">
-          <div className="h-96 animate-pulse rounded-2xl bg-gray-200" />
-        </div>
-      </main>
+      <PageShell>
+        <div className="h-96 animate-pulse rounded-lg bg-surface" />
+      </PageShell>
     )
   }
 
   if (!entitlements) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-        <div className="mx-auto max-w-[480px] space-y-6">
-          <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold text-brand">Account</h1>
-          </div>
-          <div className="rounded-lg bg-red-50 p-4">
-            <p className="text-sm text-red-900">Failed to load entitlements. Please try again.</p>
-          </div>
-        </div>
-      </main>
+      <PageShell>
+        <PageHeader title="Account" align="center" />
+        <ErrorAlert message="Failed to load entitlements. Please try again." />
+      </PageShell>
     )
   }
 
   const planInfo = getPlanDisplay(entitlements.plan)
+  const isCurrentPlanHighlighted = entitlements.plan !== 'free'
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-bg to-white px-5 py-8">
-      <div className="mx-auto max-w-[480px] space-y-6">
-        {/* Header */}
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-brand">Subscription</h1>
-          <p className="text-muted">Manage your FamilyPlay plan</p>
-        </div>
+    <PageShell>
+      <PageHeader title="Subscription" subtitle="Manage your FamilyPlay plan" align="center" />
 
-        {/* Current Plan Card */}
-        <div
-          className={`rounded-2xl border-2 p-6 ${
-            planInfo.color === 'purple'
-              ? 'border-purple-200 bg-purple-50'
-              : planInfo.color === 'blue'
-                ? 'border-blue-200 bg-blue-50'
-                : 'border-gray-200 bg-gray-50'
-          }`}
-        >
-          <div className="mb-4 flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted">Current Plan</p>
-              <div className="mt-2 flex items-center gap-2">
-                <span className="text-3xl">{planInfo.icon}</span>
-                <h2 className="text-2xl font-bold text-text">{planInfo.name}</h2>
-              </div>
+      {/* Current Plan Card */}
+      <Card
+        className={
+          isCurrentPlanHighlighted ? 'border-brand bg-brand-tint' : 'border-border bg-card'
+        }
+      >
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <p className="text-sm font-medium text-muted">Current Plan</p>
+            <div className="mt-2 flex items-center gap-2">
+              <Icon name={planInfo.icon} className="h-[28px] w-[28px] text-brand" />
+              <h2 className="text-2xl font-bold text-text">{planInfo.name}</h2>
             </div>
           </div>
+        </div>
 
-          {/* Plan details */}
-          <div className="space-y-3 border-t pt-4">
-            {entitlements.plan === 'supporter' && entitlements.supporterPurchasedAt && (
+        {/* Plan details */}
+        <div className="space-y-3 border-t border-border pt-4">
+          {entitlements.plan === 'supporter' && entitlements.supporterPurchasedAt && (
+            <div className="flex justify-between">
+              <span className="text-sm text-muted">Purchased</span>
+              <span className="text-sm font-medium text-text">
+                {formatDate(entitlements.supporterPurchasedAt)}
+              </span>
+            </div>
+          )}
+
+          {entitlements.plan === 'plus' && (
+            <>
               <div className="flex justify-between">
-                <span className="text-sm text-muted">Purchased</span>
+                <span className="text-sm text-muted">Started</span>
                 <span className="text-sm font-medium text-text">
-                  {formatDate(entitlements.supporterPurchasedAt)}
+                  {formatDate(entitlements.plusStartedAt)}
                 </span>
               </div>
-            )}
 
-            {entitlements.plan === 'plus' && (
-              <>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted">Renewal Date</span>
+                <span className="text-sm font-medium text-text">
+                  {formatDate(entitlements.plusEndsAt)}
+                </span>
+              </div>
+
+              {/* AI calls remaining */}
+              <div className="space-y-2 border-t border-border pt-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted">Started</span>
-                  <span className="text-sm font-medium text-text">
-                    {formatDate(entitlements.plusStartedAt)}
+                  <span className="text-sm text-muted">AI Calls Remaining</span>
+                  <span className="text-sm font-bold text-brand">
+                    {entitlements.plusAiCallsRemaining}
                   </span>
                 </div>
 
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted">Renewal Date</span>
-                  <span className="text-sm font-medium text-text">
-                    {formatDate(entitlements.plusEndsAt)}
-                  </span>
+                {/* Progress bar */}
+                <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+                  <div
+                    className="h-full bg-brand transition-all"
+                    style={{
+                      width: `${Math.min(100, (entitlements.plusAiCallsRemaining / 100) * 100)}%`,
+                    }}
+                  />
                 </div>
-
-                {/* AI calls remaining */}
-                <div className="space-y-2 border-t pt-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted">AI Calls Remaining</span>
-                    <span className="text-sm font-bold text-brand">
-                      {entitlements.plusAiCallsRemaining}
-                    </span>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-300">
-                    <div
-                      className="h-full bg-brand transition-all"
-                      style={{
-                        width: `${Math.min(100, (entitlements.plusAiCallsRemaining / 100) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted">
-                    Resets {formatDate(entitlements.plusAiCallsResetAt)}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="space-y-3">
-          {entitlements.plan === 'free' && (
-            <button
-              type="button"
-              onClick={() => router.push('/pricing')}
-              className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
-            >
-              Explore Plans
-            </button>
+                <p className="text-xs text-muted">
+                  Resets {formatDate(entitlements.plusAiCallsResetAt)}
+                </p>
+              </div>
+            </>
           )}
-
-          {entitlements.plan === 'supporter' && (
-            <button
-              type="button"
-              onClick={() => router.push('/pricing')}
-              className="w-full rounded-lg bg-brand px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
-            >
-              Upgrade to Plus
-            </button>
-          )}
-
-          {entitlements.plan !== 'free' && (
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-semibold text-muted"
-            >
-              Manage Subscription via LemonSqueezy
-            </button>
-          )}
-
-          <a
-            href="/pricing"
-            className="block rounded-lg border-2 border-gray-200 px-4 py-3 text-center font-semibold text-text transition-colors hover:bg-gray-50"
-          >
-            View All Plans
-          </a>
         </div>
+      </Card>
 
-        {/* Information section */}
-        <div className="space-y-4 rounded-lg bg-blue-50 p-4">
-          <h3 className="font-semibold text-blue-900">ℹ️ About Your Plan</h3>
-          <div className="space-y-2 text-sm text-blue-800">
-            {entitlements.plan === 'free' && (
-              <>
-                <p>You're using the free version of FamilyPlay.</p>
-                <p>Upgrade to Supporter or Plus to unlock more features.</p>
-              </>
-            )}
-            {entitlements.plan === 'supporter' && (
-              <>
-                <p>Thank you for supporting FamilyPlay development!</p>
-                <p>You can upgrade to Plus anytime to unlock AI-powered activity generation.</p>
-              </>
-            )}
-            {entitlements.plan === 'plus' && (
-              <>
-                <p>You have full access to all Plus features.</p>
-                <p>Your subscription auto-renews on {formatDate(entitlements.plusEndsAt)}.</p>
-              </>
-            )}
-          </div>
-        </div>
+      {/* Action buttons */}
+      <div className="space-y-3">
+        {entitlements.plan === 'free' && (
+          <Button size="lg" onClick={() => router.push('/pricing')}>
+            Explore Plans
+          </Button>
+        )}
 
-        {/* Back link */}
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="text-center text-sm text-brand transition-opacity hover:opacity-70"
-        >
-          ← Back
-        </button>
+        {entitlements.plan === 'supporter' && (
+          <Button size="lg" onClick={() => router.push('/pricing')}>
+            Upgrade to Plus
+          </Button>
+        )}
+
+        {entitlements.plan !== 'free' && (
+          <Button variant="secondary" size="lg" disabled>
+            Manage Subscription via LemonSqueezy
+          </Button>
+        )}
+
+        <LinkButton href="/pricing" variant="secondary" size="lg">
+          View All Plans
+        </LinkButton>
       </div>
-    </main>
+
+      {/* Information section */}
+      <Callout tone="info" title="About Your Plan">
+        {entitlements.plan === 'free' && (
+          <>
+            <p>You're using the free version of FamilyPlay.</p>
+            <p>Upgrade to Supporter or Plus to unlock more features.</p>
+          </>
+        )}
+        {entitlements.plan === 'supporter' && (
+          <>
+            <p>Thank you for supporting FamilyPlay development!</p>
+            <p>You can upgrade to Plus anytime to unlock AI-powered activity generation.</p>
+          </>
+        )}
+        {entitlements.plan === 'plus' && (
+          <>
+            <p>You have full access to all Plus features.</p>
+            <p>Your subscription auto-renews on {formatDate(entitlements.plusEndsAt)}.</p>
+          </>
+        )}
+      </Callout>
+
+      {/* Back link */}
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="text-center text-sm text-brand transition-opacity hover:opacity-70"
+      >
+        Back
+      </button>
+    </PageShell>
   )
 }
