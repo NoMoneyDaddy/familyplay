@@ -5,10 +5,25 @@ import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
+const ENERGY_OPTIONS = [
+  { value: 'exhausted', label: '累到不行', emoji: '😴' },
+  { value: 'low', label: '有點累', emoji: '😑' },
+  { value: 'medium', label: '還好', emoji: '😐' },
+  { value: 'high', label: '精力滿滿', emoji: '⚡' },
+]
+
+const CONTEXT_OPTIONS = [
+  { value: 'normal', label: '正常時光', emoji: '☀️' },
+  { value: 'bedtime', label: '睡前時間', emoji: '🌙' },
+  { value: 'emotional_crisis', label: '情緒比較激動', emoji: '😤' },
+  { value: 'sick_day', label: '生病/休息日', emoji: '🤒' },
+]
+
 export default function SelectPage() {
   const router = useRouter()
   const { selectedChildId } = useChildStore()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!selectedChildId) {
@@ -20,6 +35,7 @@ export default function SelectPage() {
     e.preventDefault()
     if (!selectedChildId) return
 
+    setError(null)
     setLoading(true)
     const formData = new FormData(e.currentTarget)
     const parentEnergy = formData.get('parentEnergy') as string
@@ -44,10 +60,10 @@ export default function SelectPage() {
           `/recommendations?childId=${selectedChildId}&parentEnergy=${parentEnergy}&context=${context}`,
         )
       } else {
-        alert('獲取方案失敗，請重試')
+        setError('獲取方案失敗，請重試')
       }
-    } catch (error) {
-      alert('發生錯誤，請重試')
+    } catch {
+      setError('發生錯誤，請重試')
     } finally {
       setLoading(false)
     }
@@ -63,76 +79,68 @@ export default function SelectPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-3">
-            <div className="block text-sm font-semibold text-[--color-text]">你的精力狀態</div>
+          {/* 精力狀態：原生 radio 群組（sr-only 保留可存取性），卡片以 :has(:checked) 顯示選中 */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-[--color-text]">你的精力狀態</legend>
             <div className="grid grid-cols-2 gap-3">
-              {[
-                { value: 'exhausted', label: '累到不行 😴', emoji: '😴' },
-                { value: 'low', label: '有點累 😑', emoji: '😑' },
-                { value: 'medium', label: '還好 😐', emoji: '😐' },
-                { value: 'high', label: '精力滿滿 ⚡', emoji: '⚡' },
-              ].map((option) => (
-                <button
+              {ENERGY_OPTIONS.map((option) => (
+                <label
                   key={option.value}
-                  type="button"
-                  onClick={() => {
-                    const input = document.querySelector(
-                      `input[value="${option.value}"]`,
-                    ) as HTMLInputElement
-                    if (input) input.checked = true
-                  }}
-                  className="rounded-lg border-2 border-[--color-border] p-3 text-center transition-all hover:border-[--color-brand]"
+                  className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-[--color-border] p-3 text-center transition-all hover:border-[--color-brand] has-[:checked]:border-[--color-brand] has-[:checked]:bg-[--color-bg] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
                 >
-                  <div className="text-2xl">{option.emoji}</div>
-                  <div className="text-xs font-medium text-[--color-text]">{option.label}</div>
                   <input
                     type="radio"
                     name="parentEnergy"
                     value={option.value}
-                    className="hidden"
                     required
+                    className="sr-only"
                   />
-                </button>
+                  <span className="text-2xl" aria-hidden="true">
+                    {option.emoji}
+                  </span>
+                  <span className="text-xs font-medium text-[--color-text]">{option.label}</span>
+                </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
-          <div className="space-y-3">
-            <div className="block text-sm font-semibold text-[--color-text]">現在的情境</div>
+          {/* 情境 */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-[--color-text]">現在的情境</legend>
             <div className="grid gap-2">
-              {[
-                { value: 'normal', label: '正常時光 ☀️' },
-                { value: 'bedtime', label: '睡前時間 🌙' },
-                { value: 'emotional_crisis', label: '情緒比較激動 😤' },
-                { value: 'sick_day', label: '生病/休息日 🤒' },
-              ].map((option) => (
+              {CONTEXT_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className="flex items-center gap-3 rounded-lg border border-[--color-border] p-3 hover:bg-[--color-bg]"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-[--color-border] p-3 transition-colors hover:bg-[--color-bg] has-[:checked]:border-[--color-brand] has-[:checked]:bg-[--color-bg] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
                 >
                   <input
                     type="radio"
                     name="context"
                     value={option.value}
-                    className="h-4 w-4"
                     required
+                    className="h-4 w-4 accent-[--color-brand]"
                   />
+                  <span aria-hidden="true">{option.emoji}</span>
                   <span className="text-sm font-medium text-[--color-text]">{option.label}</span>
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
+
+          {error && (
+            <p role="alert" className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-600">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={loading || !selectedChildId}
             className="w-full rounded-xl bg-[--color-brand] py-4 text-lg font-bold text-white transition-transform active:scale-[0.97] disabled:opacity-50"
           >
-            {loading ? '取得中...' : '🎯 給我陪伴方案'}
+            {loading ? '取得中…' : '🎯 給我陪伴方案'}
           </button>
         </form>
-
-        <p className="text-center text-xs text-[--color-muted]">Sprint 3 — 選擇狀態</p>
       </div>
     </main>
   )
