@@ -8,9 +8,17 @@ RUN npm install -g corepack@latest \
   && corepack enable \
   && corepack prepare pnpm@9.15.0 --activate
 
-# ── 安裝依賴 ──────────────────────────────────────────────
-FROM base AS deps
+# ── 建置（安裝 + 建置同一階段）────────────────────────────
+# 注意：不要把 deps 階段的 node_modules 用 COPY --from 跨階段搬到 builder。
+# pnpm 在每個 workspace 套件下產生的是「symlink 版」node_modules（指向根目錄
+# .pnpm 虛擬商店）。BuildKit 跨階段 COPY 這些 symlink 目錄時，會因為
+# 「failed to calculate checksum ... /app/packages/core/node_modules: not found」
+# 而整個 build 失敗（Zeabur 線上所有部署都因此 FAILED）。
+# 解法：直接在 builder 階段安裝，node_modules 從不跨階段複製。
+# 仍保留「先複製 package.json + lockfile 再安裝」的 layer cache 優化。
+FROM base AS builder
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # 先複製 package.json + lockfile 利用 Docker layer cache
 # pnpm-lock.yaml 必須存在，--frozen-lockfile 才能運作
@@ -24,20 +32,7 @@ COPY packages/capabilities/package.json  ./packages/capabilities/
 
 RUN pnpm install --frozen-lockfile
 
-# ── 建置 ─────────────────────────────────────────────────
-FROM base AS builder
-WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
-
-COPY --from=deps /app/node_modules                       ./node_modules
-COPY --from=deps /app/apps/web/node_modules              ./apps/web/node_modules
-COPY --from=deps /app/packages/core/node_modules         ./packages/core/node_modules
-COPY --from=deps /app/packages/ai/node_modules           ./packages/ai/node_modules
-COPY --from=deps /app/packages/db/node_modules           ./packages/db/node_modules
-# assessment + capabilities：目前 web 未直接 import，但複製可避免日後 import 時
-# 本地建置成功而 Docker 建置失敗的隱性錯誤
-COPY --from=deps /app/packages/assessment/node_modules   ./packages/assessment/node_modules
-COPY --from=deps /app/packages/capabilities/node_modules ./packages/capabilities/node_modules
+# 再複製原始碼並建置（node_modules 已在本階段就位，無跨階段 COPY）
 COPY . .
 
 RUN pnpm --filter @familyplay/web build

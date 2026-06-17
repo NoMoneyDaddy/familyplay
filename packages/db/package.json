@@ -9,11 +9,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.0"
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "drizzle-kit": "^0.30.0",
+    "drizzle-kit": "^0.31.0",
     "typescript": "^5.7.0"
   }
 }
