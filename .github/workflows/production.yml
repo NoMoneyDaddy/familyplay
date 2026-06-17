@@ -42,6 +42,13 @@ jobs:
       - name: Push Migrations to Production Supabase
         # No continue-on-error: a failed migration MUST fail the job so the
         # Telegram notify reflects reality, not a false success.
+        #
+        # ⚠️ PRODUCTION_DATABASE_URL 必須是 Supavisor「Session pooler」連線字串（IPv4）：
+        #   postgresql://postgres.<project_ref>:<password>@aws-1-<region>.pooler.supabase.com:5432/postgres
+        # 不要用直連 `db.<project_ref>.supabase.co:5432` —— 直連只給 IPv6，
+        # 而 GitHub runner 沒有 IPv6，會出現 "dial tcp [..]:5432: network is unreachable"。
+        # 必須用 5432（session 模式，支援 DDL/migration），不要用 6543（transaction 模式）。
+        # 來源：Supabase Dashboard → Connect → Session pooler。
         if: steps.changes.outputs.migrations_changed == 'true'
         run: pnpm exec supabase db push --db-url="${{ secrets.PRODUCTION_DATABASE_URL }}"
 
