@@ -69,7 +69,7 @@ export default withSentryConfig(nextConfig, {
   project: process.env.SENTRY_PROJECT,
   silent: !process.env.CI,
   widenClientFileUpload: true,
-  hideSourceMaps: true,
+  // @sentry/nextjs v10 移除 hideSourceMaps（source maps 上傳後預設即隱藏/刪除）。
   disableLogger: true,
   automaticVercelMonitors: false,
 })
