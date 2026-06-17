@@ -203,8 +203,28 @@ export function PageShell({
   withNav?: boolean
 }) {
   return (
-    <main className={`min-h-dvh px-5 pt-7 ${withNav ? 'pb-28' : 'pb-10'} ${className}`}>
-      <div className="mx-auto w-full max-w-[480px] space-y-6">{children}</div>
+    <main
+      className={`relative min-h-dvh overflow-hidden px-5 pt-7 ${withNav ? 'pb-28' : 'pb-10'} ${className}`}
+    >
+      {/* 黏土調性氛圍：兩顆柔和暖色飄移球，給頁面一點溫度與深度（不可互動、可降動態） */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
+        <div
+          className="clay-blob -left-16 -top-10 h-56 w-56 opacity-40"
+          style={{
+            background:
+              'radial-gradient(circle, color-mix(in oklab, var(--color-brand) 38%, transparent), transparent 70%)',
+          }}
+        />
+        <div
+          className="clay-blob -right-20 top-40 h-52 w-52 opacity-30"
+          style={{
+            background:
+              'radial-gradient(circle, color-mix(in oklab, var(--color-warning) 30%, transparent), transparent 70%)',
+            animationDelay: '-7s',
+          }}
+        />
+      </div>
+      <div className="relative z-10 mx-auto w-full max-w-[480px] space-y-6">{children}</div>
     </main>
   )
 }
@@ -271,7 +291,7 @@ export function Card({
   as?: 'div' | 'section' | 'form' | 'li'
 }) {
   return (
-    <Tag className={`rounded-lg border border-border bg-card p-6 shadow-sm ${className}`}>
+    <Tag className={`rounded-xl border border-border/60 bg-card p-6 shadow-clay ${className}`}>
       {children}
     </Tag>
   )
@@ -282,12 +302,13 @@ export function Card({
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type ButtonSize = 'md' | 'lg'
 
+// 黏土鈕扣：較大圓角 + 按壓回彈（squish 到 0.96），手感像可愛的軟糖按鈕。
 const BTN_BASE =
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold transition-all duration-150 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 
 const BTN_VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-white shadow-brand hover:bg-brand-strong',
-  secondary: 'bg-card text-text ring-1 ring-border hover:bg-bg',
+  primary: 'bg-[image:var(--gradient-brand)] text-white shadow-brand hover:brightness-[1.04]',
+  secondary: 'bg-card text-text shadow-clay-sm ring-1 ring-border/70 hover:bg-bg',
   ghost: 'bg-transparent text-brand hover:bg-brand-tint',
   danger: 'bg-danger-tint text-danger hover:brightness-95',
 }
@@ -388,7 +409,7 @@ export function Callout({
 }) {
   const t = CALLOUT_TONE[tone]
   return (
-    <div className={`flex gap-3 rounded-md p-4 text-sm ${t.wrap} ${className}`}>
+    <div className={`flex gap-3 rounded-lg p-4 text-sm ${t.wrap} ${className}`}>
       <Icon name={t.icon} className={`mt-0.5 h-[20px] w-[20px] shrink-0 ${t.iconClass}`} />
       <div className="space-y-1">
         {title && <p className="font-semibold">{title}</p>}
@@ -411,7 +432,7 @@ export function ErrorAlert({
       role="alert"
       className={
         message
-          ? `flex items-center gap-2 rounded-md bg-danger-tint p-3 text-sm text-danger ${className}`
+          ? `flex items-center gap-2 rounded-lg bg-danger-tint p-3 text-sm text-danger ${className}`
           : 'sr-only'
       }
     >
@@ -424,7 +445,7 @@ export function ErrorAlert({
 /* ────────────────────────── 表單 ────────────────────────── */
 
 const FIELD_INPUT =
-  'w-full rounded-md border border-border bg-surface px-4 py-3 text-text placeholder:text-faint transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30'
+  'w-full rounded-lg border border-border bg-surface px-4 py-3 text-text shadow-[inset_0_2px_4px_rgb(74_49_28/0.05)] placeholder:text-faint transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30'
 
 export function Field({
   label,
