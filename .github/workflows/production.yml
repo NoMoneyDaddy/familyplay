@@ -17,7 +17,7 @@ jobs:
     name: Run DB Migrations
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
       - name: Detect migration changes
@@ -29,9 +29,9 @@ jobs:
             echo "migrations_changed=false" >> "$GITHUB_OUTPUT"
             echo "No migration changes in this push — skipping db push."
           fi
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         if: steps.changes.outputs.migrations_changed == 'true'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: steps.changes.outputs.migrations_changed == 'true'
         with:
           node-version: '20'
@@ -50,14 +50,14 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, '[mobile]')
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@v9
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
