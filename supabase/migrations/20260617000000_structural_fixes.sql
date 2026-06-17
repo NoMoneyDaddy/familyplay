@@ -26,7 +26,8 @@ BEGIN
     COALESCE(
       NEW.raw_user_meta_data->>'name',
       NEW.raw_user_meta_data->>'full_name',
-      split_part(NEW.email, '@', 1)
+      NULLIF(split_part(NEW.email, '@', 1), ''),
+      'User'  -- 最終防線：避免匿名/手機登入時 display_name 為 NULL 阻斷註冊
     ),
     NEW.raw_user_meta_data->>'avatar_url',
     encode(gen_random_bytes(16), 'hex')
@@ -50,7 +51,7 @@ CREATE TRIGGER on_auth_user_created
 -- 補建：對「本 migration 之前已存在但沒有 profile」的用戶補上 profile + entitlement
 INSERT INTO public.user_profiles (auth_user_id, display_name, encryption_salt)
 SELECT u.id,
-       COALESCE(u.raw_user_meta_data->>'name', split_part(u.email, '@', 1)),
+       COALESCE(u.raw_user_meta_data->>'name', NULLIF(split_part(u.email, '@', 1), ''), 'User'),
        encode(gen_random_bytes(16), 'hex')
 FROM auth.users u
 LEFT JOIN public.user_profiles p ON p.auth_user_id = u.id
@@ -110,7 +111,7 @@ RETURNS TEXT AS $$
   SELECT role FROM household_members
   WHERE household_id = target_household AND user_profile_id = auth_profile_id()
   LIMIT 1
-$$ LANGUAGE SQL SECURITY DEFINER STABLE;
+$$ LANGUAGE SQL SECURITY DEFINER SET search_path = public STABLE;
 
 DROP POLICY IF EXISTS "members_create_invite" ON household_invites;
 CREATE POLICY "members_create_invite" ON household_invites FOR INSERT

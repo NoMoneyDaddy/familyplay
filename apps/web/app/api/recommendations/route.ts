@@ -76,6 +76,9 @@ export async function POST(request: Request) {
     } catch {
       return Response.json({ error: '孩子的出生年月格式不正確' }, { status: 400 })
     }
+    if (ageMonths < 0) {
+      return Response.json({ error: '孩子的出生年月不能在未來' }, { status: 400 })
+    }
 
     // Pre-filter activities by age in SQL (only columns the engine needs)
     const { data: activities, error: activitiesError } = await supabase

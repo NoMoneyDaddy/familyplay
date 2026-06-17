@@ -59,7 +59,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    const webhookData = JSON.parse(rawBody)
+    let webhookData: unknown
+    try {
+      webhookData = JSON.parse(rawBody)
+    } catch {
+      // Malformed body is a client error, not a server fault — return 400 so it
+      // doesn't pollute server-error monitoring.
+      return NextResponse.json({ error: 'Malformed JSON payload' }, { status: 400 })
+    }
     const validated = webhookSchema.parse(webhookData)
     const eventName = validated.meta.event_name ?? validated.meta.eventName ?? ''
     const objectId = String(validated.data.id ?? '')
@@ -92,7 +99,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true })
     }
 
-    const userProfileId = webhookData.data?.attributes?.checkout_data?.custom?.userProfileId
+    const userProfileId = (
+      webhookData as {
+        data?: { attributes?: { checkout_data?: { custom?: { userProfileId?: string } } } }
+      }
+    ).data?.attributes?.checkout_data?.custom?.userProfileId
     if (!userProfileId) {
       console.error('Webhook: Missing userProfileId in custom data')
       return NextResponse.json({ error: 'Missing user profile ID' }, { status: 400 })
@@ -135,12 +146,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unknown plan variant' }, { status: 400 })
     }
 
-    // Prefer the provider's billing-period end; fall back to +30d only if absent.
+    // Prefer the provider's billing-period end; fall back to +30d if absent or
+    // if the provider sent an unparseable date (avoids RangeError on toISOString).
+    const fallbackEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
     const providerEnd =
       validated.data.attributes.renews_at || validated.data.attributes.ends_at || null
-    const plusEndsAt = providerEnd
-      ? new Date(providerEnd)
-      : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    let plusEndsAt = fallbackEnd
+    if (providerEnd) {
+      const parsed = new Date(providerEnd)
+      if (!Number.isNaN(parsed.getTime())) {
+        plusEndsAt = parsed
+      }
+    }
 
     const updateData = {
       plan,

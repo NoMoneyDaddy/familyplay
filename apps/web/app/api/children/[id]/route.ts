@@ -26,15 +26,17 @@ async function validateChildOwnership(
 
   if (!userProfile) return false
 
-  const { data: households } = await supabase
-    .from('households')
-    .select('id')
-    .eq('owner_id', userProfileId)
+  // Owners AND caregivers can manage children (matches the RLS policy).
+  const { data: memberships } = await supabase
+    .from('household_members')
+    .select('household_id')
+    .eq('user_profile_id', userProfileId)
+    .in('role', ['owner', 'caregiver'])
 
-  if (!households || households.length === 0) return false
+  if (!memberships || memberships.length === 0) return false
 
   // biome-ignore lint/suspicious/noExplicitAny: Supabase response type
-  const householdIds = households.map((h: any) => h.id)
+  const householdIds = memberships.map((m: any) => m.household_id)
 
   const { data: child } = await supabase
     .from('child_profiles')
