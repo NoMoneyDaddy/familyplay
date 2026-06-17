@@ -1,5 +1,7 @@
-const BLOCKED_PATTERNS = [
-  /硬幣|鈕扣|鈕釦|電池|磁鐵|彈珠|小零件|氣球/,
+import { BLOCKED_MATERIALS_PATTERN } from '@familyplay/core'
+
+const BLOCKED_PATTERNS: readonly RegExp[] = [
+  BLOCKED_MATERIALS_PATTERN,
   /窒息|割傷|燙傷|觸電|溺水/,
   /醫療|診斷|治療|症狀|疾病|療程|處方/,
   /發展遲緩|遲緩|落後|異常|障礙/,
@@ -11,7 +13,7 @@ const MAX_OUTPUT_LENGTH = 2000
 
 export function safetyFilter(output: string): boolean {
   if (output.length > MAX_OUTPUT_LENGTH) return false
-  return BLOCKED_PATTERNS.every(pattern => !pattern.test(output))
+  return BLOCKED_PATTERNS.every((pattern) => !pattern.test(output))
 }
 
 export type SafetyCheckResult =
@@ -23,7 +25,7 @@ export function checkSafety(output: string): SafetyCheckResult {
     return { passed: false, reason: 'too_long' }
   }
 
-  const blocked = BLOCKED_PATTERNS.find(pattern => pattern.test(output))
+  const blocked = BLOCKED_PATTERNS.find((pattern) => pattern.test(output))
   if (blocked) {
     return { passed: false, reason: 'blocked_pattern' }
   }

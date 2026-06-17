@@ -1,4 +1,25 @@
-import type { CapabilityKey, StageKey } from '@familyplay/core'
+import type {
+  CapabilityKey,
+  CompanionType,
+  ParentEnergy,
+  ResourceKey,
+  SpaceContext,
+  StageKey,
+} from '@familyplay/core'
+
+export type {
+  ParentEnergy,
+  SpaceContext,
+  CompanionType,
+  ResourceKey,
+} from '@familyplay/core'
+
+export {
+  ALLOWED_PARENT_ENERGY_LEVELS,
+  ALLOWED_SPACE_CONTEXTS,
+  ALLOWED_COMPANION_TYPES,
+  ALLOWED_RESOURCE_KEYS,
+} from '@familyplay/core'
 
 export type AIProviderName = 'gemini' | 'openai' | 'claude' | 'groq' | 'ollama'
 
@@ -26,53 +47,8 @@ export interface AIResponse {
 export interface AIInput {
   stageKey: StageKey
   capabilityKeys: CapabilityKey[]
-  parentEnergy: 'low' | 'medium' | 'high'
+  parentEnergy: ParentEnergy
   spaceContext: SpaceContext
   companionType: CompanionType
   availableResources: ResourceKey[]
 }
-
-export type SpaceContext =
-  | 'anywhere'
-  | 'living_room'
-  | 'bedroom'
-  | 'kitchen'
-  | 'outdoor_yard'
-  | 'park'
-  | 'car'
-  | 'waiting_area'
-
-export type CompanionType =
-  | 'play'
-  | 'talk'
-  | 'read'
-  | 'outdoor'
-  | 'creative'
-  | 'sensory'
-  | 'music'
-  | 'calm_down'
-
-export type ResourceKey =
-  | 'none'
-  | 'books'
-  | 'blocks'
-  | 'balls'
-  | 'paper_crayons'
-  | 'cushions'
-  | 'music'
-  | 'water'
-  | 'kitchen_items'
-
-export const ALLOWED_SPACE_CONTEXTS: SpaceContext[] = [
-  'anywhere', 'living_room', 'bedroom', 'kitchen',
-  'outdoor_yard', 'park', 'car', 'waiting_area',
-]
-
-export const ALLOWED_COMPANION_TYPES: CompanionType[] = [
-  'play', 'talk', 'read', 'outdoor', 'creative', 'sensory', 'music', 'calm_down',
-]
-
-export const ALLOWED_RESOURCE_KEYS: ResourceKey[] = [
-  'none', 'books', 'blocks', 'balls', 'paper_crayons',
-  'cushions', 'music', 'water', 'kitchen_items',
-]

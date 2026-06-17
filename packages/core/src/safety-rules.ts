@@ -1,9 +1,11 @@
 import type { StageKey } from './stage-keys'
 
 export const BLOCKED_MATERIALS_UNDER_3 = [
-  '硬幣', '鈕扣', '電池', '磁鐵', '彈珠', '小零件',
+  '硬幣', '鈕扣', '鈕釦', '電池', '磁鐵', '彈珠', '小零件',
   '氣球', '塑膠袋', '繩子', '珠子', '別針', '迴紋針',
 ]
+
+export const BLOCKED_MATERIALS_PATTERN = new RegExp(BLOCKED_MATERIALS_UNDER_3.join('|'))
 
 export const BLOCKED_CONTEXTS = {
   bedtime: ['高刺激', '競賽', '跑跳', '興奮', '爭輸贏'],
