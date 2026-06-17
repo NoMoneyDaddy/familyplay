@@ -3,12 +3,73 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+type PaidPlan = 'supporter' | 'plus'
+
 interface PricingPageState {
   loading: boolean
   authenticating: boolean
   currentPlan: string | null
-  selectedPlan: 'supporter' | 'plus' | null
+  selectedPlan: PaidPlan | null
   error: string | null
+}
+
+interface PlanCard {
+  id: 'free' | PaidPlan
+  name: string
+  price: string
+  period: string
+  tagline: string
+  features: string[]
+  highlight?: boolean
+}
+
+// 輕營利取向：核心功能永久免費；付費為選擇性的「支持開發」，價格溫和、隨時可取消。
+// 顯示價格須與 LemonSqueezy variant 設定一致（見 README / env）。
+const PLAN_CARDS: PlanCard[] = [
+  {
+    id: 'free',
+    name: '免費',
+    price: 'NT$0',
+    period: '永久',
+    tagline: '核心陪伴功能，永久免費',
+    features: ['30 秒個人化陪伴方案', '完整親子活動庫', '發展階段與能力追蹤', '近 7 天活動歷史'],
+  },
+  {
+    id: 'supporter',
+    name: '支持者',
+    price: 'NT$90',
+    period: '/月',
+    tagline: '喜歡這個 App？請我們喝杯咖啡，一起支持開發 ☕',
+    features: [
+      '免費版的全部功能',
+      '完整活動歷史（不限天數）',
+      '家庭成員共享（配偶／長輩一起用）',
+      '匯出陪伴紀錄',
+      '無廣告',
+    ],
+  },
+  {
+    id: 'plus',
+    name: 'Plus',
+    price: 'NT$170',
+    period: '/月',
+    tagline: '進階陪伴，AI 為你客製',
+    highlight: true,
+    features: [
+      '支持者的全部功能',
+      'AI 客製化活動生成',
+      '活動加密筆記',
+      '每月 100 次 AI 生成',
+      '交接摘要（給保母／長輩）',
+      '優先支援',
+    ],
+  },
+]
+
+const PLAN_LABELS: Record<string, string> = {
+  free: '免費',
+  supporter: '支持者',
+  plus: 'Plus',
 }
 
 export default function PricingPage() {
@@ -21,7 +82,6 @@ export default function PricingPage() {
     error: null,
   })
 
-  // Check authentication and current plan on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -31,9 +91,7 @@ export default function PricingPage() {
           return
         }
 
-        const profile = await profileResponse.json()
         const entitlementsResponse = await fetch('/api/account/entitlements')
-
         if (entitlementsResponse.ok) {
           const entitlements = await entitlementsResponse.json()
           setState((prev) => ({ ...prev, currentPlan: entitlements.plan, loading: false }))
@@ -49,23 +107,16 @@ export default function PricingPage() {
     checkAuth()
   }, [])
 
-  const handleSubscribe = async (planId: 'supporter' | 'plus') => {
-    setState((prev) => ({
-      ...prev,
-      selectedPlan: planId,
-      authenticating: true,
-      error: null,
-    }))
+  const handleSubscribe = async (planId: PaidPlan) => {
+    setState((prev) => ({ ...prev, selectedPlan: planId, authenticating: true, error: null }))
 
     try {
-      // Check authentication first
       const profileResponse = await fetch('/api/profile')
       if (!profileResponse.ok) {
         router.push('/auth')
         return
       }
 
-      // Create checkout session
       const checkoutResponse = await fetch('/api/lemon/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,14 +132,12 @@ export default function PricingPage() {
           ...prev,
           selectedPlan: null,
           authenticating: false,
-          error: error.error || 'Failed to create checkout',
+          error: error.error || '無法建立結帳，請稍後再試',
         }))
         return
       }
 
       const { checkoutUrl } = await checkoutResponse.json()
-
-      // Redirect to LemonSqueezy checkout
       window.location.href = checkoutUrl
     } catch (error) {
       console.error('Checkout error:', error)
@@ -96,172 +145,185 @@ export default function PricingPage() {
         ...prev,
         selectedPlan: null,
         authenticating: false,
-        error: error instanceof Error ? error.message : 'Checkout failed',
+        error: error instanceof Error ? error.message : '結帳失敗，請稍後再試',
       }))
     }
   }
 
-  const planCards = [
-    {
-      id: 'supporter',
-      name: 'Supporter',
-      price: '$5',
-      period: '/month',
-      description: 'Support FamilyPlay development',
-      features: [
-        'Ad-free experience',
-        'Save activities to history',
-        'Family member support',
-        'Export companion logs',
-      ],
-      ctaLabel: state.currentPlan === 'supporter' ? 'Current Plan' : 'Subscribe Now',
-      ctaDisabled: state.currentPlan === 'supporter',
-    },
-    {
-      id: 'plus',
-      name: 'Plus',
-      price: '$15',
-      period: '/month',
-      description: 'Full suite with AI generation',
-      features: [
-        'Everything in Supporter',
-        'AI-powered activity generation',
-        'Encrypted notes on activities',
-        '100 AI calls per month',
-        'Handoff summaries',
-        'Priority support',
-      ],
-      ctaLabel: state.currentPlan === 'plus' ? 'Current Plan' : 'Subscribe Now',
-      ctaDisabled: state.currentPlan === 'plus',
-    },
-  ]
+  const ctaFor = (plan: PlanCard) => {
+    if (plan.id === 'free') {
+      return {
+        label: state.currentPlan === 'free' ? '你目前的方案' : '免費開始使用',
+        disabled: true,
+      }
+    }
+    if (state.currentPlan === plan.id) {
+      return { label: '你目前的方案', disabled: true }
+    }
+    return { label: plan.id === 'supporter' ? '成為支持者' : '升級 Plus', disabled: false }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[--color-bg] to-white px-5 py-8">
       <div className="mx-auto max-w-[480px] space-y-8">
-        {/* Header */}
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[--color-brand]">Pricing Plans</h1>
-          <p className="text-[--color-muted]">Choose the plan that works best for you</p>
+          <h1 className="text-3xl font-bold text-[--color-brand]">方案與支持</h1>
+          <p className="text-[--color-muted]">核心功能永久免費，付費是選擇性的支持 💛</p>
+        </div>
+
+        {/* 錯誤 live region 常駐 DOM */}
+        <div
+          role="alert"
+          className={state.error ? 'rounded-lg bg-red-50 p-4 text-sm text-red-700' : 'sr-only'}
+        >
+          {state.error}
         </div>
 
         {state.loading ? (
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-96 animate-pulse rounded-2xl bg-gray-200" />
+          <div className="space-y-4" role="status" aria-label="載入方案中">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-72 animate-pulse rounded-2xl bg-gray-200" />
             ))}
           </div>
         ) : state.currentPlan === null ? (
-          /* Not authenticated */
-          <div className="space-y-4 rounded-xl bg-blue-50 p-6 text-center">
-            <p className="text-sm text-blue-900">Please sign in to subscribe to a plan.</p>
+          <div className="space-y-4 rounded-xl bg-[--color-bg] p-6 text-center">
+            <p className="text-sm text-[--color-text]">
+              登入後即可選擇方案。免費版無需付費即可使用。
+            </p>
             <button
               type="button"
               onClick={() => router.push('/auth')}
               className="rounded-lg bg-[--color-brand] px-6 py-2 font-semibold text-white transition-opacity hover:opacity-90"
             >
-              Sign In
+              登入
             </button>
           </div>
         ) : (
           <>
-            {/* Free plan notice */}
             {state.currentPlan === 'free' && (
               <div className="rounded-lg bg-amber-50 p-4 text-sm">
-                <p className="font-semibold text-amber-900">💡 You're on the Free plan</p>
+                <p className="font-semibold text-amber-900">
+                  <span aria-hidden="true">💡 </span>你正在使用免費版
+                </p>
                 <p className="mt-1 text-amber-800">
-                  Upgrade to unlock more features and support development.
+                  免費版已包含完整核心功能。若這個 App 對你有幫助，歡迎用付費方案支持我們持續開發。
                 </p>
               </div>
             )}
 
-            {/* Error message */}
-            {state.error && (
-              <div className="rounded-lg bg-red-50 p-4 text-sm">
-                <p className="font-semibold text-red-900">Error</p>
-                <p className="mt-1 text-red-800">{state.error}</p>
-              </div>
-            )}
-
-            {/* Plan cards */}
-            <div className="space-y-4">
-              {planCards.map((plan) => (
-                <div
-                  key={plan.id}
-                  className={`relative rounded-2xl border-2 p-6 transition-all ${
-                    plan.id === state.selectedPlan
-                      ? 'border-[--color-brand] bg-blue-50'
-                      : 'border-gray-200 bg-white'
-                  }`}
-                >
-                  {/* Badge for current plan */}
-                  {state.currentPlan === plan.id && (
-                    <div className="absolute -right-3 -top-3 rounded-full bg-[--color-brand] px-3 py-1 text-xs font-semibold text-white">
-                      Current
-                    </div>
-                  )}
-
-                  <div className="mb-4 space-y-2">
-                    <h2 className="text-xl font-bold text-[--color-text]">{plan.name}</h2>
-                    <p className="text-sm text-[--color-muted]">{plan.description}</p>
-                  </div>
-
-                  <div className="mb-6 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-[--color-brand]">{plan.price}</span>
-                    <span className="text-[--color-muted]">{plan.period}</span>
-                  </div>
-
-                  <ul className="mb-6 space-y-2">
-                    {plan.features.map((feature, idx) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: Plan features are static and ordered
-                      <li key={idx} className="flex items-start gap-3 text-sm text-[--color-text]">
-                        <span className="mt-0.5 flex-shrink-0 text-[--color-brand]">✓</span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSubscribe(plan.id as 'supporter' | 'plus')}
-                    disabled={plan.ctaDisabled || state.authenticating}
-                    className={`w-full rounded-lg px-4 py-3 font-semibold transition-all ${
-                      plan.ctaDisabled
-                        ? 'cursor-default bg-gray-100 text-[--color-muted]'
-                        : 'bg-[--color-brand] text-white hover:opacity-90 disabled:opacity-50'
+            <ul className="space-y-4">
+              {PLAN_CARDS.map((plan) => {
+                const cta = ctaFor(plan)
+                const isCurrent = state.currentPlan === plan.id
+                return (
+                  <li
+                    key={plan.id}
+                    className={`relative rounded-2xl border-2 p-6 transition-all ${
+                      plan.highlight
+                        ? 'border-[--color-brand] bg-white'
+                        : 'border-[--color-border] bg-white'
                     }`}
                   >
-                    {state.authenticating && plan.id === state.selectedPlan ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        Processing...
-                      </span>
-                    ) : (
-                      plan.ctaLabel
+                    {isCurrent && (
+                      <div className="absolute -right-3 -top-3 rounded-full bg-[--color-brand] px-3 py-1 text-xs font-semibold text-white">
+                        目前方案
+                      </div>
                     )}
-                  </button>
-                </div>
-              ))}
-            </div>
 
-            {/* FAQ section */}
-            <div className="space-y-4 rounded-xl bg-gray-50 p-6">
-              <h3 className="font-semibold text-[--color-text]">Questions?</h3>
+                    <div className="mb-4 space-y-1">
+                      <h2 className="text-xl font-bold text-[--color-text]">{plan.name}</h2>
+                      <p className="text-sm text-[--color-muted]">{plan.tagline}</p>
+                    </div>
+
+                    <div className="mb-6 flex items-baseline gap-1">
+                      <span className="text-4xl font-bold text-[--color-brand]">{plan.price}</span>
+                      <span className="text-[--color-muted]">{plan.period}</span>
+                    </div>
+
+                    <ul className="mb-6 space-y-2">
+                      {plan.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-3 text-sm text-[--color-text]"
+                        >
+                          <span
+                            className="mt-0.5 flex-shrink-0 text-[--color-brand]"
+                            aria-hidden="true"
+                          >
+                            ✓
+                          </span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {plan.id === 'free' ? (
+                      <p className="rounded-lg bg-[--color-bg] py-3 text-center text-sm font-medium text-[--color-muted]">
+                        {cta.label}
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleSubscribe(plan.id as PaidPlan)}
+                        disabled={cta.disabled || state.authenticating}
+                        className={`w-full rounded-lg px-4 py-3 font-semibold transition-all ${
+                          cta.disabled
+                            ? 'cursor-default bg-[--color-bg] text-[--color-muted]'
+                            : 'bg-[--color-brand] text-white hover:opacity-90 disabled:opacity-50'
+                        }`}
+                      >
+                        {state.authenticating && plan.id === state.selectedPlan ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span
+                              className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                              aria-hidden="true"
+                            />
+                            處理中…
+                          </span>
+                        ) : (
+                          cta.label
+                        )}
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+
+            <div className="space-y-4 rounded-xl bg-[--color-bg] p-6">
+              <h2 className="font-semibold text-[--color-text]">常見問題</h2>
               <div className="space-y-3 text-sm">
                 <div>
-                  <p className="font-medium text-[--color-text]">Can I upgrade anytime?</p>
+                  <p className="font-medium text-[--color-text]">免費版會不會有功能限制？</p>
                   <p className="mt-1 text-[--color-muted]">
-                    Yes, upgrade from Free to Supporter or Plus anytime.
+                    核心的「30
+                    秒陪伴方案」與活動庫永久免費、不限次數。付費方案只是額外的便利與支持。
                   </p>
                 </div>
                 <div>
-                  <p className="font-medium text-[--color-text]">How do I cancel?</p>
+                  <p className="font-medium text-[--color-text]">可以隨時取消嗎？</p>
                   <p className="mt-1 text-[--color-muted]">
-                    Manage your subscription in your account settings. You can cancel anytime.
+                    可以。隨時在帳號設定取消，當期到期後即回到免費版，不綁約。
                   </p>
+                </div>
+                <div>
+                  <p className="font-medium text-[--color-text]">付費方案之間可以調整嗎？</p>
+                  <p className="mt-1 text-[--color-muted]">可以隨時在支持者與 Plus 之間升降級。</p>
                 </div>
               </div>
             </div>
+
+            {state.currentPlan && state.currentPlan !== 'free' && (
+              <p className="text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => router.push('/account/entitlements')}
+                  className="font-medium text-[--color-brand] hover:underline"
+                >
+                  管理我的訂閱（目前：{PLAN_LABELS[state.currentPlan] ?? state.currentPlan}）
+                </button>
+              </p>
+            )}
           </>
         )}
       </div>

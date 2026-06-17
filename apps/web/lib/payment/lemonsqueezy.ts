@@ -28,7 +28,8 @@ export async function createLemonSqueezyCheckout(
   returnUrl?: string,
 ): Promise<string> {
   const apiKey = process.env.LEMONSQUEEZY_API_KEY
-  const storeId = process.env.NEXT_PUBLIC_LEMONSQUEEZY_STORE_ID
+  // Store ID 僅在後端建立結帳時使用，不需 NEXT_PUBLIC_ 前綴（與 .env.example 一致）。
+  const storeId = process.env.LEMONSQUEEZY_STORE_ID
 
   if (!apiKey || !storeId) {
     throw new Error('LemonSqueezy credentials not configured')
