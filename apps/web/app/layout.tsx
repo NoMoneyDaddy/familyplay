@@ -52,10 +52,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-TW" className={`${notoSansTC.variable} ${dmSans.variable}`}>
-      <body className="min-h-screen font-sans antialiased">
+      <body className="min-h-dvh font-sans antialiased">
         <ServiceWorkerRegister />
         {/* mobile-first 聚焦欄：手機滿版；平板/桌機置中並加環境陰影，框成「被設計過的 App」 */}
-        <div className="mx-auto min-h-screen w-full max-w-[480px] bg-[--color-bg] shadow-none sm:shadow-[0_0_90px_-28px_rgba(74,49,28,0.3)]">
+        <div className="mx-auto min-h-dvh w-full max-w-[480px] bg-[--color-bg] shadow-none sm:shadow-[0_0_90px_-28px_rgba(74,49,28,0.3)]">
           {children}
         </div>
         {/* 輕度廣告：僅在設定 AdSense client 時載入腳本（未設定則完全不載入） */}

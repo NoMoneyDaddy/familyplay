@@ -48,7 +48,6 @@
       color-mix(in oklab, var(--color-brand) 9%, transparent),
       transparent 55%
     );
-    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* iOS safe area */
