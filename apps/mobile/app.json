@@ -39,7 +39,9 @@
         {
           "username": "familyplay"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true
