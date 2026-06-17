@@ -1,3 +1,4 @@
+import { checkRateLimit } from '@/lib/ratelimit'
 import { type CookieOptions, createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -16,6 +17,13 @@ const passwordUpdateSchema = z.object({
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+
+    // Rate limit: 3 password reset/update attempts per email per minute
+    const rateLimitKey = body.email || body.token || 'unknown'
+    const rl = await checkRateLimit(`auth:reset:${rateLimitKey}`, 3)
+    if (!rl.success) {
+      return NextResponse.json({ error: 'Too many attempts, please try later' }, { status: 429 })
+    }
 
     // Check if this is a password reset request or password update
     if (body.token) {

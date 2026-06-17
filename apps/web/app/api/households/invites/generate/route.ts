@@ -10,11 +10,18 @@ const schema = z.object({
 
 function generateInviteToken(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  const charsLen = chars.length
   let token = ''
-  const randomValues = new Uint8Array(6)
+  const randomValues = new Uint8Array(8)
   crypto.getRandomValues(randomValues)
-  for (let i = 0; i < 6; i++) {
-    token += chars[randomValues[i] % chars.length]
+  for (let i = 0; i < 8; i++) {
+    // Rejection sampling: discard values that would cause modulo bias
+    let val = randomValues[i]
+    const limit = 256 - (256 % charsLen)
+    while (val >= limit) {
+      val = crypto.getRandomValues(new Uint8Array(1))[0]
+    }
+    token += chars[val % charsLen]
   }
   return token
 }

@@ -56,7 +56,8 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('Failed to fetch children', error)
+      return NextResponse.json({ error: 'Failed to fetch children' }, { status: 500 })
     }
 
     return NextResponse.json({

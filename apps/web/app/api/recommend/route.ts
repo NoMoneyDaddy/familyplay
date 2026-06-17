@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const formSchema = z.object({
+  parentEnergy: z.enum(['exhausted', 'low', 'medium', 'high']),
+  context: z.enum(['bedtime', 'emotional_crisis', 'sick_day', 'normal']),
+})
 
 export async function POST(request: Request) {
   const cookieStore = await cookies()
@@ -27,8 +33,14 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData()
-  const parentEnergy = formData.get('parentEnergy') as string
-  const context = formData.get('context') as string
+  const parsed = formSchema.safeParse({
+    parentEnergy: formData.get('parentEnergy'),
+    context: formData.get('context'),
+  })
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const { parentEnergy, context } = parsed.data
 
   const { data: children } = await supabase.from('child_profiles').select('id').limit(1)
 
