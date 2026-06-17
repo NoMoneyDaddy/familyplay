@@ -94,7 +94,7 @@ function RecommendationsPageInner() {
             <p className="text-[--color-muted]">暫時沒有合適的推薦</p>
           </div>
         ) : (
-          <ul className="space-y-4">
+          <ol className="space-y-4">
             {recommendations.map((rec, idx) => (
               <li key={rec.id} className="rounded-2xl bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-start justify-between">
@@ -127,7 +127,7 @@ function RecommendationsPageInner() {
                 </Link>
               </li>
             ))}
-          </ul>
+          </ol>
         )}
 
         <Link
