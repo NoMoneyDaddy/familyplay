@@ -22,12 +22,10 @@ export async function GET(request: Request) {
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll: () => cookieStore.getAll(),
-      setAll: (cookies: { name: string; value: string; options: CookieOptions }[]) => {
-        const response = NextResponse.next()
-        for (const { name, value, options } of cookies) {
-          response.cookies.set(name, value, options)
+      setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+        for (const { name, value, options } of cookiesToSet) {
+          cookieStore.set(name, value, options)
         }
-        return response
       },
     },
   })
@@ -67,12 +65,10 @@ export async function POST(request: Request) {
     const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookies: { name: string; value: string; options: CookieOptions }[]) => {
-          const response = NextResponse.next()
-          for (const { name, value, options } of cookies) {
-            response.cookies.set(name, value, options)
+        setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+          for (const { name, value, options } of cookiesToSet) {
+            cookieStore.set(name, value, options)
           }
-          return response
         },
       },
     })

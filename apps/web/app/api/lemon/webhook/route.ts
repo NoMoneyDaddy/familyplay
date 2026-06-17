@@ -3,22 +3,42 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
+// LemonSqueezy sends `meta.event_name`; we read defensively.
 const webhookSchema = z.object({
   meta: z.object({
-    eventName: z.string(),
+    event_name: z.string().optional(),
+    eventName: z.string().optional(),
   }),
   data: z.object({
+    id: z.union([z.string(), z.number()]).optional(),
     attributes: z.object({
-      status: z.string(),
-      variant_id: z.number(),
+      status: z.string().optional(),
+      variant_id: z.number().optional(),
       subscription_id: z.number().nullable().optional(),
+      renews_at: z.string().nullable().optional(),
+      ends_at: z.string().nullable().optional(),
     }),
   }),
 })
 
+// Events that grant/refresh an entitlement
+const ACTIVATING_EVENTS = [
+  'order_created',
+  'order.completed',
+  'subscription_created',
+  'subscription_updated',
+  'subscription_payment_success',
+]
+// Events that revoke an entitlement (downgrade to free)
+const DEACTIVATING_EVENTS = [
+  'subscription_cancelled',
+  'subscription_expired',
+  'subscription_payment_failed',
+  'order_refunded',
+]
+
 export async function POST(request: Request) {
   try {
-    // Validate environment
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     const webhookSecret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
@@ -30,47 +50,81 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
     }
 
-    // Get raw body for signature verification
     const rawBody = await request.text()
 
-    // Verify webhook signature
+    // Verify HMAC signature before trusting anything
     const signature = request.headers.get('x-signature')
-    if (!signature) {
-      console.warn('Webhook: Missing x-signature header')
+    if (!signature || !verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+      console.warn('Webhook: Invalid or missing signature')
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-      console.warn('Webhook: Invalid signature')
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-    }
-
-    // Parse and validate webhook body
     const webhookData = JSON.parse(rawBody)
     const validated = webhookSchema.parse(webhookData)
+    const eventName = validated.meta.event_name ?? validated.meta.eventName ?? ''
+    const objectId = String(validated.data.id ?? '')
 
-    // Only process completed orders
-    if (
-      validated.meta.eventName !== 'order.completed' ||
-      validated.data.attributes.status !== 'paid'
-    ) {
+    const supabase = createClient(url, serviceRoleKey)
+
+    // ── Idempotency: record (provider, event_id) before processing ──
+    // event_id combines event name + object id so a replay is a no-op.
+    const eventId = `${eventName}:${objectId}`
+    const { error: dedupeError } = await supabase
+      .from('processed_webhooks')
+      .insert({ provider: 'lemonsqueezy', event_id: eventId, event_type: eventName })
+
+    if (dedupeError) {
+      // Unique violation → already processed; ack with 200 so LS stops retrying.
+      if (dedupeError.code === '23505') {
+        return NextResponse.json({ success: true, deduped: true })
+      }
+      console.error('Webhook: dedupe insert failed', dedupeError)
+      return NextResponse.json({ error: 'Processing error' }, { status: 500 })
+    }
+
+    const isActivating = ACTIVATING_EVENTS.some((e) => eventName === e || eventName.startsWith(e))
+    const isDeactivating = DEACTIVATING_EVENTS.some(
+      (e) => eventName === e || eventName.startsWith(e),
+    )
+
+    if (!isActivating && !isDeactivating) {
+      // Not an event we act on, but we recorded it — ack.
       return NextResponse.json({ success: true })
     }
 
-    // Extract metadata from webhook
-    const variantId = validated.data.attributes.variant_id
-    const subscriptionId = validated.data.attributes.subscription_id
-
-    // Get checkout custom data for user profile ID
-    const customData = webhookData.data?.attributes?.checkout_data?.custom
-    const userProfileId = customData?.userProfileId
-
+    const userProfileId = webhookData.data?.attributes?.checkout_data?.custom?.userProfileId
     if (!userProfileId) {
       console.error('Webhook: Missing userProfileId in custom data')
       return NextResponse.json({ error: 'Missing user profile ID' }, { status: 400 })
     }
 
-    // Determine plan type from variant ID
+    const now = new Date()
+
+    // ── Downgrade path ──
+    if (isDeactivating) {
+      const { error } = await supabase
+        .from('entitlements')
+        .update({
+          plan: 'free',
+          plus_ai_calls_remaining: 0,
+          updated_at: now.toISOString(),
+        })
+        .eq('user_profile_id', userProfileId)
+
+      if (error) {
+        console.error('Webhook: downgrade update failed', error)
+        return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
+      }
+      return NextResponse.json({ success: true })
+    }
+
+    // ── Activation path: only on paid status ──
+    const status = validated.data.attributes.status
+    if (status && status !== 'paid' && status !== 'active') {
+      return NextResponse.json({ success: true })
+    }
+
+    const variantId = validated.data.attributes.variant_id
     let plan: 'supporter' | 'plus'
     if (variantId === Number(supporterVariantId)) {
       plan = 'supporter'
@@ -81,27 +135,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unknown plan variant' }, { status: 400 })
     }
 
-    // Create service role client for secure updates
-    const supabase = createClient(url, serviceRoleKey)
-
-    // Check if already processed (idempotency)
-    const { data: existing } = await supabase
-      .from('entitlements')
-      .select('id,lemonsqueezy_subscription_id')
-      .eq('user_profile_id', userProfileId)
-      .single()
-
-    if (existing?.lemonsqueezy_subscription_id === subscriptionId && subscriptionId) {
-      return NextResponse.json({ success: true })
-    }
-
-    // Update entitlements
-    const now = new Date()
-    const plusEndsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    // Prefer the provider's billing-period end; fall back to +30d only if absent.
+    const providerEnd =
+      validated.data.attributes.renews_at || validated.data.attributes.ends_at || null
+    const plusEndsAt = providerEnd
+      ? new Date(providerEnd)
+      : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
     const updateData = {
       plan,
-      lemonsqueezy_subscription_id: subscriptionId,
+      lemonsqueezy_subscription_id: validated.data.attributes.subscription_id ?? null,
       ...(plan === 'supporter' && { supporter_purchased_at: now.toISOString() }),
       ...(plan === 'plus' && {
         plus_started_at: now.toISOString(),
@@ -127,11 +170,8 @@ export async function POST(request: Request) {
       console.error('Webhook: Invalid payload structure', error)
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
-
+    // Don't leak internal error details to the caller
     console.error('Webhook: Unexpected error', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

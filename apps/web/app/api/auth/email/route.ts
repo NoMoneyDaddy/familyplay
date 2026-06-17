@@ -24,12 +24,13 @@ export async function POST(request: Request) {
     const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookies: { name: string; value: string; options: CookieOptions }[]) => {
-          const response = NextResponse.next()
-          for (const { name, value, options } of cookies) {
-            response.cookies.set(name, value, options)
+        // In a Route Handler, writing to the cookie store propagates Set-Cookie
+        // onto the returned response. The previous code wrote to a discarded
+        // NextResponse.next(), so session cookies were never actually sent.
+        setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+          for (const { name, value, options } of cookiesToSet) {
+            cookieStore.set(name, value, options)
           }
-          return response
         },
       },
     })
@@ -60,9 +61,9 @@ export async function POST(request: Request) {
       }
 
       if (signInData.session) {
-        // Set auth cookies and redirect
-        const response = NextResponse.redirect(new URL('/onboarding', request.url))
-        return response
+        // Cookies were set on the store above; let the client decide where to go
+        // ('/' routes to onboarding vs select based on whether children exist).
+        return NextResponse.json({ success: true, redirectTo: '/' }, { status: 200 })
       }
     }
 

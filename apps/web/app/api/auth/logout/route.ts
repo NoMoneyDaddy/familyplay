@@ -1,8 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
+import { type CookieOptions, createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-export async function POST(request: Request) {
+export async function POST() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -14,7 +14,13 @@ export async function POST(request: Request) {
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll: () => cookieStore.getAll(),
-      setAll: () => {},
+      // signOut clears the session cookies via setAll — they must be written to
+      // the store or the user stays logged in.
+      setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+        for (const { name, value, options } of cookiesToSet) {
+          cookieStore.set(name, value, options)
+        }
+      },
     },
   })
 
