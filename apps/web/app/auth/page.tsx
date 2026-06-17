@@ -106,29 +106,39 @@ function AuthPageInner() {
         <div className="space-y-4 rounded-2xl bg-white p-8 shadow-lg">
           <p className="text-center font-semibold text-[--color-text]">選擇登入方式</p>
 
-          {error && (
-            <div
-              role="alert"
-              className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200"
-            >
-              {error}
-            </div>
-          )}
+          {/* live region 常駐 DOM，僅以樣式切換顯示，確保螢幕報讀器可靠播報 */}
+          <div
+            role="alert"
+            className={
+              error
+                ? 'rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200'
+                : 'sr-only'
+            }
+          >
+            {error}
+          </div>
 
-          {success && (
-            <div
-              role="status"
-              className="rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200"
-            >
-              {success}
-            </div>
-          )}
+          <div
+            role="status"
+            className={
+              success
+                ? 'rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200'
+                : 'sr-only'
+            }
+          >
+            {success}
+          </div>
 
           {/* Auth Mode Selector */}
-          <div className="flex gap-2 rounded-lg bg-[--color-bg] p-1">
+          <div
+            role="tablist"
+            aria-label="登入方式"
+            className="flex gap-2 rounded-lg bg-[--color-bg] p-1"
+          >
             <button
               type="button"
-              aria-pressed={authMode === 'google'}
+              role="tab"
+              aria-selected={authMode === 'google'}
               onClick={() => {
                 setAuthMode('google')
                 setError('')
@@ -142,7 +152,8 @@ function AuthPageInner() {
             </button>
             <button
               type="button"
-              aria-pressed={authMode === 'email'}
+              role="tab"
+              aria-selected={authMode === 'email'}
               onClick={() => {
                 setAuthMode('email')
                 setError('')
@@ -159,6 +170,8 @@ function AuthPageInner() {
           {/* Google Auth */}
           {authMode === 'google' && (
             <form
+              role="tabpanel"
+              aria-label="Google 登入"
               onSubmit={(e) => {
                 e.preventDefault()
                 handleGoogleSignin()
@@ -175,12 +188,17 @@ function AuthPageInner() {
 
           {/* Email Auth */}
           {authMode === 'email' && (
-            <div className="space-y-4">
+            <div role="tabpanel" aria-label="Email 登入" className="space-y-4">
               {/* Email Tab Selector */}
-              <div className="flex gap-1 rounded-lg bg-[--color-bg] p-1">
+              <div
+                role="tablist"
+                aria-label="Email 登入選項"
+                className="flex gap-1 rounded-lg bg-[--color-bg] p-1"
+              >
                 <button
                   type="button"
-                  aria-pressed={emailTab === 'login'}
+                  role="tab"
+                  aria-selected={emailTab === 'login'}
                   onClick={() => {
                     setEmailTab('login')
                     setError('')
@@ -194,7 +212,8 @@ function AuthPageInner() {
                 </button>
                 <button
                   type="button"
-                  aria-pressed={emailTab === 'signup'}
+                  role="tab"
+                  aria-selected={emailTab === 'signup'}
                   onClick={() => {
                     setEmailTab('signup')
                     setError('')
@@ -208,7 +227,8 @@ function AuthPageInner() {
                 </button>
                 <button
                   type="button"
-                  aria-pressed={emailTab === 'reset'}
+                  role="tab"
+                  aria-selected={emailTab === 'reset'}
                   onClick={() => {
                     setEmailTab('reset')
                     setError('')
@@ -223,7 +243,12 @@ function AuthPageInner() {
               </div>
 
               {/* Email Form */}
-              <form onSubmit={handleEmailAuth} className="space-y-3">
+              <form
+                role="tabpanel"
+                aria-label="Email 登入表單"
+                onSubmit={handleEmailAuth}
+                className="space-y-3"
+              >
                 <label htmlFor="auth-email" className="sr-only">
                   電子信箱
                 </label>
@@ -259,7 +284,6 @@ function AuthPageInner() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
-                      aria-pressed={showPassword}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[--color-muted] hover:text-[--color-text]"
                     >
                       {showPassword ? '隱藏' : '顯示'}
