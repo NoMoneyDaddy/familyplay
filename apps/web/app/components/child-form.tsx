@@ -64,7 +64,11 @@ export function ChildForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
-      {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && (
+        <div role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="space-y-2">
         <label htmlFor="nickname" className="block text-sm font-semibold text-[--color-text]">
@@ -88,6 +92,7 @@ export function ChildForm({
             value={birthYear}
             onChange={(e) => setBirthYear(e.target.value)}
             required
+            aria-label="出生年份"
             className="rounded-lg border border-[--color-border] px-4 py-2"
           >
             <option value="">年份</option>
@@ -101,6 +106,7 @@ export function ChildForm({
             value={birthMonth}
             onChange={(e) => setBirthMonth(e.target.value)}
             required
+            aria-label="出生月份"
             className="rounded-lg border border-[--color-border] px-4 py-2"
           >
             <option value="">月份</option>
