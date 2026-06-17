@@ -17,6 +17,19 @@ describe('getStageKey', () => {
   it('returns preschooler_plus for 55 months', () => {
     expect(getStageKey(55)).toBe(STAGE_KEYS.PRESCHOOLER_PLUS)
   })
+
+  it('clamps ages at/above the top band to preschooler_plus', () => {
+    expect(getStageKey(60)).toBe(STAGE_KEYS.PRESCHOOLER_PLUS)
+    expect(getStageKey(200)).toBe(STAGE_KEYS.PRESCHOOLER_PLUS)
+  })
+
+  it('handles the 3-month boundary (exclusive upper bound)', () => {
+    expect(getStageKey(3)).toBe(STAGE_KEYS.EARLY_INFANT)
+  })
+
+  it('returns newborn for NaN rather than misclassifying', () => {
+    expect(getStageKey(Number.NaN)).toBe(STAGE_KEYS.NEWBORN)
+  })
 })
 
 describe('getAgeMonths', () => {
@@ -25,5 +38,18 @@ describe('getAgeMonths', () => {
     const twoYearsAgo = `${now.getFullYear() - 2}-${String(now.getMonth() + 1).padStart(2, '0')}`
     const age = getAgeMonths(twoYearsAgo)
     expect(age).toBeCloseTo(24, 0)
+  })
+
+  it('throws on malformed input instead of returning NaN', () => {
+    expect(() => getAgeMonths('2024')).toThrow()
+    expect(() => getAgeMonths('abc')).toThrow()
+    expect(() => getAgeMonths('')).toThrow()
+    // @ts-expect-error testing runtime guard against non-string
+    expect(() => getAgeMonths(undefined)).toThrow()
+  })
+
+  it('throws on an out-of-range month', () => {
+    expect(() => getAgeMonths('2024-13')).toThrow()
+    expect(() => getAgeMonths('2024-00')).toThrow()
   })
 })

@@ -27,16 +27,30 @@ export const STAGE_AGE_RANGES: Record<StageKey, { minMonths: number; maxMonths: 
 }
 
 export function getStageKey(ageMonths: number): StageKey {
-  for (const [key, range] of Object.entries(STAGE_AGE_RANGES)) {
+  if (Number.isNaN(ageMonths)) return 'newborn'
+  // Iterate the whitelist in a stable, age-sorted order rather than relying on
+  // object-key insertion order.
+  const ordered = ALLOWED_STAGE_KEYS.slice().sort(
+    (a, b) => STAGE_AGE_RANGES[a].minMonths - STAGE_AGE_RANGES[b].minMonths,
+  )
+  for (const key of ordered) {
+    const range = STAGE_AGE_RANGES[key]
     if (ageMonths >= range.minMonths && ageMonths < range.maxMonths) {
-      return key as StageKey
+      return key
     }
   }
+  // Below the youngest band → newborn; at/above the oldest band → clamp to top.
   return ageMonths < 0 ? 'newborn' : 'preschooler_plus'
 }
 
 export function getAgeMonths(birthYearMonth: string): number {
+  if (typeof birthYearMonth !== 'string' || !/^\d{4}-\d{2}$/.test(birthYearMonth)) {
+    throw new Error(`Invalid birthYearMonth: ${birthYearMonth} (expected YYYY-MM)`)
+  }
   const [year, month] = birthYearMonth.split('-').map(Number)
+  if (month < 1 || month > 12) {
+    throw new Error(`Invalid month in birthYearMonth: ${birthYearMonth}`)
+  }
   const now = new Date()
   return (now.getFullYear() - year) * 12 + (now.getMonth() + 1 - month)
 }
