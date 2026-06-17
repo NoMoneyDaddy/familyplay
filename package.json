@@ -15,10 +15,10 @@
     "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.0",
+    "@biomejs/biome": "^2.5.0",
     "supabase": "2.106.0",
     "turbo": "^2.3.0",
-    "typescript": "^5.7.0"
+    "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@9.15.0",
   "engines": {

@@ -1,8 +1,8 @@
 import {
   type CompanionContext,
+  containsBlockedMaterial,
   FALLBACK_ACTIVITY,
   HIGH_RISK_STAGES,
-  containsBlockedMaterial,
   hasBlockedContextKeyword,
 } from './safety-rules'
 import type { StageKey } from './stage-keys'

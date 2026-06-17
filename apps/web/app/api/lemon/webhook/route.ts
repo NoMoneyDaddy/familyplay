@@ -1,7 +1,7 @@
-import { verifyWebhookSignature } from '@/lib/payment/lemonsqueezy'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { verifyWebhookSignature } from '@/lib/payment/lemonsqueezy'
 
 // LemonSqueezy sends `meta.event_name`; we read defensively.
 const webhookSchema = z.object({

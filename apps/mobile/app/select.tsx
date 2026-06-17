@@ -1,9 +1,9 @@
-import { useAuthStore } from '@/lib/stores/useAuthStore'
-import { createMobileClient } from '@/lib/supabase/mobile'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { createMobileClient } from '@/lib/supabase/mobile'
 
 interface ChildProfile {
   id: string

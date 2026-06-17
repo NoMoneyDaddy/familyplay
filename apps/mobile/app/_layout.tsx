@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
+import { useAuthStore } from '@/lib/stores/useAuthStore'
 
 export default function RootLayout() {
   const { session } = useAuthStore()

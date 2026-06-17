@@ -2,6 +2,9 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // expo/tsconfig.base 設定 moduleResolution=node10，TS 6 標記為棄用（TS5107）。
+    // 行為維持不變，僅關閉棄用警告，待 Expo 基礎設定更新或改用 bundler 解析。
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./*"],
       "~/*": ["./*"]

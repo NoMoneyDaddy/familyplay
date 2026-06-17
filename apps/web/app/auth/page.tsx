@@ -1,9 +1,7 @@
 'use client'
 
-import { Suspense } from 'react'
-
 import { useRouter, useSearchParams } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, Suspense, useState } from 'react'
 
 type AuthMode = 'google' | 'email'
 type EmailTab = 'login' | 'signup' | 'reset'
