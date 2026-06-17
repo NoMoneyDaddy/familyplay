@@ -14,30 +14,31 @@ interface Activity {
   maxDurationMinutes: number
 }
 
-const REACTION_LABELS: Record<string, string> = {
-  happy: '開心 😊',
-  engaged: '投入 ✨',
-  neutral: '普通 😐',
-  leaving: '想離開 🚶',
-  disinterested: '沒興趣 😶',
-  calmed: '平靜了 😌',
-}
+type Reaction = 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
+type Outcome = 'completed' | 'tried' | 'abandoned'
 
-const OUTCOME_LABELS: Record<string, string> = {
-  completed: '完成 ✅',
-  tried: '嘗試了 🔸',
-  abandoned: '中途放棄 ⏹️',
-}
+const REACTIONS: { value: Reaction; label: string }[] = [
+  { value: 'happy', label: '開心 😊' },
+  { value: 'engaged', label: '投入 ✨' },
+  { value: 'neutral', label: '普通 😐' },
+  { value: 'leaving', label: '想離開 🚶' },
+  { value: 'disinterested', label: '沒興趣 😶' },
+  { value: 'calmed', label: '平靜了 😌' },
+]
+
+const OUTCOMES: { value: Outcome; label: string }[] = [
+  { value: 'completed', label: '完成 ✅' },
+  { value: 'tried', label: '嘗試了 🔸' },
+  { value: 'abandoned', label: '中途放棄 ⏹️' },
+]
 
 export default function ActivityPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const [activity, setActivity] = useState<Activity | null>(null)
   const [activityLoading, setActivityLoading] = useState(true)
-  const [outcome, setOutcome] = useState<'completed' | 'tried' | 'abandoned'>('completed')
-  const [childReaction, setChildReaction] = useState<
-    'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
-  >('happy')
+  const [outcome, setOutcome] = useState<Outcome>('completed')
+  const [childReaction, setChildReaction] = useState<Reaction>('happy')
   const [startTime] = useState(Date.now())
   const [loading, setLoading] = useState(false)
 
@@ -77,7 +78,9 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   if (activityLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-[--color-muted]">加載活動中...</p>
+        <p className="text-[--color-muted]" role="status">
+          加載活動中...
+        </p>
       </main>
     )
   }
@@ -85,7 +88,9 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   if (!activity) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600">活動不存在</p>
+        <p className="text-red-600" role="alert">
+          活動不存在
+        </p>
       </main>
     )
   }
@@ -102,7 +107,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-[--color-text]">步驟</h3>
+              <h2 className="text-sm font-semibold text-[--color-text]">步驟</h2>
               <ol className="space-y-2">
                 {activity.steps.map((step, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: Activity steps are static and ordered
@@ -116,7 +121,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
             {activity.followUpQuestions.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-[--color-text]">跟進問題</h3>
+                <h2 className="text-sm font-semibold text-[--color-text]">跟進問題</h2>
                 <ul className="space-y-1">
                   {activity.followUpQuestions.map((q, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: Follow-up questions are static and ordered
@@ -129,55 +134,60 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             )}
 
             <div className="text-xs text-[--color-muted]">
-              ⏱️ 約 {activity.minDurationMinutes}–{activity.maxDurationMinutes} 分鐘
+              <span aria-hidden="true">⏱️ </span>約 {activity.minDurationMinutes}–
+              {activity.maxDurationMinutes} 分鐘
             </div>
           </div>
         </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-          <h3 className="font-semibold text-[--color-text]">活動結果</h3>
+          <h2 className="font-semibold text-[--color-text]">活動結果</h2>
 
-          <div className="space-y-2">
-            <div className="block text-sm font-semibold text-[--color-text]">孩子的反應</div>
+          {/* 孩子的反應：單選 radio 群組 */}
+          <fieldset className="space-y-2">
+            <legend className="block text-sm font-semibold text-[--color-text]">孩子的反應</legend>
             <div className="grid grid-cols-2 gap-2">
-              {['happy', 'engaged', 'neutral', 'leaving', 'disinterested', 'calmed'].map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  aria-pressed={childReaction === r}
-                  onClick={() =>
-                    setChildReaction(
-                      r as 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed',
-                    )
-                  }
-                  className={`rounded-lg p-2 text-xs font-medium ${
-                    childReaction === r ? 'bg-[--color-brand] text-white' : 'bg-[--color-bg]'
-                  }`}
+              {REACTIONS.map((r) => (
+                <label
+                  key={r.value}
+                  className="cursor-pointer rounded-lg bg-[--color-bg] p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-[--color-brand] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
                 >
-                  {REACTION_LABELS[r]}
-                </button>
+                  <input
+                    type="radio"
+                    name="reaction"
+                    value={r.value}
+                    checked={childReaction === r.value}
+                    onChange={() => setChildReaction(r.value)}
+                    className="sr-only"
+                  />
+                  {r.label}
+                </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
-          <div className="space-y-2">
-            <div className="block text-sm font-semibold text-[--color-text]">活動完成度</div>
+          {/* 活動完成度：單選 radio 群組 */}
+          <fieldset className="space-y-2">
+            <legend className="block text-sm font-semibold text-[--color-text]">活動完成度</legend>
             <div className="grid grid-cols-3 gap-2">
-              {['completed', 'tried', 'abandoned'].map((o) => (
-                <button
-                  key={o}
-                  type="button"
-                  aria-pressed={outcome === o}
-                  onClick={() => setOutcome(o as 'completed' | 'tried' | 'abandoned')}
-                  className={`rounded-lg p-2 text-xs font-medium ${
-                    outcome === o ? 'bg-[--color-brand] text-white' : 'bg-[--color-bg]'
-                  }`}
+              {OUTCOMES.map((o) => (
+                <label
+                  key={o.value}
+                  className="cursor-pointer rounded-lg bg-[--color-bg] p-2 text-center text-xs font-medium transition-colors has-[:checked]:bg-[--color-brand] has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[--color-brand]"
                 >
-                  {OUTCOME_LABELS[o]}
-                </button>
+                  <input
+                    type="radio"
+                    name="outcome"
+                    value={o.value}
+                    checked={outcome === o.value}
+                    onChange={() => setOutcome(o.value)}
+                    className="sr-only"
+                  />
+                  {o.label}
+                </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           <button
             type="button"
@@ -185,7 +195,13 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             disabled={loading}
             className="w-full rounded-lg bg-[--color-brand] py-3 font-semibold text-white disabled:opacity-50"
           >
-            {loading ? '記錄中...' : '✅ 完成並記錄'}
+            {loading ? (
+              '記錄中...'
+            ) : (
+              <>
+                <span aria-hidden="true">✅ </span>完成並記錄
+              </>
+            )}
           </button>
         </div>
       </div>
