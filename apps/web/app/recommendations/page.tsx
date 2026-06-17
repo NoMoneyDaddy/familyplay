@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { AdSlot } from '@/app/components/ad-slot'
 
 interface Recommendation {
   id: string
@@ -136,6 +137,9 @@ function RecommendationsPageInner() {
         >
           <span aria-hidden="true">↺ </span>重新選擇狀態
         </Link>
+
+        {/* 輕度廣告：僅對免費用戶顯示、且需設定 AdSense；放在底部不干擾 */}
+        <AdSlot className="pt-2" />
       </div>
     </main>
   )

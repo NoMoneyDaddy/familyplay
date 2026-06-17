@@ -36,11 +36,14 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              // Google AdSense（輕度廣告）所需來源；未設定 AdSense 時不會載入這些腳本
+              "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               'font-src fonts.gstatic.com',
               "img-src 'self' data: https:",
-              "connect-src 'self' *.supabase.co *.googleapis.com generativelanguage.googleapis.com api.openai.com api.anthropic.com *.groq.com *.lemonsqueezy.com app.posthog.com *.sentry.io",
+              "connect-src 'self' *.supabase.co *.googleapis.com generativelanguage.googleapis.com api.openai.com api.anthropic.com *.groq.com *.lemonsqueezy.com app.posthog.com *.sentry.io https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
+              // 廣告以 iframe 呈現，需允許 Google 廣告框架來源
+              'frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com',
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
