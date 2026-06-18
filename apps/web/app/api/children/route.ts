@@ -124,7 +124,14 @@ export async function POST(request: Request) {
     })
 
     if (capError) {
-      await supabase.from('child_profiles').delete().eq('id', child.id)
+      console.error('Failed to create child capability profile:', capError)
+      const { error: rollbackError } = await supabase
+        .from('child_profiles')
+        .delete()
+        .eq('id', child.id)
+      if (rollbackError) {
+        console.error('Failed to rollback child profile creation:', rollbackError)
+      }
       return NextResponse.json({ error: 'Failed to create child' }, { status: 500 })
     }
 
