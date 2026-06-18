@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Mascot } from '@/app/components/mascot'
 import {
+  ActivityMeta,
   Button,
   Card,
   ErrorAlert,
@@ -46,6 +47,9 @@ interface Recommendation {
   title: string
   score: number
   reasons: string[]
+  minDurationMinutes?: number
+  maxDurationMinutes?: number
+  stimulationLevel?: 'low' | 'medium' | 'high'
 }
 
 export default function TryPage() {
@@ -130,6 +134,12 @@ export default function TryPage() {
                       {rec.title}
                     </h2>
                   </div>
+                  <ActivityMeta
+                    minDurationMinutes={rec.minDurationMinutes}
+                    maxDurationMinutes={rec.maxDurationMinutes}
+                    stimulationLevel={rec.stimulationLevel}
+                    className="mb-3"
+                  />
                   {rec.reasons.length > 0 && (
                     <ul className="space-y-1.5 text-xs text-muted">
                       {rec.reasons.map((reason, i) => (

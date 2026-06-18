@@ -4,13 +4,16 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
 import { Mascot } from '@/app/components/mascot'
-import { Card, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
+import { ActivityMeta, Card, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
 
 interface Recommendation {
   id: string
   title: string
   score: number
   reasons: string[]
+  minDurationMinutes?: number
+  maxDurationMinutes?: number
+  stimulationLevel?: 'low' | 'medium' | 'high'
 }
 
 function RecommendationsPageInner() {
@@ -133,6 +136,13 @@ function RecommendationsPageInner() {
                     {rec.score.toFixed(1)}
                   </span>
                 </div>
+
+                <ActivityMeta
+                  minDurationMinutes={rec.minDurationMinutes}
+                  maxDurationMinutes={rec.maxDurationMinutes}
+                  stimulationLevel={rec.stimulationLevel}
+                  className="mb-4"
+                />
 
                 {rec.reasons.length > 0 && (
                   <ul className="mb-4 space-y-1.5 text-xs text-muted">

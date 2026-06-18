@@ -166,6 +166,9 @@ export async function POST(request: Request) {
         title: r.title,
         score: r.score,
         reasons: r.reasons,
+        minDurationMinutes: r.minDurationMinutes,
+        maxDurationMinutes: r.maxDurationMinutes,
+        stimulationLevel: r.stimulationLevel,
       })),
     })
   } catch (error) {

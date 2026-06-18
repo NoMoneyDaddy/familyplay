@@ -256,6 +256,55 @@ export function Icon({
   )
 }
 
+/* ──────────────────────── 活動屬性標籤 ──────────────────────── */
+
+/** 刺激強度 → 中文標籤與色調（安靜 / 適中 / 活潑）。 */
+const STIMULATION_META: Record<'low' | 'medium' | 'high', { label: string; dot: string }> = {
+  low: { label: '安靜', dot: 'bg-info' },
+  medium: { label: '適中', dot: 'bg-warning' },
+  high: { label: '活潑', dot: 'bg-brand' },
+}
+
+/** 活動屬性列：時長 + 刺激強度，做成可快速掃讀的小標籤（仿競品卡片的資訊密度）。 */
+export function ActivityMeta({
+  minDurationMinutes,
+  maxDurationMinutes,
+  stimulationLevel,
+  className = '',
+}: {
+  minDurationMinutes?: number
+  maxDurationMinutes?: number
+  stimulationLevel?: 'low' | 'medium' | 'high'
+  className?: string
+}) {
+  const hasDuration =
+    typeof minDurationMinutes === 'number' && typeof maxDurationMinutes === 'number'
+  const stim = stimulationLevel ? STIMULATION_META[stimulationLevel] : null
+  if (!hasDuration && !stim) return null
+
+  const durationText =
+    minDurationMinutes === maxDurationMinutes
+      ? `${minDurationMinutes} 分鐘`
+      : `${minDurationMinutes}–${maxDurationMinutes} 分鐘`
+
+  return (
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+      {hasDuration && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-muted">
+          <Icon name="clock" className="h-[13px] w-[13px]" />
+          {durationText}
+        </span>
+      )}
+      {stim && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-muted">
+          <span className={`h-[7px] w-[7px] rounded-full ${stim.dot}`} aria-hidden="true" />
+          {stim.label}
+        </span>
+      )}
+    </div>
+  )
+}
+
 /* ────────────────────────── 版面 ────────────────────────── */
 
 /** 一致的頁面外殼：取代各頁手寫的 `bg-gradient-to-b from-bg to-white`。
