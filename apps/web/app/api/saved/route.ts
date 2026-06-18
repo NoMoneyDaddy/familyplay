@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const bodySchema = z.object({ activityId: z.string().uuid() })
 
@@ -44,6 +45,7 @@ export async function GET() {
       'activity_id, created_at, companion_activities(id, title, min_duration_minutes, max_duration_minutes, stimulation_level, developmental_focus)',
     )
     .order('created_at', { ascending: false })
+    .limit(200)
 
   if (error) return NextResponse.json({ error: 'Failed to load saved' }, { status: 500 })
   return NextResponse.json({ saved: data ?? [] })
@@ -59,6 +61,9 @@ export async function POST(request: Request) {
     error: authError,
   } = await supabase.auth.getUser()
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const rl = await checkRateLimit(`saved-write:${user.id}`, 60)
+  if (!rl.success) return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
 
   let activityId: string
   try {
@@ -91,12 +96,23 @@ export async function DELETE(request: Request) {
   } = await supabase.auth.getUser()
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const rl = await checkRateLimit(`saved-write:${user.id}`, 60)
+  if (!rl.success) return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
+
   const activityId = new URL(request.url).searchParams.get('activityId')
   if (!activityId || !z.string().uuid().safeParse(activityId).success) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
 
-  const { error } = await supabase.from('saved_activities').delete().eq('activity_id', activityId)
+  // RLS 已限制只能刪自己的；仍顯式比對 user_profile_id，讓擁有權檢查在程式碼層自我說明、好稽核。
+  const profileId = await resolveProfileId(supabase, user.id)
+  if (!profileId) return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+
+  const { error } = await supabase
+    .from('saved_activities')
+    .delete()
+    .eq('user_profile_id', profileId)
+    .eq('activity_id', activityId)
   if (error) return NextResponse.json({ error: 'Failed to remove' }, { status: 500 })
   return NextResponse.json({ saved: false })
 }
