@@ -143,7 +143,7 @@ export const companionLogs = pgTable(
     activityId: uuid('activity_id').references(() => companionActivities.id),
 
     startedAt: timestamp('started_at', { withTimezone: true }).defaultNow(),
-    durationSecs: integer('duration_seconds'),
+    durationSecs: integer('duration_secs'),
     outcome: text('outcome'), // 'completed' | 'tried' | 'abandoned'
     childReaction: text('child_reaction'), // 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
     notes: text('notes'), // encrypted for Plus
