@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createLemonSqueezyCheckout } from '@/lib/payment/lemonsqueezy'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const createCheckoutSchema = z.object({
   planId: z.enum(['supporter', 'plus']),
@@ -36,6 +37,12 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // 每次結帳都打外部 LemonSqueezy API；節流避免被刷爆。
+    const rl = await checkRateLimit(`checkout:${user.id}`, 10)
+    if (!rl.success) {
+      return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
     }
 
     // Validate request body

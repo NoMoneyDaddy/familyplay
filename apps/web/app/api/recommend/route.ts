@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const formSchema = z.object({
   parentEnergy: z.enum(['exhausted', 'low', 'medium', 'high']),
@@ -39,6 +40,11 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.redirect(new URL('/auth', publicOrigin))
+  }
+
+  const rl = await checkRateLimit(`recommend-form:${user.id}`, 30)
+  if (!rl.success) {
+    return NextResponse.redirect(new URL('/select?error=rate', publicOrigin))
   }
 
   const formData = await request.formData()
