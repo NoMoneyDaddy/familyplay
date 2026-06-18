@@ -254,12 +254,21 @@ export default function TryPage() {
                   type="button"
                   aria-pressed={ageMonths === band.months}
                   onClick={() => selectAge(band.months)}
-                  className={`rounded-xl border px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                  className={`relative rounded-xl px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
                     ageMonths === band.months
-                      ? 'border-brand bg-brand-tint text-brand-strong shadow-clay'
-                      : 'border-border/60 bg-card text-text'
+                      ? 'border-2 border-brand bg-brand-tint text-brand-strong shadow-clay'
+                      : 'border border-border/60 bg-card text-text'
                   }`}
                 >
+                  {/* 非色彩選取線索（WCAG 1.4.1）：選中時加粗框 + 角落勾 */}
+                  {ageMonths === band.months && (
+                    <span
+                      aria-hidden
+                      className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand text-[9px] leading-none text-white"
+                    >
+                      ✓
+                    </span>
+                  )}
                   {band.label}
                 </button>
               ))}
@@ -276,16 +285,25 @@ export default function TryPage() {
                   type="button"
                   aria-pressed={energy === o.value}
                   onClick={() => setEnergy(o.value)}
-                  className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 ${
                     energy === o.value
-                      ? 'border-brand bg-brand-tint shadow-clay'
-                      : 'border-border/60 bg-card'
+                      ? 'border-2 border-brand bg-brand-tint shadow-clay'
+                      : 'border border-border/60 bg-card'
                   }`}
                 >
                   <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
                     <Icon name={o.icon} className="h-[24px] w-[24px]" />
                   </span>
                   <span className="text-sm font-medium text-text">{o.label}</span>
+                  {/* 非色彩選取線索：選中時尾端顯示勾 */}
+                  {energy === o.value && (
+                    <span
+                      aria-hidden
+                      className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-xs text-white"
+                    >
+                      ✓
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
