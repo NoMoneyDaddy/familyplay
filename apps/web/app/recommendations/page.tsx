@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
 import { FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
+import { SaveHeart } from '@/app/components/save-heart'
 import { ActivityMeta, Card, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
 
 interface Recommendation {
@@ -24,6 +25,8 @@ function RecommendationsPageInner() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // 一次抓收藏清單，逐卡以 initialSaved 傳入 SaveHeart，避免每張卡各打一次 /api/saved。
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
 
   const childId = searchParams.get('childId') || ''
   const parentEnergy = searchParams.get('parentEnergy') || ''
@@ -64,6 +67,23 @@ function RecommendationsPageInner() {
       })
       .finally(() => setLoading(false))
   }, [childId, parentEnergy, context])
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/saved')
+      .then((res) => (res.ok ? res.json() : { saved: [] }))
+      .then((data) => {
+        if (!cancelled) {
+          setSavedIds(
+            new Set((data.saved ?? []).map((s: { activity_id: string }) => s.activity_id)),
+          )
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (loading) {
     return (
@@ -134,6 +154,12 @@ function RecommendationsPageInner() {
                   <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
                     {rec.title}
                   </h2>
+                  {/* 一鍵收藏主答案，不必先打開活動 */}
+                  <SaveHeart
+                    activityId={rec.id}
+                    initialSaved={savedIds.has(rec.id)}
+                    className="-mr-1"
+                  />
                 </div>
 
                 <ActivityMeta
