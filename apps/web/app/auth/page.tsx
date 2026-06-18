@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { LegalLinks } from '@/app/components/legal-links'
 import { Mascot } from '@/app/components/mascot'
 import { createClient } from '@/lib/supabase/client'
 
@@ -192,6 +193,11 @@ function AuthPageInner() {
           登入 Google 可在不同裝置同步孩子的紀錄。訪客模式免註冊、資料僅存於此帳號，之後可隨時改用
           Google 登入保存。
         </p>
+
+        <p className="px-2 text-center text-xs leading-relaxed text-faint">
+          繼續使用即表示你同意我們的服務條款與隱私權政策。
+        </p>
+        <LegalLinks />
       </div>
     </main>
   )

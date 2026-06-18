@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { LegalLinks } from '@/app/components/legal-links'
 import {
   Button,
   Callout,
@@ -147,6 +148,8 @@ export default function SettingsPage() {
               </button>
             )}
           </div>
+
+          <LegalLinks className="pt-2" />
         </div>
       )}
     </PageShell>

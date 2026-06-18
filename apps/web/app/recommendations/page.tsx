@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
@@ -177,6 +178,14 @@ function RecommendationsPageInner() {
 
       {/* 輕度廣告：僅對免費用戶顯示、且需設定 AdSense；放在底部不干擾 */}
       <AdSlot className="pt-2" />
+
+      <p className="px-2 text-center text-xs leading-relaxed text-faint">
+        活動建議僅供親子陪伴參考，非醫療或專業評估，請由成人全程監護。詳見{' '}
+        <Link href="/disclaimer" className="underline hover:text-muted">
+          免責聲明
+        </Link>
+        。
+      </p>
     </PageShell>
   )
 }

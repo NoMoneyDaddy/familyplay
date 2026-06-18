@@ -181,6 +181,14 @@ export default function TryPage() {
           <Icon name="refresh" className="h-[16px] w-[16px]" />
           換個狀態再試
         </button>
+
+        <p className="px-2 text-center text-xs leading-relaxed text-faint">
+          活動建議僅供親子陪伴參考，非醫療或專業評估，請由成人全程監護。詳見{' '}
+          <Link href="/disclaimer" className="underline hover:text-muted">
+            免責聲明
+          </Link>
+          。
+        </p>
       </PageShell>
     )
   }
