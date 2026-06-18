@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     }
 
     if (!householdId) {
-      const { data: newHousehold } = await supabase
+      const { data: newHousehold, error: createHouseholdError } = await supabase
         .from('households')
         .insert({
           owner_id: userProfile.id,
@@ -88,6 +88,9 @@ export async function POST(request: Request) {
         .select('id')
         .single()
 
+      if (createHouseholdError) {
+        console.error('Failed to create household:', createHouseholdError)
+      }
       householdId = newHousehold?.id
     }
 

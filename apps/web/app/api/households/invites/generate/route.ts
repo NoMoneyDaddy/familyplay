@@ -95,13 +95,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create invite' }, { status: 500 })
     }
 
-    // 以實際請求來源組連結，避免 fallback 指向錯誤網域（例如不存在的 familyplay.app）。
-    // 優先用反向代理帶的 forwarded host/proto（Zeabur），再退回 env，最後才用 request origin。
+    // 安全：優先用可信的 NEXT_PUBLIC_APP_URL，避免攻擊者偽造 x-forwarded-host 讓邀請連結
+    // 指向釣魚網域；未設定時（dev/preview）才退回代理 host，最後 request origin。
     const fwdHost = request.headers.get('x-forwarded-host')
     const fwdProto = request.headers.get('x-forwarded-proto') || 'https'
     const baseUrl =
-      (fwdHost ? `${fwdProto}://${fwdHost}` : undefined) ||
       process.env.NEXT_PUBLIC_APP_URL ||
+      (fwdHost ? `${fwdProto}://${fwdHost}` : undefined) ||
       new URL(request.url).origin
     const inviteLink = `${baseUrl}/join?code=${invite.token}`
 
