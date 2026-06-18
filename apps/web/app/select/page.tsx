@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { DashboardGreeting } from '@/app/components/dashboard-greeting'
 import { Button, ErrorAlert, Icon, type IconName, PageHeader, PageShell } from '@/app/components/ui'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
@@ -85,6 +86,7 @@ export default function SelectPage() {
   return (
     <PageShell>
       <ChildSwitcher />
+      <DashboardGreeting />
       <PageHeader
         title="你今天怎麼樣？"
         subtitle="選擇你的狀態，30 秒拿到陪伴方案"
