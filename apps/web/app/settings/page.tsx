@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { LegalLinks } from '@/app/components/legal-links'
+import { ReminderToggle } from '@/app/components/reminder-toggle'
 import {
   Button,
   Callout,
@@ -84,6 +85,8 @@ export default function SettingsPage() {
             )}
             <p className="mt-2 text-xs text-muted">FamilyPlay MVP v0.1</p>
           </Card>
+
+          <ReminderToggle />
 
           <div className="space-y-2">
             {LINKS.map((link) => (

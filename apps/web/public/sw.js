@@ -24,6 +24,41 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+// ── Web Push：睡前陪伴提醒 ──
+self.addEventListener('push', (event) => {
+  let data = {}
+  try {
+    data = event.data ? event.data.json() : {}
+  } catch {
+    data = {}
+  }
+  const title = data.title || 'FamilyPlay'
+  const options = {
+    body: data.body || '今天還沒陪孩子玩嗎？30 秒拿到今晚的陪伴方案 🌙',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag || 'familyplay-reminder',
+    data: { url: data.url || '/select' },
+  }
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = (event.notification.data && event.notification.data.url) || '/select'
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) {
+          client.navigate(target)
+          return client.focus()
+        }
+      }
+      return self.clients.openWindow(target)
+    }),
+  )
+})
+
 self.addEventListener('fetch', (event) => {
   const { request } = event
 
