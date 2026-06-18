@@ -134,7 +134,6 @@ function RecommendationsPageInner() {
                   <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
                     {rec.title}
                   </h2>
-                  {/* ponytail: 拿掉 score 數字——對家長無意義，只是引擎 debug 值 */}
                 </div>
 
                 <ActivityMeta
