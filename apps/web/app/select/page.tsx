@@ -23,11 +23,26 @@ const CONTEXT_OPTIONS: { value: string; label: string; icon: IconName }[] = [
   { value: 'sick_day', label: '生病/休息日', icon: 'thermometer' },
 ]
 
+// 依時段預設情境：傍晚到清晨預設「睡前」，其餘「正常時光」。
+// 只是預選、家長隨時可改——少問一個問題，貼合「先給預設」的設計方向。
+function timeDefaultContext(): string {
+  const hour = new Date().getHours()
+  return hour >= 19 || hour < 5 ? 'bedtime' : 'normal'
+}
+
 export default function SelectPage() {
   const router = useRouter()
   const { selectedChildId, hasHydrated } = useChildStore()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 情境改為受控；預設留空避免 SSR/hydration 不一致，掛載後才依時段預選。
+  const [context, setContext] = useState('')
+  const [autoPicked, setAutoPicked] = useState(false)
+
+  useEffect(() => {
+    setContext(timeDefaultContext())
+    setAutoPicked(true)
+  }, [])
 
   // 只有在孩子清單載入完成（hasHydrated）後仍沒有孩子，才導向引導頁——
   // 否則首次建立孩子後會在 ChildSwitcher 抓到資料前就被跳回 /onboarding。
@@ -43,7 +58,6 @@ export default function SelectPage() {
 
     const formData = new FormData(e.currentTarget)
     const parentEnergy = formData.get('parentEnergy') as string | null
-    const context = formData.get('context') as string | null
 
     // 以 JS 驗證取代原生 required：精力選項的 radio 為 sr-only（視覺隱藏），
     // 瀏覽器原生 required 驗證會因「不可聚焦」而靜默擋住送出。
@@ -92,14 +106,29 @@ export default function SelectPage() {
 
         {/* 情境 */}
         <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-text">現在的情境</legend>
+          <legend className="text-sm font-semibold text-text">
+            現在的情境
+            {autoPicked && (
+              <span className="ml-1.5 font-normal text-faint">已依時段預選，可更改</span>
+            )}
+          </legend>
           <div className="grid gap-2.5">
             {CONTEXT_OPTIONS.map((option) => (
               <label
                 key={option.value}
                 className="flex cursor-pointer items-center gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
               >
-                <input type="radio" name="context" value={option.value} className="peer sr-only" />
+                <input
+                  type="radio"
+                  name="context"
+                  value={option.value}
+                  checked={context === option.value}
+                  onChange={() => {
+                    setContext(option.value)
+                    setAutoPicked(false) // 手動選後隱藏「已依時段預選」提示
+                  }}
+                  className="peer sr-only"
+                />
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-tint text-brand peer-checked:bg-card">
                   <Icon name={option.icon} className="h-[22px] w-[22px]" />
                 </span>
