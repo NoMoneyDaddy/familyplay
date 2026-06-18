@@ -20,22 +20,29 @@ export function ChildSwitcher() {
   useEffect(() => {
     if (!mounted) return
 
+    // 快速切頁可能在 fetch 回來前卸載；用 cancelled 旗標避免 unmount 後 setState。
+    let cancelled = false
     const fetchChildren = async () => {
       try {
         const res = await fetch('/api/children/list')
         if (res.ok) {
           const data = await res.json()
-          setChildren(data.children || [])
+          if (!cancelled) setChildren(data.children || [])
         }
       } catch (error) {
         console.error('Failed to fetch children:', error)
       } finally {
-        setLoading(false)
-        setHasHydrated(true)
+        if (!cancelled) {
+          setLoading(false)
+          setHasHydrated(true)
+        }
       }
     }
 
     fetchChildren()
+    return () => {
+      cancelled = true
+    }
   }, [mounted, setChildren, setHasHydrated])
 
   // 載入中也保留右上角設定入口（避免頂列閃動消失）
