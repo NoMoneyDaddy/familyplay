@@ -262,7 +262,11 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
           並把焦點移到覆蓋層，避免焦點還停在被蓋住的按鈕上。 */}
       {celebrating && (
         <div
-          ref={(el) => el?.focus()}
+          ref={(el) => {
+            // inline ref 在每次 re-render 會先以 null 再以節點呼叫；只在尚未聚焦時
+            // 才 focus，避免 1.8 秒內反覆奪取焦點。
+            if (el && document.activeElement !== el) el.focus()
+          }}
           tabIndex={-1}
           role="status"
           aria-live="assertive"
