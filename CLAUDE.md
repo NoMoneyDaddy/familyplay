@@ -134,7 +134,7 @@ perf: 性能優化
 
 #### 推薦引擎
 - 7 步演算法實現（100% 按規格）
-- 活動庫：~65 筆並擴充中（內容生產線見 `scripts/content/`，每批次經 schema 驗證後產生 seed migration）
+- 活動庫：~166 筆，涵蓋 0–5 歲全部 9 個發展階段（內容生產線見 `scripts/content/`，每批次經 schema 驗證後產生 seed migration）
 - 31 個能力標籤（`packages/core/capability-keys.ts`）
 - 9 個發展階段定義
 - 推薦引擎核心邏輯有單元測試（內容量仍在累積，非「完整覆蓋」）
