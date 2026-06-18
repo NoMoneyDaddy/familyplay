@@ -73,14 +73,23 @@ export default function TryPage() {
   // 匿名回訪者免得每次重填：掛載後預填上次的年齡，並依時段預選情境（皆可改）。
   // 精力是當下狀態、刻意不記憶。在 effect 內讀 localStorage 以避開 SSR 不一致。
   useEffect(() => {
-    const saved = Number(localStorage.getItem(AGE_STORAGE_KEY))
-    if (AGE_BANDS.some((b) => b.months === saved)) setAgeMonths(saved)
+    // localStorage 在隱私模式/停用儲存/沙盒 iframe 可能 throw；包 try-catch 免掛載崩潰。
+    try {
+      const saved = Number(localStorage.getItem(AGE_STORAGE_KEY))
+      if (AGE_BANDS.some((b) => b.months === saved)) setAgeMonths(saved)
+    } catch {
+      // 讀取失敗就不預填，不影響使用
+    }
     setContext(timeDefaultContext())
   }, [])
 
   const selectAge = (months: number) => {
     setAgeMonths(months)
-    localStorage.setItem(AGE_STORAGE_KEY, String(months))
+    try {
+      localStorage.setItem(AGE_STORAGE_KEY, String(months))
+    } catch {
+      // 寫入失敗（停用/配額）僅是無法記憶，不影響本次流程
+    }
   }
 
   const canSubmit = ageMonths !== null && energy !== null && context !== null
