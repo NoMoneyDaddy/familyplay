@@ -252,6 +252,7 @@ export default function TryPage() {
                 <button
                   key={band.months}
                   type="button"
+                  aria-pressed={ageMonths === band.months}
                   onClick={() => selectAge(band.months)}
                   className={`rounded-xl border px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
                     ageMonths === band.months
@@ -273,6 +274,7 @@ export default function TryPage() {
                 <button
                   key={o.value}
                   type="button"
+                  aria-pressed={energy === o.value}
                   onClick={() => setEnergy(o.value)}
                   className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 ${
                     energy === o.value
@@ -297,6 +299,7 @@ export default function TryPage() {
                 <button
                   key={o.value}
                   type="button"
+                  aria-pressed={context === o.value}
                   onClick={() => setContext(o.value)}
                   className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left shadow-clay-sm transition-all hover:-translate-y-0.5 ${
                     context === o.value
