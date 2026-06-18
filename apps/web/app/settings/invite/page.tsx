@@ -111,11 +111,27 @@ export default function InvitePage() {
     }
   }
 
-  const handleCopyCode = () => {
-    if (generatedInvite) {
-      navigator.clipboard.writeText(generatedInvite.code)
+  // 非安全上下文（非 HTTPS / 舊 Webview）下 navigator.clipboard 可能為 undefined，需防禦
+  const copyText = async (text: string): Promise<boolean> => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text)
+        return true
+      } catch {
+        return false
+      }
+    }
+    return false
+  }
+
+  const handleCopyCode = async () => {
+    if (!generatedInvite) return
+    const ok = await copyText(generatedInvite.code)
+    if (ok) {
       setCopySuccess(true)
       setTimeout(() => setCopySuccess(false), 2000)
+    } else {
+      setError(`瀏覽器不支援自動複製，請手動複製邀請碼：${generatedInvite.code}`)
     }
   }
 
@@ -135,9 +151,13 @@ export default function InvitePage() {
         // 使用者取消分享，忽略
       }
     } else {
-      navigator.clipboard.writeText(generatedInvite.inviteLink)
-      setCopySuccess(true)
-      setTimeout(() => setCopySuccess(false), 2000)
+      const ok = await copyText(generatedInvite.inviteLink)
+      if (ok) {
+        setCopySuccess(true)
+        setTimeout(() => setCopySuccess(false), 2000)
+      } else {
+        setError(`瀏覽器不支援自動複製，請手動複製連結：${generatedInvite.inviteLink}`)
+      }
     }
   }
 

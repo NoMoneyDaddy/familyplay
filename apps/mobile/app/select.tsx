@@ -115,14 +115,15 @@ export default function SelectScreen() {
             <Text className="text-center text-base" style={{ color: colors.muted }}>
               還沒有孩子檔案
             </Text>
+            {/* overflow-hidden 會在 iOS 把 clayCard 陰影裁掉，改把圓角放到內層 LinearGradient */}
             <Pressable
               onPress={() => router.push('/onboarding/child-info')}
-              className="mt-5 overflow-hidden rounded-2xl active:opacity-90"
+              className="mt-5 active:opacity-90"
               style={clayCard}
             >
               <LinearGradient
                 colors={brandGradient}
-                style={{ paddingHorizontal: 28, paddingVertical: 14 }}
+                style={{ paddingHorizontal: 28, paddingVertical: 14, borderRadius: 16 }}
               >
                 <Text className="font-semibold text-white">新增第一個孩子</Text>
               </LinearGradient>
