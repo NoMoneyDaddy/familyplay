@@ -37,7 +37,7 @@ export default function SelectPage() {
     }
   }, [hasHydrated, selectedChildId, router])
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!selectedChildId) return
 
@@ -54,33 +54,10 @@ export default function SelectPage() {
 
     setError(null)
     setLoading(true)
-
-    try {
-      const res = await fetch('/api/recommendations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          childId: selectedChildId,
-          parentEnergy,
-          context,
-          availableSpace: 'anywhere',
-          availableResources: [],
-          maxDurationMinutes: 20,
-        }),
-      })
-
-      if (res.ok) {
-        router.push(
-          `/recommendations?childId=${selectedChildId}&parentEnergy=${parentEnergy}&context=${context}`,
-        )
-      } else {
-        setError('獲取方案失敗，請重試')
-      }
-    } catch {
-      setError('發生錯誤，請重試')
-    } finally {
-      setLoading(false)
-    }
+    // 直接帶參數進 /recommendations，由它做唯一一次推薦請求（含波波載入動畫與錯誤復原）。
+    // 不在這裡先打一次 API——否則同一次點擊會讓 7 步推薦引擎跑兩遍、吃掉雙倍 rate limit。
+    const params = new URLSearchParams({ childId: selectedChildId, parentEnergy, context })
+    router.push(`/recommendations?${params.toString()}`)
   }
 
   return (
