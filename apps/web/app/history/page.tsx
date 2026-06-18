@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { Mascot } from '@/app/components/mascot'
 import {
   Button,
   Card,
@@ -165,6 +166,17 @@ export default function HistoryPage() {
     }
   }
 
+  // 溫和累積感（非 streak，斷一天不該有罪惡感）：近 7 個日曆天有陪伴的「不同天數」。
+  // 用今天 00:00 往前推 6 天（而非滾動 168 小時），否則同一筆紀錄會在一天之內過了時刻就消失。
+  const weekStart = new Date()
+  weekStart.setHours(0, 0, 0, 0)
+  weekStart.setDate(weekStart.getDate() - 6)
+  const weekDays = new Set(
+    logs
+      .filter((l) => new Date(l.createdAt).getTime() >= weekStart.getTime())
+      .map((l) => new Date(l.createdAt).toLocaleDateString('zh-TW')),
+  ).size
+
   return (
     <PageShell>
       {/* ChildSwitcher 一律掛載：它負責抓孩子清單並設定當前孩子 */}
@@ -201,112 +213,132 @@ export default function HistoryPage() {
           完成一個活動並記錄孩子的反應後，就會出現在這裡，陪你看見每天的累積。
         </EmptyState>
       ) : (
-        <ul className="space-y-3">
-          {logs.map((log) => {
-            const badge = OUTCOME_BADGE[log.outcome] ?? OUTCOME_BADGE.default
-            const isEditing = editingId === log.id
-            return (
-              <Card key={log.id} as="li" className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <p className="font-semibold text-text">{log.activityTitle}</p>
-                    <p className="text-xs text-muted">
-                      {new Date(log.createdAt).toLocaleDateString('zh-TW')}
-                    </p>
+        <div className="space-y-3">
+          {/* 波波陪伴：把累積說成鼓勵，不是進度條 */}
+          <Card className="flex items-center gap-3 bg-brand-tint/50">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-card shadow-clay-sm">
+              <Mascot className="h-9 w-9" />
+            </span>
+            <p className="text-sm leading-relaxed text-text">
+              這週你陪了寶寶 <strong className="text-brand-strong">{weekDays}</strong> 天，
+              <span className="text-muted">每一次都算數 ☁️</span>
+            </p>
+          </Card>
+          <ul className="space-y-3">
+            {logs.map((log) => {
+              const badge = OUTCOME_BADGE[log.outcome] ?? OUTCOME_BADGE.default
+              const isEditing = editingId === log.id
+              return (
+                <Card key={log.id} as="li" className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="font-semibold text-text">{log.activityTitle}</p>
+                      <p className="text-xs text-muted">
+                        {new Date(log.createdAt).toLocaleDateString('zh-TW')}
+                      </p>
+                    </div>
+                    <span
+                      className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full ${badge.wrap}`}
+                    >
+                      <Icon name={badge.icon} className="h-[18px] w-[18px]" />
+                    </span>
                   </div>
-                  <span
-                    className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full ${badge.wrap}`}
-                  >
-                    <Icon name={badge.icon} className="h-[18px] w-[18px]" />
-                  </span>
-                </div>
 
-                {isEditing ? (
-                  <div className="mt-3 space-y-3 border-t border-border pt-3">
-                    <Field label="結果" htmlFor={`outcome-${log.id}`}>
-                      <Select
-                        id={`outcome-${log.id}`}
-                        value={draft.outcome}
-                        onChange={(e) => setDraft((d) => ({ ...d, outcome: e.target.value }))}
-                      >
-                        {OUTCOME_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </Field>
-                    <Field label="孩子的反應" htmlFor={`reaction-${log.id}`}>
-                      <Select
-                        id={`reaction-${log.id}`}
-                        value={draft.childReaction}
-                        onChange={(e) => setDraft((d) => ({ ...d, childReaction: e.target.value }))}
-                      >
-                        {REACTION_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </Field>
-                    <Field label="時長（分鐘，可留空）" htmlFor={`mins-${log.id}`}>
-                      <TextInput
-                        id={`mins-${log.id}`}
-                        type="number"
-                        inputMode="numeric"
-                        min={1}
-                        placeholder="例如 15"
-                        value={draft.durationMins}
-                        onChange={(e) => setDraft((d) => ({ ...d, durationMins: e.target.value }))}
-                      />
-                    </Field>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        size="md"
-                        icon="check"
-                        loading={saving}
-                        onClick={() => saveEdit(log.id)}
-                      >
-                        儲存
-                      </Button>
-                      <Button size="md" variant="ghost" icon="x" onClick={cancelEdit}>
-                        取消
-                      </Button>
-                      <Button
-                        size="md"
-                        variant="danger"
-                        icon="trash"
-                        loading={busyDeleteId === log.id}
-                        onClick={() => deleteLog(log.id)}
-                      >
-                        刪除
-                      </Button>
+                  {isEditing ? (
+                    <div className="mt-3 space-y-3 border-t border-border pt-3">
+                      <Field label="結果" htmlFor={`outcome-${log.id}`}>
+                        <Select
+                          id={`outcome-${log.id}`}
+                          value={draft.outcome}
+                          onChange={(e) => setDraft((d) => ({ ...d, outcome: e.target.value }))}
+                        >
+                          {OUTCOME_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+                      <Field label="孩子的反應" htmlFor={`reaction-${log.id}`}>
+                        <Select
+                          id={`reaction-${log.id}`}
+                          value={draft.childReaction}
+                          onChange={(e) =>
+                            setDraft((d) => ({ ...d, childReaction: e.target.value }))
+                          }
+                        >
+                          {REACTION_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+                      <Field label="時長（分鐘，可留空）" htmlFor={`mins-${log.id}`}>
+                        <TextInput
+                          id={`mins-${log.id}`}
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          placeholder="例如 15"
+                          value={draft.durationMins}
+                          onChange={(e) =>
+                            setDraft((d) => ({ ...d, durationMins: e.target.value }))
+                          }
+                        />
+                      </Field>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="md"
+                          icon="check"
+                          loading={saving}
+                          onClick={() => saveEdit(log.id)}
+                        >
+                          儲存
+                        </Button>
+                        <Button size="md" variant="ghost" icon="x" onClick={cancelEdit}>
+                          取消
+                        </Button>
+                        <Button
+                          size="md"
+                          variant="danger"
+                          icon="trash"
+                          loading={busyDeleteId === log.id}
+                          onClick={() => deleteLog(log.id)}
+                        >
+                          刪除
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="mt-2 flex items-center justify-between gap-2">
-                    <div className="flex flex-wrap gap-2 text-xs text-muted">
-                      <span>結果: {OUTCOME_LABEL[log.outcome] ?? log.outcome}</span>
-                      <span>• 反應: {REACTION_LABEL[log.childReaction] ?? log.childReaction}</span>
-                      {log.durationSecs && <span>• {Math.round(log.durationSecs / 60)} 分鐘</span>}
+                  ) : (
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-2 text-xs text-muted">
+                        <span>結果: {OUTCOME_LABEL[log.outcome] ?? log.outcome}</span>
+                        <span>
+                          • 反應: {REACTION_LABEL[log.childReaction] ?? log.childReaction}
+                        </span>
+                        {log.durationSecs && (
+                          <span>• {Math.round(log.durationSecs / 60)} 分鐘</span>
+                        )}
+                      </div>
+                      {log.editable && (
+                        <button
+                          type="button"
+                          onClick={() => startEdit(log)}
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand-tint"
+                          aria-label="編輯這筆紀錄"
+                        >
+                          <Icon name="edit" className="h-[15px] w-[15px]" />
+                          編輯
+                        </button>
+                      )}
                     </div>
-                    {log.editable && (
-                      <button
-                        type="button"
-                        onClick={() => startEdit(log)}
-                        className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand-tint"
-                        aria-label="編輯這筆紀錄"
-                      >
-                        <Icon name="edit" className="h-[15px] w-[15px]" />
-                        編輯
-                      </button>
-                    )}
-                  </div>
-                )}
-              </Card>
-            )
-          })}
-        </ul>
+                  )}
+                </Card>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </PageShell>
   )
