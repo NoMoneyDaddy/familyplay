@@ -53,7 +53,9 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   }, [id])
 
   const handleComplete = async () => {
-    const durationSecs = Math.round((Date.now() - startTime) / 1000)
+    // 後端要求 durationSecs 為正整數；秒數可能 < 0.5（快速點擊）四捨五入成 0 而被 400 擋下，
+    // 故下限鎖 1 秒。
+    const durationSecs = Math.max(1, Math.round((Date.now() - startTime) / 1000))
     const childId = new URLSearchParams(window.location.search).get('childId')
 
     // 沒有 childId 就送出只會 400 → 先擋下並提示，避免「以為記錄成功」卻什麼都沒存
@@ -80,12 +82,18 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
       // fetch 對 4xx/5xx 不會 throw；必須檢查 res.ok，否則失敗也會被當成成功跳轉
       if (!res.ok) {
-        setError('記錄沒有成功，請稍後再試一次。')
+        // session 過期最常見也最可行動 → 給明確提示；其餘維持通用訊息（不直接顯示後端英文）
+        setError(
+          res.status === 401
+            ? '登入已過期，請重新登入後再記錄。'
+            : '記錄沒有成功，請稍後再試一次。',
+        )
         return
       }
 
       router.push('/select')
-    } catch {
+    } catch (err) {
+      console.error('Failed to log activity:', err)
       setError('記錄失敗，請檢查網路後再試一次。')
     } finally {
       setLoading(false)
