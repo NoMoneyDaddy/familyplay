@@ -11,8 +11,10 @@
 -- 注意：本檔只新增。需手動套用：複製 SQL 到 Supabase Dashboard → SQL Editor 執行。
 
 -- 建立者可編輯／刪除自己的交接（與 companion_logs 的 log_owner_* 一致）
+-- WITH CHECK 鎖住 created_by，避免 UPDATE 把擁有權改到別人名下（防 created_by 被竄改）
 CREATE POLICY "handoff_owner_update" ON handoff_summaries FOR UPDATE
-  USING (created_by = auth_profile_id());
+  USING (created_by = auth_profile_id())
+  WITH CHECK (created_by = auth_profile_id());
 CREATE POLICY "handoff_owner_delete" ON handoff_summaries FOR DELETE
   USING (created_by = auth_profile_id());
 
