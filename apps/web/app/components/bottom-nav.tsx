@@ -14,6 +14,7 @@ const HIDDEN_PREFIXES = [
   '/privacy',
   '/terms',
   '/disclaimer',
+  '/admin',
 ]
 
 interface Tab {
