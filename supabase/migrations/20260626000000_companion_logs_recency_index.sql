@@ -13,3 +13,7 @@
 
 CREATE INDEX IF NOT EXISTS idx_companion_logs_child_created
   ON companion_logs(child_id, created_at DESC);
+
+-- 新複合索引的最左前綴（child_id）已能服務原本只查 child_id 的情境，
+-- 舊單欄索引 idx_companion_logs_child 變冗餘 → 移除，省寫入維護開銷與磁碟。
+DROP INDEX IF EXISTS idx_companion_logs_child;

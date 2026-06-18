@@ -133,7 +133,9 @@ export const companionLogs = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (t) => [
-    index('idx_companion_logs_child').on(t.childId),
+    // 複合索引服務「child_id 等值 + created_at 範圍」（推薦引擎近 7 天降權的熱路徑）。
+    // 其最左前綴 child_id 已涵蓋原單欄索引，故不再單獨建 idx_companion_logs_child。
+    index('idx_companion_logs_child_created').on(t.childId, t.createdAt.desc()),
     index('idx_companion_logs_started').on(t.startedAt),
   ],
 )
