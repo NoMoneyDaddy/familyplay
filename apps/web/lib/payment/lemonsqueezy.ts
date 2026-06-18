@@ -69,15 +69,25 @@ export async function createLemonSqueezyCheckout(
     },
   }
 
-  const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/vnd.api+json',
-      Accept: 'application/vnd.api+json',
-    },
-    body: JSON.stringify(payload),
-  })
+  // 外部 API 無逾時會把整個請求掛住、佔住 serverless 連線。設 10 秒上限，逾時轉成清楚錯誤。
+  let response: Response
+  try {
+    response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/vnd.api+json',
+        Accept: 'application/vnd.api+json',
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
+    })
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'TimeoutError') {
+      throw new Error('LemonSqueezy API timeout')
+    }
+    throw e
+  }
 
   if (!response.ok) {
     const error = await response.json()
