@@ -229,97 +229,103 @@ export default function TryPage() {
 
   // ── 輸入畫面 ──
   return (
-    <PageShell withNav={false}>
-      <div className="flex flex-col items-center gap-3 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
-          <Mascot className="h-11 w-11" />
-        </span>
-        <PageHeader
-          title="免費試試看"
-          subtitle="不用註冊，30 秒拿到今天的陪伴方案"
-          align="center"
-        />
-      </div>
+    <>
+      {/* pb-40：預留底部固定 CTA 列的高度，避免內容被遮住 */}
+      <PageShell withNav={false} className="pb-40">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
+            <Mascot className="h-11 w-11" />
+          </span>
+          <PageHeader
+            title="免費試試看"
+            subtitle="不用註冊，30 秒拿到今天的陪伴方案"
+            align="center"
+          />
+        </div>
 
-      <div className="space-y-6">
-        {/* 年齡 */}
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-text">孩子幾歲？</legend>
-          <div className="grid grid-cols-3 gap-2">
-            {AGE_BANDS.map((band) => (
-              <button
-                key={band.months}
-                type="button"
-                onClick={() => selectAge(band.months)}
-                className={`rounded-xl border px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
-                  ageMonths === band.months
-                    ? 'border-brand bg-brand-tint text-brand-strong shadow-clay'
-                    : 'border-border/60 bg-card text-text'
-                }`}
-              >
-                {band.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        {/* 精力 */}
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-text">你現在的精力？</legend>
-          <div className="grid grid-cols-2 gap-3">
-            {ENERGY_OPTIONS.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => setEnergy(o.value)}
-                className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 ${
-                  energy === o.value
-                    ? 'border-brand bg-brand-tint shadow-clay'
-                    : 'border-border/60 bg-card'
-                }`}
-              >
-                <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
-                  <Icon name={o.icon} className="h-[24px] w-[24px]" />
-                </span>
-                <span className="text-sm font-medium text-text">{o.label}</span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        {/* 情境 */}
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-text">現在的情境？</legend>
-          <div className="grid gap-2.5">
-            {CONTEXT_OPTIONS.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => setContext(o.value)}
-                className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left shadow-clay-sm transition-all hover:-translate-y-0.5 ${
-                  context === o.value
-                    ? 'border-brand bg-brand-tint shadow-clay'
-                    : 'border-border/60 bg-card'
-                }`}
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
-                  <Icon name={o.icon} className="h-[22px] w-[22px]" />
-                </span>
-                <span className="flex-1 text-sm font-medium text-text">{o.label}</span>
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border-2 text-transparent ${
-                    context === o.value ? 'border-brand bg-brand text-white' : 'border-border'
+        <div className="space-y-6">
+          {/* 年齡 */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-text">孩子幾歲？</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {AGE_BANDS.map((band) => (
+                <button
+                  key={band.months}
+                  type="button"
+                  onClick={() => selectAge(band.months)}
+                  className={`rounded-xl border px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                    ageMonths === band.months
+                      ? 'border-brand bg-brand-tint text-brand-strong shadow-clay'
+                      : 'border-border/60 bg-card text-text'
                   }`}
                 >
-                  <Icon name="check" className="h-[12px] w-[12px]" />
-                </span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
+                  {band.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
+          {/* 精力 */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-text">你現在的精力？</legend>
+            <div className="grid grid-cols-2 gap-3">
+              {ENERGY_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => setEnergy(o.value)}
+                  className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                    energy === o.value
+                      ? 'border-brand bg-brand-tint shadow-clay'
+                      : 'border-border/60 bg-card'
+                  }`}
+                >
+                  <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                    <Icon name={o.icon} className="h-[24px] w-[24px]" />
+                  </span>
+                  <span className="text-sm font-medium text-text">{o.label}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          {/* 情境 */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-text">現在的情境？</legend>
+            <div className="grid gap-2.5">
+              {CONTEXT_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => setContext(o.value)}
+                  className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                    context === o.value
+                      ? 'border-brand bg-brand-tint shadow-clay'
+                      : 'border-border/60 bg-card'
+                  }`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                    <Icon name={o.icon} className="h-[22px] w-[22px]" />
+                  </span>
+                  <span className="flex-1 text-sm font-medium text-text">{o.label}</span>
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full border-2 text-transparent ${
+                      context === o.value ? 'border-brand bg-brand text-white' : 'border-border'
+                    }`}
+                  >
+                    <Icon name="check" className="h-[12px] w-[12px]" />
+                  </span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      </PageShell>
+
+      {/* 單手友善：主行動固定在底部拇指弧內。放在 PageShell 外（與 BottomNav 同層），
+          避開 PageShell overflow-hidden 對 fixed 的影響。/try 無底部導覽故不衝突。 */}
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] space-y-2 border-t border-border/60 bg-card/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md">
         <ErrorAlert message={error} />
-
         <Button
           size="lg"
           icon="compass"
@@ -329,7 +335,6 @@ export default function TryPage() {
         >
           看看推薦
         </Button>
-
         <p className="text-center text-xs text-muted">
           已經有帳號？{' '}
           <Link href="/auth" className="font-medium text-brand hover:underline">
@@ -337,6 +342,6 @@ export default function TryPage() {
           </Link>
         </p>
       </div>
-    </PageShell>
+    </>
   )
 }
