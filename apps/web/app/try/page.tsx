@@ -74,13 +74,17 @@ export default function TryPage() {
   // 精力是當下狀態、刻意不記憶。在 effect 內讀 localStorage 以避開 SSR 不一致。
   useEffect(() => {
     // localStorage 在隱私模式/停用儲存/沙盒 iframe 可能 throw；包 try-catch 免掛載崩潰。
+    // 用 prev ?? 預設，避免效果在首繪後蓋掉使用者已搶先點選的值。
+    const defaultContext = timeDefaultContext()
+    setContext((prev) => prev ?? defaultContext)
     try {
       const saved = Number(localStorage.getItem(AGE_STORAGE_KEY))
-      if (AGE_BANDS.some((b) => b.months === saved)) setAgeMonths(saved)
+      if (AGE_BANDS.some((b) => b.months === saved)) {
+        setAgeMonths((prev) => prev ?? saved)
+      }
     } catch {
       // 讀取失敗就不預填，不影響使用
     }
-    setContext(timeDefaultContext())
   }, [])
 
   const selectAge = (months: number) => {
