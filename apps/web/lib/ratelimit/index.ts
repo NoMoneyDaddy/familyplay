@@ -63,10 +63,20 @@ function getLimiter(limit: number): Ratelimit | null {
  *
  * @param identifier Stable key for the caller (e.g. user.id).
  * @param limit Maximum requests allowed per minute (default 30).
- * @returns A result describing whether the request is allowed. When Upstash is
- *          not configured, always returns `success: true`.
+ * @param failOpen When the limiter IS configured but Redis errors, whether to
+ *        allow the request (default true). For authenticated endpoints, failing
+ *        open avoids blocking real users on a transient Redis outage. For
+ *        unauthenticated, abuse-prone endpoints (e.g. the public /try), pass
+ *        `false` so a Redis outage doesn't silently disable abuse protection.
+ *        Note: when Upstash is NOT configured at all (local/CI), the request is
+ *        always allowed regardless of this flag.
+ * @returns A result describing whether the request is allowed.
  */
-export async function checkRateLimit(identifier: string, limit = 30): Promise<RateLimitResult> {
+export async function checkRateLimit(
+  identifier: string,
+  limit = 30,
+  failOpen = true,
+): Promise<RateLimitResult> {
   const limiter = getLimiter(limit)
 
   // Not configured → allow (don't break local/CI).
@@ -83,8 +93,10 @@ export async function checkRateLimit(identifier: string, limit = 30): Promise<Ra
       reset: result.reset,
     }
   } catch (error) {
-    // If Redis is unreachable, fail open rather than blocking real users.
-    console.error('Rate limit check failed; allowing request', error)
-    return { success: true, limit, remaining: limit, reset: Date.now() }
+    // Redis unreachable. Configured callers choose the posture:
+    //   failOpen=true  → allow (don't block real users on a blip)
+    //   failOpen=false → deny (keep abuse protection on for public endpoints)
+    console.error(`Rate limit check failed; ${failOpen ? 'allowing' : 'blocking'} request`, error)
+    return { success: failOpen, limit, remaining: failOpen ? limit : 0, reset: Date.now() }
   }
 }

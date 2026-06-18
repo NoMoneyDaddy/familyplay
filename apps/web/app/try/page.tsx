@@ -105,6 +105,9 @@ export default function TryPage() {
     }
     setError(null)
     setLoading(true)
+    // 逾時保護：網路卡住時 15 秒中止，避免按鈕永遠轉圈、使用者只能重整。
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
     try {
       const res = await fetch('/api/try', {
         method: 'POST',
@@ -116,6 +119,7 @@ export default function TryPage() {
           availableSpace: 'anywhere',
           maxDurationMinutes: 20,
         }),
+        signal: controller.signal,
       })
       const data = await res.json()
       if (res.ok) {
@@ -123,9 +127,14 @@ export default function TryPage() {
       } else {
         setError(data.error || '取得推薦失敗，請再試一次')
       }
-    } catch {
-      setError('發生錯誤，請再試一次')
+    } catch (e) {
+      setError(
+        e instanceof DOMException && e.name === 'AbortError'
+          ? '連線逾時，請檢查網路後再試一次'
+          : '發生錯誤，請再試一次',
+      )
     } finally {
+      clearTimeout(timeout)
       setLoading(false)
     }
   }
