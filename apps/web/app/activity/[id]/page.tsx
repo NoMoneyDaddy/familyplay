@@ -1,7 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useRef, useState } from 'react'
+import { Mascot } from '@/app/components/mascot'
 import { Button, Card, ErrorAlert, Icon, type IconName, PageShell } from '@/app/components/ui'
 
 interface Activity {
@@ -43,6 +44,20 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   const [startTime] = useState(Date.now())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 預設只給「記一下」一鍵存（反應＝開心、完成度＝完成）；想細記再展開，降低疲憊家長的負擔。
+  const [showDetails, setShowDetails] = useState(false)
+  // 記錄成功後的小慶祝（最有成就感的時刻），停留約 1.8 秒再回首頁。
+  const [celebrating, setCelebrating] = useState(false)
+  const [savedMins, setSavedMins] = useState(0)
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 卸載時清掉未觸發的慶祝→導頁計時器，避免回上頁後被非預期導向 /select
+  useEffect(
+    () => () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current)
+    },
+    [],
+  )
 
   useEffect(() => {
     fetch(`/api/activities/${id}`)
@@ -88,14 +103,17 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             ? '登入已過期，請重新登入後再記錄。'
             : '記錄沒有成功，請稍後再試一次。',
         )
+        setLoading(false)
         return
       }
 
-      router.push('/select')
+      // 成功 → 小慶祝再回首頁（保持 loading，避免覆蓋層後面還能再按）
+      setSavedMins(Math.round(durationSecs / 60))
+      setCelebrating(true)
+      redirectTimer.current = setTimeout(() => router.push('/select'), 1800)
     } catch (err) {
       console.error('Failed to log activity:', err)
       setError('記錄失敗，請檢查網路後再試一次。')
-    } finally {
       setLoading(false)
     }
   }
@@ -165,62 +183,92 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="font-semibold text-text">活動結果</h2>
+        <h2 className="font-semibold text-text">記一下今天</h2>
 
-        {/* 孩子的反應：單選 radio 群組 */}
-        <fieldset className="space-y-2">
-          <legend className="block text-sm font-semibold text-text">孩子的反應</legend>
-          <div className="grid grid-cols-3 gap-2">
-            {REACTIONS.map((r) => (
-              <label
-                key={r.value}
-                className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-border/60 bg-card px-1 py-3 text-center text-xs font-medium leading-tight text-text shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:text-brand-strong has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
-              >
-                <input
-                  type="radio"
-                  name="reaction"
-                  value={r.value}
-                  checked={childReaction === r.value}
-                  onChange={() => setChildReaction(r.value)}
-                  className="sr-only"
-                />
-                <Icon name={r.icon} className="h-[22px] w-[22px]" />
-                {r.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        {/* 細記反應／完成度：預設收合，想多寫再展開（多數時候一鍵存就好） */}
+        {showDetails ? (
+          <>
+            {/* 孩子的反應：單選 radio 群組 */}
+            <fieldset className="space-y-2">
+              <legend className="block text-sm font-semibold text-text">孩子的反應</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {REACTIONS.map((r) => (
+                  <label
+                    key={r.value}
+                    className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-border/60 bg-card px-1 py-3 text-center text-xs font-medium leading-tight text-text shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:text-brand-strong has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
+                  >
+                    <input
+                      type="radio"
+                      name="reaction"
+                      value={r.value}
+                      checked={childReaction === r.value}
+                      onChange={() => setChildReaction(r.value)}
+                      className="sr-only"
+                    />
+                    <Icon name={r.icon} className="h-[22px] w-[22px]" />
+                    {r.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
 
-        {/* 活動完成度：單選 radio 群組 */}
-        <fieldset className="space-y-2">
-          <legend className="block text-sm font-semibold text-text">活動完成度</legend>
-          <div className="grid grid-cols-3 gap-2">
-            {OUTCOMES.map((o) => (
-              <label
-                key={o.value}
-                className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-border/60 bg-card px-1 py-3 text-center text-xs font-medium leading-tight text-text shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:text-brand-strong has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
-              >
-                <input
-                  type="radio"
-                  name="outcome"
-                  value={o.value}
-                  checked={outcome === o.value}
-                  onChange={() => setOutcome(o.value)}
-                  className="sr-only"
-                />
-                <Icon name={o.icon} className="h-[18px] w-[18px]" />
-                {o.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+            {/* 活動完成度：單選 radio 群組 */}
+            <fieldset className="space-y-2">
+              <legend className="block text-sm font-semibold text-text">活動完成度</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {OUTCOMES.map((o) => (
+                  <label
+                    key={o.value}
+                    className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-border/60 bg-card px-1 py-3 text-center text-xs font-medium leading-tight text-text shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:text-brand-strong has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
+                  >
+                    <input
+                      type="radio"
+                      name="outcome"
+                      value={o.value}
+                      checked={outcome === o.value}
+                      onChange={() => setOutcome(o.value)}
+                      className="sr-only"
+                    />
+                    <Icon name={o.icon} className="h-[18px] w-[18px]" />
+                    {o.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowDetails(true)}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/70 py-2.5 text-sm font-medium text-muted transition-colors hover:text-brand"
+          >
+            <Icon name="edit" className="h-[16px] w-[16px]" />
+            想記下孩子的反應？
+          </button>
+        )}
 
         <ErrorAlert message={error} />
 
         <Button type="button" onClick={handleComplete} loading={loading} size="lg" icon="check">
-          {loading ? '記錄中...' : '完成並記錄'}
+          {loading ? '記錄中...' : '記一下 ✓'}
         </Button>
+        {!showDetails && (
+          <p className="text-center text-xs text-faint">會記為「完成 · 開心」，想改可展開上面</p>
+        )}
       </Card>
+
+      {/* 記錄成功的小慶祝：波波鼓掌 + 鼓勵語，停留約 1.8 秒 */}
+      {celebrating && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-bg/95 px-8 text-center backdrop-blur-sm">
+          <span className="flex h-24 w-24 items-center justify-center rounded-[30px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint motion-safe:animate-bounce">
+            <Mascot className="h-16 w-16" />
+          </span>
+          <p className="font-display text-xl font-bold text-text">記下來了！</p>
+          <p className="text-muted">
+            {savedMins >= 1 ? `今天也陪了寶寶 ${savedMins} 分鐘，` : ''}你做得很好 ☁️
+          </p>
+        </div>
+      )}
     </PageShell>
   )
 }
