@@ -123,7 +123,10 @@ export default function SelectPage() {
                   name="context"
                   value={option.value}
                   checked={context === option.value}
-                  onChange={() => setContext(option.value)}
+                  onChange={() => {
+                    setContext(option.value)
+                    setAutoPicked(false) // 手動選後隱藏「已依時段預選」提示
+                  }}
                   className="peer sr-only"
                 />
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-tint text-brand peer-checked:bg-card">
