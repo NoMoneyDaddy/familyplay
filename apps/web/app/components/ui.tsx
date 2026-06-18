@@ -11,6 +11,7 @@
 
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { Mascot } from './mascot'
 
 /* ────────────────────────── 圖示集 ────────────────────────── */
 
@@ -159,6 +160,72 @@ const ICON_PATHS: Record<string, ReactNode> = {
       <path d="M15.5 8.5l-2 5-5 2 2-5z" />
     </>
   ),
+  moon: <path d="M21 12.8A8.5 8.5 0 1111.2 3a6.6 6.6 0 109.8 9.8z" />,
+  cloudBolt: (
+    <>
+      <path d="M7 16.5a4 4 0 01.5-8 5.5 5.5 0 0110.5 1.6A3.4 3.4 0 0117 16.5" />
+      <path d="M12 12.5l-2 3.5h3l-2 3.5" />
+    </>
+  ),
+  thermometer: (
+    <>
+      <path d="M14 14.8V5a2 2 0 10-4 0v9.8a4 4 0 104 0z" />
+      <path d="M12 9.5v5" />
+    </>
+  ),
+  batteryEmpty: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+    </>
+  ),
+  batteryLow: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+      <rect x="5" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  batteryMid: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+      <rect x="5" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+      <rect x="9.2" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  batteryFull: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+      <rect x="5" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+      <rect x="9.2" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+      <rect x="13.4" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  faceHappy: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.3 14a4.2 4.2 0 007.4 0" />
+      <path d="M9 9.5h.01M15 9.5h.01" />
+    </>
+  ),
+  faceNeutral: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 14.5h7" />
+      <path d="M9 9.5h.01M15 9.5h.01" />
+    </>
+  ),
+  faceSad: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.3 15.5a4.2 4.2 0 017.4 0" />
+      <path d="M9 9.5h.01M15 9.5h.01" />
+    </>
+  ),
+  heart: <path d="M12 20s-7-4.4-7-9.3A3.8 3.8 0 0112 8a3.8 3.8 0 017 2.7c0 4.9-7 9.3-7 9.3z" />,
+  x: <path d="M6 6l12 12M18 6L6 18" />,
 }
 
 export type IconName = keyof typeof ICON_PATHS
@@ -203,8 +270,31 @@ export function PageShell({
   withNav?: boolean
 }) {
   return (
-    <main className={`min-h-dvh px-5 pt-7 ${withNav ? 'pb-28' : 'pb-10'} ${className}`}>
-      <div className="mx-auto w-full max-w-[480px] space-y-6">{children}</div>
+    <main
+      className={`relative min-h-dvh overflow-hidden px-5 pt-7 ${withNav ? 'pb-28' : 'pb-10'} ${className}`}
+    >
+      {/* 黏土調性氛圍：兩顆柔和暖色飄移球，給頁面一點溫度與深度（不可互動、可降動態） */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        <div
+          className="clay-blob -left-16 -top-10 h-56 w-56 opacity-40"
+          style={{
+            background:
+              'radial-gradient(circle, color-mix(in oklab, var(--color-brand) 38%, transparent), transparent 70%)',
+          }}
+        />
+        <div
+          className="clay-blob -right-20 top-40 h-52 w-52 opacity-30"
+          style={{
+            background:
+              'radial-gradient(circle, color-mix(in oklab, var(--color-warning) 30%, transparent), transparent 70%)',
+            animationDelay: '-7s',
+          }}
+        />
+      </div>
+      <div className="relative z-10 mx-auto w-full max-w-[480px] space-y-6">{children}</div>
     </main>
   )
 }
@@ -259,6 +349,30 @@ export function PageHeader({
   )
 }
 
+/** 空狀態：吉祥物小熊 + 標題 + 說明 + 行動。讓「還沒有資料」也溫暖不冷清。 */
+export function EmptyState({
+  title,
+  children,
+  action,
+}: {
+  title: ReactNode
+  children?: ReactNode
+  action?: ReactNode
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-xl border border-border/60 bg-card p-8 text-center shadow-clay">
+      <span className="flex h-20 w-20 items-center justify-center rounded-[26px] bg-brand-tint">
+        <Mascot className="h-14 w-14" />
+      </span>
+      <div className="space-y-1">
+        <p className="font-semibold text-text">{title}</p>
+        {children && <p className="text-sm leading-relaxed text-muted">{children}</p>}
+      </div>
+      {action}
+    </div>
+  )
+}
+
 /* ────────────────────────── 容器 ────────────────────────── */
 
 export function Card({
@@ -271,7 +385,7 @@ export function Card({
   as?: 'div' | 'section' | 'form' | 'li'
 }) {
   return (
-    <Tag className={`rounded-lg border border-border bg-card p-6 shadow-sm ${className}`}>
+    <Tag className={`rounded-xl border border-border/60 bg-card p-6 shadow-clay ${className}`}>
       {children}
     </Tag>
   )
@@ -282,14 +396,33 @@ export function Card({
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type ButtonSize = 'md' | 'lg'
 
+// 黏土鈕扣：較大圓角 + 按壓回彈（squish 到 0.96），手感像可愛的軟糖按鈕。
 const BTN_BASE =
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 
+// 底色／陰影等靜態樣式（不含互動回饋）。
 const BTN_VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-white shadow-brand hover:bg-brand-strong',
-  secondary: 'bg-card text-text ring-1 ring-border hover:bg-bg',
-  ghost: 'bg-transparent text-brand hover:bg-brand-tint',
-  danger: 'bg-danger-tint text-danger hover:brightness-95',
+  primary: 'bg-[image:var(--gradient-brand)] text-white shadow-brand',
+  secondary: 'bg-card text-text shadow-clay-sm ring-1 ring-border/70',
+  ghost: 'bg-transparent text-brand',
+  danger: 'bg-danger-tint text-danger',
+}
+
+// 互動回饋（hover/active squish）分兩套：
+//  • <button>（Button）用 enabled: 前綴——disabled 時不觸發亮度/底色/縮放。
+//  • <a>（LinkButton）永遠可互動，用原樣；:enabled 不適用於 <a>，若也加 enabled:
+//    反而會讓所有連結 CTA 失去 hover，故刻意分開。
+const BTN_FX_BUTTON: Record<ButtonVariant, string> = {
+  primary: 'enabled:hover:brightness-[1.04] enabled:active:scale-[0.96]',
+  secondary: 'enabled:hover:bg-bg enabled:active:scale-[0.96]',
+  ghost: 'enabled:hover:bg-brand-tint enabled:active:scale-[0.96]',
+  danger: 'enabled:hover:brightness-95 enabled:active:scale-[0.96]',
+}
+const BTN_FX_LINK: Record<ButtonVariant, string> = {
+  primary: 'hover:brightness-[1.04] active:scale-[0.96]',
+  secondary: 'hover:bg-bg active:scale-[0.96]',
+  ghost: 'hover:bg-brand-tint active:scale-[0.96]',
+  danger: 'hover:brightness-95 active:scale-[0.96]',
 }
 
 const BTN_SIZE: Record<ButtonSize, string> = {
@@ -324,7 +457,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled || loading}
       aria-busy={loading}
-      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_SIZE[size]} ${className}`}
+      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_FX_BUTTON[variant]} ${BTN_SIZE[size]} ${className}`}
     >
       {loading ? (
         <span className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent opacity-70" />
@@ -355,7 +488,7 @@ export function LinkButton({
   return (
     <Link
       href={href}
-      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_SIZE[size]} ${className}`}
+      className={`${BTN_BASE} ${BTN_VARIANT[variant]} ${BTN_FX_LINK[variant]} ${BTN_SIZE[size]} ${className}`}
     >
       {icon && <Icon name={icon} className="h-[18px] w-[18px]" />}
       {children}
@@ -388,7 +521,7 @@ export function Callout({
 }) {
   const t = CALLOUT_TONE[tone]
   return (
-    <div className={`flex gap-3 rounded-md p-4 text-sm ${t.wrap} ${className}`}>
+    <div className={`flex gap-3 rounded-lg p-4 text-sm ${t.wrap} ${className}`}>
       <Icon name={t.icon} className={`mt-0.5 h-[20px] w-[20px] shrink-0 ${t.iconClass}`} />
       <div className="space-y-1">
         {title && <p className="font-semibold">{title}</p>}
@@ -411,7 +544,7 @@ export function ErrorAlert({
       role="alert"
       className={
         message
-          ? `flex items-center gap-2 rounded-md bg-danger-tint p-3 text-sm text-danger ${className}`
+          ? `flex items-center gap-2 rounded-lg bg-danger-tint p-3 text-sm text-danger ${className}`
           : 'sr-only'
       }
     >
@@ -424,7 +557,7 @@ export function ErrorAlert({
 /* ────────────────────────── 表單 ────────────────────────── */
 
 const FIELD_INPUT =
-  'w-full rounded-md border border-border bg-surface px-4 py-3 text-text placeholder:text-faint transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30'
+  'w-full rounded-lg border border-border bg-surface px-4 py-3 text-text shadow-[inset_0_2px_4px_rgb(74_49_28/0.05)] placeholder:text-faint transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30'
 
 export function Field({
   label,

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
-import { Button, Card, Icon, PageShell } from '@/app/components/ui'
+import { Button, Card, Icon, type IconName, PageShell } from '@/app/components/ui'
 
 interface Activity {
   id: string
@@ -18,19 +18,19 @@ interface Activity {
 type Reaction = 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
 type Outcome = 'completed' | 'tried' | 'abandoned'
 
-const REACTIONS: { value: Reaction; label: string }[] = [
-  { value: 'happy', label: '開心 😊' },
-  { value: 'engaged', label: '投入 ✨' },
-  { value: 'neutral', label: '普通 😐' },
-  { value: 'leaving', label: '想離開 🚶' },
-  { value: 'disinterested', label: '沒興趣 😶' },
-  { value: 'calmed', label: '平靜了 😌' },
+const REACTIONS: { value: Reaction; label: string; icon: IconName }[] = [
+  { value: 'happy', label: '開心', icon: 'faceHappy' },
+  { value: 'engaged', label: '投入', icon: 'sparkle' },
+  { value: 'calmed', label: '平靜了', icon: 'heart' },
+  { value: 'neutral', label: '普通', icon: 'faceNeutral' },
+  { value: 'disinterested', label: '沒興趣', icon: 'faceSad' },
+  { value: 'leaving', label: '想離開', icon: 'logout' },
 ]
 
-const OUTCOMES: { value: Outcome; label: string }[] = [
-  { value: 'completed', label: '完成 ✅' },
-  { value: 'tried', label: '嘗試了 🔸' },
-  { value: 'abandoned', label: '中途放棄 ⏹️' },
+const OUTCOMES: { value: Outcome; label: string; icon: IconName }[] = [
+  { value: 'completed', label: '完成', icon: 'check' },
+  { value: 'tried', label: '嘗試了', icon: 'refresh' },
+  { value: 'abandoned', label: '中途放棄', icon: 'x' },
 ]
 
 export default function ActivityPage({ params }: { params: Promise<{ id: string }> }) {
@@ -146,11 +146,11 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
         {/* 孩子的反應：單選 radio 群組 */}
         <fieldset className="space-y-2">
           <legend className="block text-sm font-semibold text-text">孩子的反應</legend>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {REACTIONS.map((r) => (
               <label
                 key={r.value}
-                className="cursor-pointer rounded-lg border border-border bg-card p-2 text-center text-xs font-medium text-text transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+                className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-border/60 bg-card px-1 py-3 text-center text-xs font-medium leading-tight text-text shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:text-brand-strong has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
               >
                 <input
                   type="radio"
@@ -160,6 +160,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
                   onChange={() => setChildReaction(r.value)}
                   className="sr-only"
                 />
+                <Icon name={r.icon} className="h-[22px] w-[22px]" />
                 {r.label}
               </label>
             ))}
@@ -173,7 +174,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             {OUTCOMES.map((o) => (
               <label
                 key={o.value}
-                className="cursor-pointer rounded-lg border border-border bg-card p-2 text-center text-xs font-medium text-text transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+                className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-border/60 bg-card px-1 py-3 text-center text-xs font-medium leading-tight text-text shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:text-brand-strong has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
               >
                 <input
                   type="radio"
@@ -183,6 +184,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
                   onChange={() => setOutcome(o.value)}
                   className="sr-only"
                 />
+                <Icon name={o.icon} className="h-[18px] w-[18px]" />
                 {o.label}
               </label>
             ))}

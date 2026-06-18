@@ -41,13 +41,33 @@
   --shadow-sm: 0 1px 2px 0 rgb(74 49 28 / 0.05), 0 2px 8px -2px rgb(74 49 28 / 0.06);
   --shadow-md: 0 4px 14px -3px rgb(74 49 28 / 0.09);
   --shadow-lg: 0 12px 28px -6px rgb(74 49 28 / 0.12);
-  --shadow-brand: 0 10px 24px -8px rgb(255 107 53 / 0.45);
 
-  /* ── Radii（刻意分級，不讓所有東西都同一個圓角——那是 AI slop 的特徵之一）── */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-xl: 28px;
+  /* ── Claymorphism elevation（黏土質感：頂部內亮邊 + 底部內陰影做出「充氣鼓起」的
+     立體手感，外加柔和暖色投影。整體調性 = 溫暖、圓潤、可愛但不廉價。）── */
+  --shadow-clay:
+    inset 0 2px 2px rgb(255 255 255 / 0.9),
+    inset 0 -4px 8px rgb(74 49 28 / 0.05), 0 14px 30px -12px rgb(74 49 28 / 0.18),
+    0 4px 10px -6px rgb(74 49 28 / 0.1);
+  --shadow-clay-sm: inset 0 1px 1px rgb(255 255 255 / 0.85), 0 6px 16px -8px rgb(74 49 28 / 0.14);
+  /* 品牌按鈕的黏土投影：頂部高光 + 底部內陰影 = 糖果般鼓起的鈕扣 */
+  --shadow-brand:
+    inset 0 2px 1px rgb(255 255 255 / 0.45), inset 0 -3px 6px rgb(150 50 15 / 0.32),
+    0 10px 22px -8px rgb(255 107 53 / 0.5);
+
+  /* ── Brand gradient（上淺下深，配合黏土投影做出鼓起的橘色鈕扣/標記）── */
+  --gradient-brand: linear-gradient(
+    180deg,
+    #ff8a5c 0%,
+    var(--color-brand) 52%,
+    var(--color-brand-strong) 100%
+  );
+
+  /* ── Radii（刻意分級，不讓所有東西都同一個圓角——那是 AI slop 的特徵之一）。
+     黏土調性偏圓潤，整體略放大。── */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 30px;
 
   /* ── Spacing ── */
   --spacing: 8px;
@@ -100,4 +120,31 @@
 .font-display {
   font-family: var(--font-display);
   font-feature-settings: "ss01";
+}
+
+/* 黏土調性的柔和飄移氛圍球（僅在使用者未要求減少動態時緩慢漂浮） */
+@keyframes clay-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(0, -18px) scale(1.05);
+  }
+}
+
+.clay-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(56px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .clay-blob {
+    animation: clay-drift 14s ease-in-out infinite;
+    /* 提示瀏覽器把高模糊球提升到 GPU 圖層，避免行動裝置反覆重繪 */
+    will-change: transform;
+  }
 }

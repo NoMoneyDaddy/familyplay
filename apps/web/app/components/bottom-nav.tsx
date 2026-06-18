@@ -44,7 +44,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="主導覽"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] border-t border-border bg-card/90 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] border-t border-border/60 bg-card/90 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-10px_rgb(74_49_28/0.16)] backdrop-blur-md"
     >
       <ul className="flex items-stretch justify-around">
         {TABS.map((tab) => {
@@ -59,8 +59,8 @@ export function BottomNav() {
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
-                    active ? 'bg-brand-tint' : 'bg-transparent'
+                  className={`flex h-9 w-9 items-center justify-center rounded-2xl transition ${
+                    active ? 'bg-brand-tint shadow-clay-sm' : 'bg-transparent'
                   }`}
                 >
                   <Icon

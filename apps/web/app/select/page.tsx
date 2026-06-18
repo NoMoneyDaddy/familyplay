@@ -3,21 +3,23 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
-import { Button, ErrorAlert, PageHeader, PageShell } from '@/app/components/ui'
+import { Button, ErrorAlert, Icon, type IconName, PageHeader, PageShell } from '@/app/components/ui'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
-const ENERGY_OPTIONS = [
-  { value: 'exhausted', label: '累到不行', emoji: '😴' },
-  { value: 'low', label: '有點累', emoji: '😑' },
-  { value: 'medium', label: '還好', emoji: '😐' },
-  { value: 'high', label: '精力滿滿', emoji: '⚡' },
+// 家長精力：用電量隱喻（直覺、好懂、適合做成乾淨的線性圖示，取代 emoji）
+const ENERGY_OPTIONS: { value: string; label: string; icon: IconName }[] = [
+  { value: 'exhausted', label: '累到不行', icon: 'batteryEmpty' },
+  { value: 'low', label: '有點累', icon: 'batteryLow' },
+  { value: 'medium', label: '還好', icon: 'batteryMid' },
+  { value: 'high', label: '精力滿滿', icon: 'batteryFull' },
 ]
 
-const CONTEXT_OPTIONS = [
-  { value: 'normal', label: '正常時光', emoji: '☀️' },
-  { value: 'bedtime', label: '睡前時間', emoji: '🌙' },
-  { value: 'emotional_crisis', label: '情緒比較激動', emoji: '😤' },
-  { value: 'sick_day', label: '生病/休息日', emoji: '🤒' },
+// 現在情境：用情境化的線性圖示（太陽／月亮／情緒雲／體溫計）
+const CONTEXT_OPTIONS: { value: string; label: string; icon: IconName }[] = [
+  { value: 'normal', label: '正常時光', icon: 'today' },
+  { value: 'bedtime', label: '睡前時間', icon: 'moon' },
+  { value: 'emotional_crisis', label: '情緒比較激動', icon: 'cloudBolt' },
+  { value: 'sick_day', label: '生病/休息日', icon: 'thermometer' },
 ]
 
 export default function SelectPage() {
@@ -97,13 +99,13 @@ export default function SelectPage() {
             {ENERGY_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-border bg-card p-3 text-center transition-all hover:border-brand has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+                className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-border/60 bg-card p-4 text-center shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
               >
                 <input type="radio" name="parentEnergy" value={option.value} className="sr-only" />
-                <span className="text-2xl" aria-hidden="true">
-                  {option.emoji}
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-tint text-brand">
+                  <Icon name={option.icon} className="h-[26px] w-[26px]" />
                 </span>
-                <span className="text-xs font-medium text-text">{option.label}</span>
+                <span className="text-sm font-medium text-text">{option.label}</span>
               </label>
             ))}
           </div>
@@ -112,20 +114,20 @@ export default function SelectPage() {
         {/* 情境 */}
         <fieldset className="space-y-3">
           <legend className="text-sm font-semibold text-text">現在的情境</legend>
-          <div className="grid gap-2">
+          <div className="grid gap-2.5">
             {CONTEXT_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:border-brand has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
               >
-                <input
-                  type="radio"
-                  name="context"
-                  value={option.value}
-                  className="h-4 w-4 accent-brand focus:outline-none"
-                />
-                <span aria-hidden="true">{option.emoji}</span>
-                <span className="text-sm font-medium text-text">{option.label}</span>
+                <input type="radio" name="context" value={option.value} className="peer sr-only" />
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-tint text-brand peer-checked:bg-card">
+                  <Icon name={option.icon} className="h-[22px] w-[22px]" />
+                </span>
+                <span className="flex-1 text-sm font-medium text-text">{option.label}</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-border text-transparent peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white">
+                  <Icon name="check" className="h-[12px] w-[12px]" />
+                </span>
               </label>
             ))}
           </div>

@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { Mascot } from '@/app/components/mascot'
 import { createClient } from '@/lib/supabase/client'
 
 function GoogleIcon() {
@@ -100,7 +101,7 @@ function AuthPageInner() {
 
   // 統一的按鈕設計系統：相同尺寸/圓角/字重/結構（圖示 + 文字），各方式僅以底色與圖示區分。
   const btnBase =
-    'flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-semibold shadow-sm ring-1 transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-60'
+    'flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-base font-semibold shadow-clay-sm ring-1 transition-all duration-150 enabled:hover:shadow-md enabled:active:scale-[0.96] disabled:opacity-60'
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-10">
@@ -119,12 +120,12 @@ function AuthPageInner() {
       />
 
       <div className="w-full max-w-[400px] space-y-6">
-        {/* 主卡片：給入口頁結構與質感 */}
-        <div className="space-y-7 rounded-[28px] bg-card p-7 shadow-lg ring-1 ring-border/70">
+        {/* 主卡片：黏土質感的入口卡 */}
+        <div className="space-y-7 rounded-[30px] bg-card p-7 shadow-clay ring-1 ring-border/50">
           {/* Hero */}
           <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-brand text-3xl shadow-lg ring-4 ring-brand-tint">
-              <span aria-hidden="true">🧸</span>
+            <div className="mx-auto flex h-[72px] w-[72px] items-center justify-center rounded-[26px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
+              <Mascot className="h-12 w-12" />
             </div>
             <div className="space-y-1.5">
               <h1 className="text-[28px] font-bold leading-tight text-text">FamilyPlay</h1>
@@ -136,7 +137,7 @@ function AuthPageInner() {
           <div
             role="alert"
             className={
-              error ? 'rounded-xl bg-red-50 p-3 text-center text-sm text-red-700' : 'sr-only'
+              error ? 'rounded-lg bg-danger-tint p-3 text-center text-sm text-danger' : 'sr-only'
             }
           >
             {error}

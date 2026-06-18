@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
+import { Mascot } from '@/app/components/mascot'
 import { Card, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
 
 interface Recommendation {
@@ -57,12 +58,15 @@ function RecommendationsPageInner() {
     return (
       <PageShell>
         <div
-          className="flex flex-col items-center gap-3 py-12 text-center"
+          className="flex flex-col items-center gap-4 py-16 text-center"
           role="status"
           aria-live="polite"
         >
-          <span className="h-[24px] w-[24px] animate-spin rounded-full border-2 border-brand border-t-transparent" />
-          <p className="text-muted">正在思考最好的方案...</p>
+          <span className="flex h-20 w-20 animate-bounce items-center justify-center rounded-[26px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
+            <Mascot className="h-14 w-14" />
+          </span>
+          <p className="font-medium text-text">波波正在想最適合的方案…</p>
+          <span className="h-[20px] w-[20px] animate-spin rounded-full border-2 border-brand border-t-transparent" />
         </div>
       </PageShell>
     )
@@ -95,35 +99,67 @@ function RecommendationsPageInner() {
         </Card>
       ) : (
         <ol className="space-y-4">
-          {recommendations.map((rec, idx) => (
-            <Card as="li" key={rec.id}>
-              <div className="mb-4 flex items-start justify-between">
-                <h2 className="flex-1 text-xl font-semibold text-text">
-                  {idx + 1}. {rec.title}
-                </h2>
-                <div className="text-lg font-bold text-brand">
-                  <span className="sr-only">適合度 </span>
-                  {rec.score.toFixed(1)}
+          {recommendations.map((rec, idx) => {
+            const isTop = idx === 0
+            return (
+              <Card
+                as="li"
+                key={rec.id}
+                className={isTop ? 'relative ring-2 ring-brand/60' : 'relative'}
+              >
+                {isTop && (
+                  <span className="absolute -top-2.5 left-5 inline-flex items-center gap-1 rounded-full bg-[image:var(--gradient-brand)] px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-brand">
+                    <Icon name="star" className="h-[12px] w-[12px]" />
+                    最適合
+                  </span>
+                )}
+                <div className="mb-4 flex items-start gap-2.5">
+                  {/* 排名徽章：第 1 名用漸層黏土，其餘用品牌淺底（用精確 px 尺寸，
+                      不受 --spacing 放大影響，避免窄螢幕擠掉標題） */}
+                  <span
+                    className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-xl font-display text-base font-bold ${
+                      isTop
+                        ? 'bg-[image:var(--gradient-brand)] text-white shadow-brand'
+                        : 'bg-brand-tint text-brand'
+                    }`}
+                  >
+                    {idx + 1}
+                  </span>
+                  <h2 className="min-w-0 flex-1 pt-0.5 text-lg font-semibold leading-snug text-text">
+                    {rec.title}
+                  </h2>
+                  <span className="shrink-0 rounded-full bg-brand-tint px-2 py-0.5 text-[11px] font-semibold text-brand-strong">
+                    <span className="sr-only">適合度 </span>
+                    {rec.score.toFixed(1)}
+                  </span>
                 </div>
-              </div>
 
-              {rec.reasons.length > 0 && (
-                <ul className="mb-4 space-y-1 text-xs text-muted">
-                  {rec.reasons.map((reason, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
-                    <li key={i} className="flex items-start gap-1.5">
-                      <Icon name="check" className="mt-0.5 h-[14px] w-[14px] shrink-0 text-brand" />
-                      <span>{reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                {rec.reasons.length > 0 && (
+                  <ul className="mb-4 space-y-1.5 text-xs text-muted">
+                    {rec.reasons.map((reason, i) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
+                      <li key={i} className="flex items-start gap-1.5">
+                        <Icon
+                          name="check"
+                          className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success"
+                        />
+                        <span>{reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
-              <LinkButton href={`/activity/${rec.id}?childId=${childId}`} size="lg" icon="book">
-                開始這個活動
-              </LinkButton>
-            </Card>
-          ))}
+                <LinkButton
+                  href={`/activity/${rec.id}?childId=${childId}`}
+                  variant={isTop ? 'primary' : 'secondary'}
+                  size="lg"
+                  icon="book"
+                >
+                  開始這個活動
+                </LinkButton>
+              </Card>
+            )
+          })}
         </ol>
       )}
 
