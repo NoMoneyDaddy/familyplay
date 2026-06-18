@@ -141,8 +141,11 @@ export function PlanComparison({ currentPlan }: { currentPlan: string | null }) 
     if (cp === plan.id) return { label: '你目前的方案', action: 'none' }
     // 已在另一個付費方案 → 不可直接結帳（會重複扣款），導去訂閱管理升降級
     if (cp && cp !== 'free') return { label: '至訂閱管理變更方案', action: 'manage' }
-    // 未登入或免費 → 可訂閱（未登入時 handleSubscribe 會導去 /auth）
-    return { label: plan.id === 'supporter' ? '成為支持者' : '升級 Plus', action: 'subscribe' }
+    const label = plan.id === 'supporter' ? '成為支持者' : '升級 Plus'
+    // 未登入 → 直接導去登入，省一次多餘的 /api/profile 往返
+    if (cp === null) return { label, action: 'auth' }
+    // 免費 → 可訂閱
+    return { label, action: 'subscribe' }
   }
 
   return (

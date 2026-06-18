@@ -49,18 +49,14 @@ export async function GET(request: Request) {
 
     const { childId: validatedChildId } = querySchema.parse({ childId })
 
-    // 目前使用者的 profile id —— 用來標記哪些紀錄是本人記的（可編輯／刪除）
-    const { data: myProfile } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-    const myProfileId = myProfile?.id ?? null
-
-    const { data: logs, error } = await supabase
-      .from('companion_logs')
-      .select(
-        `
+    // 兩個查詢彼此獨立 → 並行，縮短回應時間
+    // myProfile：目前使用者的 profile id，用來標記哪些紀錄是本人記的（可編輯／刪除）
+    const [profileResult, logsResult] = await Promise.all([
+      supabase.from('user_profiles').select('id').eq('auth_user_id', user.id).single(),
+      supabase
+        .from('companion_logs')
+        .select(
+          `
         id,
         caregiver_id,
         outcome,
@@ -69,10 +65,14 @@ export async function GET(request: Request) {
         created_at,
         companion_activities(title)
       `,
-      )
-      .eq('child_id', validatedChildId)
-      .order('created_at', { ascending: false })
-      .limit(50)
+        )
+        .eq('child_id', validatedChildId)
+        .order('created_at', { ascending: false })
+        .limit(50),
+    ])
+
+    const myProfileId = profileResult.data?.id ?? null
+    const { data: logs, error } = logsResult
 
     if (error) {
       console.error('Failed to fetch logs', error)

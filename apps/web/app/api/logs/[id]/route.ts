@@ -28,7 +28,20 @@ function getClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !anonKey) return null
   return createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
+    cookies: {
+      getAll: () => cookieStore.getAll(),
+      // 變更類請求（PATCH/DELETE）可能觸發 session refresh；把更新後的 cookie 寫回，
+      // 避免使用者在操作後因 token 過期被意外登出。
+      setAll: (cookiesToSet) => {
+        try {
+          for (const { name, value, options } of cookiesToSet) {
+            cookieStore.set(name, value, options)
+          }
+        } catch {
+          // 某些 render 階段無法寫 cookie，忽略即可
+        }
+      },
+    },
   })
 }
 
@@ -84,6 +97,10 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
+    }
+    // 無效 JSON 屬於客戶端錯誤
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

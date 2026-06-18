@@ -103,9 +103,14 @@ export default function HistoryPage() {
   }
 
   const saveEdit = async (id: string) => {
+    const mins = draft.durationMins.trim()
+    // 防呆：非空但不是有效的正數 → 擋下，避免 NaN 經 JSON.stringify 變 null 把時長清空
+    if (mins !== '' && (!Number.isFinite(Number(mins)) || Number(mins) <= 0)) {
+      setError('時長請輸入大於 0 的數字，或留空。')
+      return
+    }
     setSaving(true)
     setError(null)
-    const mins = draft.durationMins.trim()
     const payload: Record<string, unknown> = {
       outcome: draft.outcome,
       childReaction: draft.childReaction,
