@@ -166,11 +166,14 @@ export default function HistoryPage() {
     }
   }
 
-  // 溫和累積感（非 streak，斷一天不該有罪惡感）：近 7 天有陪伴的「不同天數」
-  const sevenAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+  // 溫和累積感（非 streak，斷一天不該有罪惡感）：近 7 個日曆天有陪伴的「不同天數」。
+  // 用今天 00:00 往前推 6 天（而非滾動 168 小時），否則同一筆紀錄會在一天之內過了時刻就消失。
+  const weekStart = new Date()
+  weekStart.setHours(0, 0, 0, 0)
+  weekStart.setDate(weekStart.getDate() - 6)
   const weekDays = new Set(
     logs
-      .filter((l) => new Date(l.createdAt).getTime() >= sevenAgo)
+      .filter((l) => new Date(l.createdAt).getTime() >= weekStart.getTime())
       .map((l) => new Date(l.createdAt).toLocaleDateString('zh-TW')),
   ).size
 
