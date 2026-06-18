@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const schema = z.object({
   code: z.string().min(1),
@@ -29,6 +30,12 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 邀請碼為 8 碼、30 天有效；節流以防暴力猜碼（猜中即加入他人家庭、看到孩子 PII）。
+  const rl = await checkRateLimit(`invite-accept:${user.id}`, 5)
+  if (!rl.success) {
+    return NextResponse.json({ error: '嘗試過於頻繁，請稍後再試' }, { status: 429 })
   }
 
   try {

@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const logSchema = z.object({
   childId: z.string().uuid(),
@@ -33,6 +34,11 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const rl = await checkRateLimit(`log:${user.id}`, 30)
+  if (!rl.success) {
+    return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
   try {
