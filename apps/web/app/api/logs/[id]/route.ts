@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 // 編輯紀錄：只允許改結果/反應/時長（不可變更 child_id、household_id —— RLS 的 WITH CHECK 鎖死）。
 // 至少要帶一個欄位，避免空更新。
@@ -68,6 +69,11 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const rl = await checkRateLimit(`log-update:${user.id}`, 30)
+  if (!rl.success) {
+    return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
+  }
+
   try {
     const { id } = paramsSchema.parse(await ctx.params)
     const body = await request.json()
@@ -124,6 +130,11 @@ export async function DELETE(_request: Request, ctx: { params: Promise<{ id: str
   } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const rl = await checkRateLimit(`log-delete:${user.id}`, 30)
+  if (!rl.success) {
+    return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
   try {
