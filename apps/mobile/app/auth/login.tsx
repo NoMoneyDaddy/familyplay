@@ -1,12 +1,24 @@
 import * as AuthSession from 'expo-auth-session'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Mascot } from '@/components/Mascot'
 import { createMobileClient } from '@/lib/supabase/mobile'
+import { colors } from '@/lib/theme'
 
 WebBrowser.maybeCompleteAuthSession()
+
+// 黏土卡片陰影（暖色、柔和）
+const clayCard = {
+  shadowColor: '#4A311C',
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.12,
+  shadowRadius: 24,
+  elevation: 6,
+}
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -58,57 +70,86 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 px-5 py-8">
-        <View className="flex-1 items-center justify-center">
-          <View className="mb-20 w-full space-y-2">
-            <Text className="text-center text-4xl font-bold text-[#FF6B35]">FamilyPlay</Text>
-            <Text className="text-center text-base text-[#6B615A]">30 秒找到今天的陪伴方式</Text>
-          </View>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
+      <View className="flex-1 justify-center px-5 py-8">
+        {/* Hero：吉祥物徽章 + 標題 */}
+        <View className="mb-10 items-center">
+          <LinearGradient
+            colors={['#ff8a5c', '#ff6b35', '#e8551f']}
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 26,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+              ...clayCard,
+            }}
+          >
+            <Mascot size={52} />
+          </LinearGradient>
+          <Text className="text-3xl font-bold" style={{ color: colors.text }}>
+            FamilyPlay
+          </Text>
+          <Text className="mt-1 text-base" style={{ color: colors.muted }}>
+            30 秒找到今天的陪伴方式
+          </Text>
+        </View>
 
-          <View className="w-full space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-            <Text className="text-center font-semibold text-[#241F1B]">選擇登入方式</Text>
-
-            {error && (
-              <View className="rounded-lg border border-red-200 bg-red-50 p-4">
-                <Text className="text-sm text-red-700">{error}</Text>
-              </View>
-            )}
-
-            <Pressable
-              disabled={loading}
-              onPress={handleGoogleSignIn}
-              className={`rounded-lg border-2 border-[#ECE5DB] py-4 active:opacity-80 ${loading ? 'opacity-50' : ''}`}
-              accessibilityLabel="用 Google 帳號登入"
-              accessibilityRole="button"
-            >
-              <Text className="text-center font-semibold text-[#241F1B]">
-                🔐 用 Google 帳號登入
+        {/* 登入卡 */}
+        <View
+          className="w-full rounded-3xl p-6"
+          style={{ backgroundColor: colors.card, ...clayCard }}
+        >
+          {error ? (
+            <View className="mb-4 rounded-xl p-3" style={{ backgroundColor: colors.dangerTint }}>
+              <Text className="text-sm" style={{ color: colors.danger }}>
+                {error}
               </Text>
-            </Pressable>
-
-            <View className="my-2 flex-row items-center">
-              <View className="flex-1 border-t border-[#ECE5DB]" />
-              <Text className="mx-3 text-xs text-[#9B9089]">或</Text>
-              <View className="flex-1 border-t border-[#ECE5DB]" />
             </View>
+          ) : null}
 
-            <Pressable
-              disabled={loading}
-              onPress={handleEmailSignUp}
-              className={`rounded-lg border-2 border-[#ECE5DB] py-4 active:opacity-80 ${loading ? 'opacity-50' : ''}`}
-              accessibilityLabel="用 Email 登入"
-              accessibilityRole="button"
-            >
-              <Text className="text-center font-semibold text-[#241F1B]">
-                ✉️ 用 Email 登入或註冊
-              </Text>
-            </Pressable>
-
-            <Text className="text-center text-xs text-[#6B615A]">
-              你的資料使用 Supabase 安全保護
+          <Pressable
+            disabled={loading}
+            onPress={handleGoogleSignIn}
+            className={`rounded-2xl py-4 active:opacity-80 ${loading ? 'opacity-50' : ''}`}
+            style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }}
+            accessibilityLabel="用 Google 帳號登入"
+            accessibilityRole="button"
+          >
+            <Text className="text-center text-base font-semibold" style={{ color: colors.text }}>
+              用 Google 登入
             </Text>
+          </Pressable>
+
+          <View className="my-4 flex-row items-center">
+            <View className="flex-1 border-t" style={{ borderColor: colors.border }} />
+            <Text className="mx-3 text-xs" style={{ color: colors.faint }}>
+              或
+            </Text>
+            <View className="flex-1 border-t" style={{ borderColor: colors.border }} />
           </View>
+
+          <Pressable
+            disabled={loading}
+            onPress={handleEmailSignUp}
+            className={`overflow-hidden rounded-2xl active:opacity-90 ${loading ? 'opacity-50' : ''}`}
+            accessibilityLabel="用 Email 登入或註冊"
+            accessibilityRole="button"
+          >
+            <LinearGradient
+              colors={['#ff8a5c', '#ff6b35', '#e8551f']}
+              style={{ paddingVertical: 16, alignItems: 'center' }}
+            >
+              <Text className="text-center text-base font-semibold text-white">
+                用 Email 登入或註冊
+              </Text>
+            </LinearGradient>
+          </Pressable>
+
+          <Text className="mt-4 text-center text-xs" style={{ color: colors.muted }}>
+            你的資料使用 Supabase 安全保護
+          </Text>
         </View>
       </View>
     </SafeAreaView>

@@ -1,14 +1,25 @@
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Mascot } from '@/components/Mascot'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
+import { colors } from '@/lib/theme'
 
 interface ChildProfile {
   id: string
   nickname: string
   birth_year_month: string
+}
+
+const clayCard = {
+  shadowColor: '#4A311C',
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.12,
+  shadowRadius: 24,
+  elevation: 6,
 }
 
 export default function SelectScreen() {
@@ -65,36 +76,64 @@ export default function SelectScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-[#FAF6F0]">
-        <Text className="text-[#6B615A]">載入中...</Text>
+      <SafeAreaView
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bg }}
+      >
+        <Text style={{ color: colors.muted }}>載入中...</Text>
       </SafeAreaView>
     )
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FAF6F0]">
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
       <View className="flex-1 px-5 py-8">
         <View className="mb-8 flex-row items-center justify-between">
-          <Text className="text-3xl font-bold text-[#FF6B35]">選擇孩子</Text>
+          <Text className="text-3xl font-bold" style={{ color: colors.text }}>
+            選擇孩子
+          </Text>
           <Pressable onPress={handleLogout} className="active:opacity-70">
-            <Text className="text-sm text-[#6B615A]">登出</Text>
+            <Text className="text-sm" style={{ color: colors.muted }}>
+              登出
+            </Text>
           </Pressable>
         </View>
 
-        {error && (
-          <View className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-            <Text className="text-sm text-red-700">{error}</Text>
+        {error ? (
+          <View className="mb-6 rounded-xl p-4" style={{ backgroundColor: colors.dangerTint }}>
+            <Text className="text-sm" style={{ color: colors.danger }}>
+              {error}
+            </Text>
           </View>
-        )}
+        ) : null}
 
         {children.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-center text-[#6B615A]">尚未新增任何孩子</Text>
+            <View
+              className="mb-4 items-center justify-center"
+              style={{
+                width: 88,
+                height: 88,
+                borderRadius: 28,
+                backgroundColor: colors.brandTint,
+              }}
+            >
+              <Mascot size={60} />
+            </View>
+            <Text className="text-center text-base" style={{ color: colors.muted }}>
+              還沒有孩子檔案
+            </Text>
             <Pressable
               onPress={() => router.push('/onboarding/child-info')}
-              className="mt-4 rounded-lg bg-[#FF6B35] px-6 py-3 active:opacity-80"
+              className="mt-5 overflow-hidden rounded-2xl active:opacity-90"
+              style={clayCard}
             >
-              <Text className="font-semibold text-white">+ 新增孩子</Text>
+              <LinearGradient
+                colors={['#ff8a5c', '#ff6b35', '#e8551f']}
+                style={{ paddingHorizontal: 28, paddingVertical: 14 }}
+              >
+                <Text className="font-semibold text-white">新增第一個孩子</Text>
+              </LinearGradient>
             </Pressable>
           </View>
         ) : (
@@ -103,10 +142,13 @@ export default function SelectScreen() {
               <Pressable
                 key={child.id}
                 onPress={() => handleSelectChild(child.id)}
-                className="rounded-xl bg-white p-6 shadow-sm active:opacity-80"
+                className="rounded-2xl p-6 active:opacity-80"
+                style={{ backgroundColor: colors.card, ...clayCard }}
               >
-                <Text className="text-2xl font-bold text-[#FF6B35]">{child.nickname}</Text>
-                <Text className="mt-1 text-sm text-[#6B615A]">
+                <Text className="text-2xl font-bold" style={{ color: colors.text }}>
+                  {child.nickname}
+                </Text>
+                <Text className="mt-1 text-sm" style={{ color: colors.muted }}>
                   出生年月：{child.birth_year_month}
                 </Text>
               </Pressable>
@@ -114,9 +156,12 @@ export default function SelectScreen() {
 
             <Pressable
               onPress={() => router.push('/onboarding/child-info')}
-              className="mt-4 rounded-lg border-2 border-dashed border-[#ECE5DB] py-6 active:opacity-80"
+              className="mt-4 rounded-2xl py-6 active:opacity-80"
+              style={{ borderWidth: 2, borderStyle: 'dashed', borderColor: colors.border }}
             >
-              <Text className="text-center text-lg font-semibold text-[#6B615A]">+ 新增孩子</Text>
+              <Text className="text-center text-lg font-semibold" style={{ color: colors.muted }}>
+                + 新增孩子
+              </Text>
             </Pressable>
           </View>
         )}
