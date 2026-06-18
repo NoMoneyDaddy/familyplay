@@ -125,8 +125,12 @@ function RecommendationsPageInner() {
       />
 
       {recommendations.length === 0 ? (
-        <Card className="text-center">
-          <p className="text-muted">暫時沒有合適的推薦</p>
+        <Card className="space-y-4 text-center">
+          <p className="text-text">這個組合暫時沒有完全合適的活動。</p>
+          <p className="text-sm text-muted">換個精力或情境，常常就有了。</p>
+          <LinkButton href="/select" variant="primary" size="lg" icon="refresh">
+            換個狀態再試
+          </LinkButton>
         </Card>
       ) : (
         <ol className="space-y-4">
