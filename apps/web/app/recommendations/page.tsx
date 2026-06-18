@@ -53,7 +53,8 @@ function RecommendationsPageInner() {
         if (data.error) {
           setError(data.error)
         } else {
-          setRecommendations(data.recommendations)
+          // 後端正常時必有陣列；仍以 [] 兜底，避免 undefined 讓 .length/.map 崩潰
+          setRecommendations(data.recommendations || [])
         }
       })
       .catch((err) => setError(err.message))
