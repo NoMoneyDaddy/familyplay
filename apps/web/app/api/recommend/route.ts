@@ -24,12 +24,21 @@ export async function POST(request: Request) {
     },
   })
 
+  // 反向代理（Zeabur）後面 request.url 的 host 是內部位址（0.0.0.0:3000）會跳到 0.0.0.0。
+  // 安全：優先用可信的 NEXT_PUBLIC_APP_URL，避免攻擊者偽造 x-forwarded-host 做 open redirect。
+  const fwdHost = request.headers.get('x-forwarded-host')
+  const fwdProto = request.headers.get('x-forwarded-proto') || 'https'
+  const publicOrigin =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (fwdHost ? `${fwdProto}://${fwdHost}` : undefined) ||
+    new URL(request.url).origin
+
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser()
   if (authError || !user) {
-    return NextResponse.redirect(new URL('/auth', request.url))
+    return NextResponse.redirect(new URL('/auth', publicOrigin))
   }
 
   const formData = await request.formData()
@@ -45,7 +54,7 @@ export async function POST(request: Request) {
   const { data: children } = await supabase.from('child_profiles').select('id').limit(1)
 
   if (!children || children.length === 0) {
-    return NextResponse.redirect(new URL('/onboarding', request.url))
+    return NextResponse.redirect(new URL('/onboarding', publicOrigin))
   }
 
   const searchParams = new URLSearchParams({
@@ -54,5 +63,5 @@ export async function POST(request: Request) {
     context,
   })
 
-  return NextResponse.redirect(new URL(`/recommendations?${searchParams}`, request.url))
+  return NextResponse.redirect(new URL(`/recommendations?${searchParams}`, publicOrigin))
 }
