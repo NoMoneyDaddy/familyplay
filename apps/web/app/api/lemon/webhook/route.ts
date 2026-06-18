@@ -8,6 +8,8 @@ const webhookSchema = z.object({
   meta: z.object({
     event_name: z.string().optional(),
     eventName: z.string().optional(),
+    // LemonSqueezy 在 webhook 把結帳時帶的 checkout_data.custom 回傳在 meta.custom_data。
+    custom_data: z.object({ userProfileId: z.string().optional() }).optional(),
   }),
   data: z.object({
     id: z.union([z.string(), z.number()]).optional(),
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
 
     const supabase = createClient(url, serviceRoleKey)
 
-    // ── Idempotency: record (provider, event_id) before processing ──
+    // ── Idempotency: claim (provider, event_id) before processing ──
     // event_id combines event name + object id so a replay is a no-op.
     const eventId = `${eventName}:${objectId}`
     const { error: dedupeError } = await supabase
@@ -89,6 +91,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Processing error' }, { status: 500 })
     }
 
+    // 處理失敗時釋放剛剛 claim 的 dedupe 列，否則此事件會被永久標記為「已處理」，
+    // LemonSqueezy 後續重試都會走 23505 分支直接 200，升級永遠補不上（lost upgrade）。
+    const releaseDedupe = () =>
+      supabase
+        .from('processed_webhooks')
+        .delete()
+        .eq('provider', 'lemonsqueezy')
+        .eq('event_id', eventId)
+
     const isActivating = ACTIVATING_EVENTS.some((e) => eventName === e || eventName.startsWith(e))
     const isDeactivating = DEACTIVATING_EVENTS.some(
       (e) => eventName === e || eventName.startsWith(e),
@@ -99,13 +110,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true })
     }
 
-    const userProfileId = (
-      webhookData as {
-        data?: { attributes?: { checkout_data?: { custom?: { userProfileId?: string } } } }
-      }
-    ).data?.attributes?.checkout_data?.custom?.userProfileId
+    // webhook 的 custom data 在 meta.custom_data；舊路徑（checkout_data.custom）保留作 fallback。
+    const userProfileId =
+      validated.meta.custom_data?.userProfileId ??
+      (
+        webhookData as {
+          data?: { attributes?: { checkout_data?: { custom?: { userProfileId?: string } } } }
+        }
+      ).data?.attributes?.checkout_data?.custom?.userProfileId
     if (!userProfileId) {
       console.error('Webhook: Missing userProfileId in custom data')
+      await releaseDedupe()
       return NextResponse.json({ error: 'Missing user profile ID' }, { status: 400 })
     }
 
@@ -124,6 +139,7 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error('Webhook: downgrade update failed', error)
+        await releaseDedupe()
         return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
       }
       return NextResponse.json({ success: true })
@@ -179,6 +195,7 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Webhook: Database update failed', error)
+      await releaseDedupe()
       return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
     }
     return NextResponse.json({ success: true })
