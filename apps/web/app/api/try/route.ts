@@ -24,15 +24,26 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Server misconfigured' }, { status: 500 })
   }
 
-  // 無登入：以來源 IP 限流，避免濫用（沒設 Upstash 時自動略過）
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anon'
+  // 無登入：以來源 IP 限流，避免濫用（沒設 Upstash 時自動略過）。
+  // 優先用代理設定的 x-real-ip（較難偽造）；x-forwarded-for 最左是 client、可被竄改用來繞過限流。
+  const ip =
+    request.headers.get('x-real-ip') ||
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    'anon'
   const rl = await checkRateLimit(`try:${ip}`, 20)
   if (!rl.success) {
     return Response.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
+  // 解析 JSON：格式錯誤回 400（而非落入下方一般 500）
+  let body: unknown
   try {
-    const body = await request.json()
+    body = await request.json()
+  } catch {
+    return Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  try {
     const { ageMonths, parentEnergy, context, availableSpace, maxDurationMinutes } =
       schema.parse(body)
 
