@@ -87,7 +87,7 @@ export default function EmailAuthScreen() {
           <Pressable onPress={() => router.back()} className="mr-4 active:opacity-70">
             <Text className="text-lg text-[#FF6B35]">← 返回</Text>
           </Pressable>
-          <Text className="flex-1 text-xl font-bold text-[#1A1A1A]">Email 登入</Text>
+          <Text className="flex-1 text-xl font-bold text-[#241F1B]">Email 登入</Text>
         </View>
 
         <View className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
@@ -103,7 +103,7 @@ export default function EmailAuthScreen() {
             </View>
           )}
 
-          <View className="flex-row gap-2 rounded-lg bg-[#F3F4F6] p-1">
+          <View className="flex-row gap-2 rounded-lg bg-[#F1EBE2] p-1">
             <Pressable
               onPress={() => {
                 setTab('login')
@@ -114,7 +114,7 @@ export default function EmailAuthScreen() {
               disabled={loading}
             >
               <Text
-                className={`text-center font-medium ${tab === 'login' ? 'text-[#FF6B35]' : 'text-[#1A1A1A]'}`}
+                className={`text-center font-medium ${tab === 'login' ? 'text-[#FF6B35]' : 'text-[#241F1B]'}`}
               >
                 登入
               </Text>
@@ -129,7 +129,7 @@ export default function EmailAuthScreen() {
               disabled={loading}
             >
               <Text
-                className={`text-center font-medium ${tab === 'signup' ? 'text-[#FF6B35]' : 'text-[#1A1A1A]'}`}
+                className={`text-center font-medium ${tab === 'signup' ? 'text-[#FF6B35]' : 'text-[#241F1B]'}`}
               >
                 註冊
               </Text>
@@ -137,7 +137,7 @@ export default function EmailAuthScreen() {
           </View>
 
           <View>
-            <Text className="mb-2 text-sm font-semibold text-[#1A1A1A]">Email</Text>
+            <Text className="mb-2 text-sm font-semibold text-[#241F1B]">Email</Text>
             <TextInput
               placeholder="your@email.com"
               value={email}
@@ -145,27 +145,27 @@ export default function EmailAuthScreen() {
               editable={!loading}
               keyboardType="email-address"
               autoCapitalize="none"
-              className="rounded-lg border border-[#E5E7EB] px-4 py-3 text-[#1A1A1A]"
+              className="rounded-lg border border-[#ECE5DB] px-4 py-3 text-[#241F1B]"
             />
           </View>
 
           <View>
-            <Text className="mb-2 text-sm font-semibold text-[#1A1A1A]">密碼</Text>
-            <View className="flex-row items-center rounded-lg border border-[#E5E7EB]">
+            <Text className="mb-2 text-sm font-semibold text-[#241F1B]">密碼</Text>
+            <View className="flex-row items-center rounded-lg border border-[#ECE5DB]">
               <TextInput
                 placeholder="至少 8 個字元"
                 value={password}
                 onChangeText={setPassword}
                 editable={!loading}
                 secureTextEntry={!showPassword}
-                className="flex-1 px-4 py-3 text-[#1A1A1A]"
+                className="flex-1 px-4 py-3 text-[#241F1B]"
               />
               <Pressable
                 onPress={() => setShowPassword(!showPassword)}
                 className="mr-4 active:opacity-70"
                 disabled={loading}
               >
-                <Text className="text-xs text-[#6B7280]">{showPassword ? '隱藏' : '顯示'}</Text>
+                <Text className="text-xs text-[#6B615A]">{showPassword ? '隱藏' : '顯示'}</Text>
               </Pressable>
             </View>
           </View>
@@ -181,7 +181,7 @@ export default function EmailAuthScreen() {
             </Text>
           </Pressable>
 
-          <Text className="text-center text-xs text-[#6B7280]">
+          <Text className="text-center text-xs text-[#6B615A]">
             {tab === 'signup' ? '首次登入時會自動建立帳號' : ''}
           </Text>
         </View>

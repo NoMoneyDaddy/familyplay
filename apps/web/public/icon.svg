@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>FamilyPlay</title>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff9a6c"/>
+      <stop offset="0.52" stop-color="#ff6b35"/>
+      <stop offset="1" stop-color="#e8551f"/>
+    </linearGradient>
+    <radialGradient id="hl" cx="0.5" cy="0.32" r="0.7">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="0" fill="url(#g)"/>
+  <rect width="512" height="512" fill="url(#hl)"/>
+  <g transform="translate(96,100) scale(5)">
+    <circle cx="18" cy="17" r="9" fill="#FFF1E6"/>
+    <circle cx="46" cy="17" r="9" fill="#FFF1E6"/>
+    <circle cx="18" cy="17" r="4.4" fill="#FFC6A0"/>
+    <circle cx="46" cy="17" r="4.4" fill="#FFC6A0"/>
+    <ellipse cx="32" cy="35" rx="22" ry="20" fill="#FFF1E6"/>
+    <ellipse cx="19.5" cy="40" rx="4.2" ry="3" fill="#FFB38A" opacity="0.75"/>
+    <ellipse cx="44.5" cy="40" rx="4.2" ry="3" fill="#FFB38A" opacity="0.75"/>
+    <ellipse cx="32" cy="40" rx="10.5" ry="8" fill="#FFE4D2"/>
+    <circle cx="24.5" cy="33" r="2.9" fill="#3A2A20"/>
+    <circle cx="39.5" cy="33" r="2.9" fill="#3A2A20"/>
+    <circle cx="25.4" cy="32.1" r="0.9" fill="#FFFFFF"/>
+    <circle cx="40.4" cy="32.1" r="0.9" fill="#FFFFFF"/>
+    <ellipse cx="32" cy="37.5" rx="3.1" ry="2.3" fill="#3A2A20"/>
+    <path d="M32 39.6v2.1c0 2 1.7 3.4 3.7 3" stroke="#3A2A20" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M32 41.7c0 2-1.7 3.4-3.7 3" stroke="#3A2A20" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

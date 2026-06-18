@@ -99,11 +99,11 @@ export default function SelectPage() {
             {ENERGY_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-border/60 bg-card p-4 text-center shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
+                className="flex cursor-pointer flex-row items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
               >
                 <input type="radio" name="parentEnergy" value={option.value} className="sr-only" />
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-tint text-brand">
-                  <Icon name={option.icon} className="h-[26px] w-[26px]" />
+                <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                  <Icon name={option.icon} className="h-[24px] w-[24px]" />
                 </span>
                 <span className="text-sm font-medium text-text">{option.label}</span>
               </label>

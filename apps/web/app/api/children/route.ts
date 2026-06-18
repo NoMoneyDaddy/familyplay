@@ -47,20 +47,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    const { data: household } = await supabase
+    // 找使用者要把孩子加進的家庭：
+    //   1) 優先用自己「擁有」的家庭
+    //   2) 否則用自己「以成員身分加入」的家庭——受邀的 caregiver 也能往共用家庭新增孩子，
+    //      而不是被迫另開新家庭，這樣家人才是真的「共同」管理同一批孩子
+    //   3) 都沒有才新建一個自己擁有的家庭
+    const { data: ownedHousehold } = await supabase
       .from('households')
       .select('id')
       .eq('owner_id', userProfile.id)
-      .single()
+      .maybeSingle()
 
-    let householdId = household?.id
+    let householdId = ownedHousehold?.id
+
+    if (!householdId) {
+      const { data: membership } = await supabase
+        .from('household_members')
+        .select('household_id')
+        .eq('user_profile_id', userProfile.id)
+        .limit(1)
+        .maybeSingle()
+      householdId = membership?.household_id
+    }
 
     if (!householdId) {
       const { data: newHousehold } = await supabase
         .from('households')
         .insert({
           owner_id: userProfile.id,
-          name: `${user.user_metadata?.name}'s Family`,
+          name: `${user.user_metadata?.name ?? '我'}的家庭`,
         })
         .select('id')
         .single()
