@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import { Callout, Card, PageHeader, PageShell } from '@/app/components/ui'
 
-// 聯絡信箱：請改成真實可收信的地址（個資法/AdSense/商店審核都要求有效聯絡管道）。
-const CONTACT_EMAIL = 'support@familyplay.app'
 const EFFECTIVE_DATE = '2026 年 6 月 18 日'
 
 export const metadata: Metadata = {
@@ -110,7 +108,7 @@ export default function PrivacyPage() {
           <ul className="list-disc space-y-1 pl-5">
             <li>在「設定 → 孩子」可編輯或刪除孩子檔案。</li>
             <li>在「設定」可刪除整個帳號，這會一併永久刪除你的所有相關資料。</li>
-            <li>其他請求可來信 {CONTACT_EMAIL}。</li>
+            <li>其他請求可透過 App 內「設定」操作；正式聯絡管道將於服務上線時公布。</li>
           </ul>
         </Section>
 
@@ -139,7 +137,10 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="11. 聯絡我們">
-          <p>對本政策或你的資料有任何疑問，請來信：{CONTACT_EMAIL}。</p>
+          <p>
+            你可隨時於 App
+            內「設定」檢視、修改或刪除你的資料。正式的聯絡管道將於服務上線時於本頁公布。
+          </p>
         </Section>
       </Card>
     </PageShell>
