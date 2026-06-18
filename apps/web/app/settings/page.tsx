@@ -22,7 +22,6 @@ interface UserProfile {
 const LINKS: { href: string; label: string; icon: IconName }[] = [
   { href: '/account/entitlements', label: '訂閱方案', icon: 'card' },
   { href: '/settings/invite', label: '家庭成員', icon: 'family' },
-  { href: '/history', label: '陪伴紀錄', icon: 'chart' },
 ]
 
 export default function SettingsPage() {

@@ -9,7 +9,6 @@ import {
   ErrorAlert,
   Icon,
   type IconName,
-  LinkButton,
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
@@ -170,11 +169,11 @@ export default function EntitlementsPage() {
         )}
       </Card>
 
-      {/* 行動按鈕 */}
+      {/* 行動按鈕：單一 CTA，避免重複 */}
       <div className="space-y-3">
         {entitlements.plan === 'free' && (
           <Button size="lg" icon="sparkle" onClick={() => router.push('/pricing')}>
-            探索方案
+            查看方案
           </Button>
         )}
 
@@ -189,10 +188,6 @@ export default function EntitlementsPage() {
             透過 LemonSqueezy 管理訂閱
           </Button>
         )}
-
-        <LinkButton href="/pricing" variant="secondary" size="lg">
-          查看所有方案
-        </LinkButton>
       </div>
 
       {/* 說明 */}

@@ -24,6 +24,7 @@ interface Tab {
   match: string[]
 }
 
+// 設定改放在每頁右上角的齒輪（見 SettingsGearLink），不再佔一個底部分頁。
 const TABS: Tab[] = [
   {
     href: '/select',
@@ -33,12 +34,6 @@ const TABS: Tab[] = [
   },
   { href: '/history', label: '紀錄', icon: 'history', match: ['/history', '/capabilities'] },
   { href: '/children', label: '孩子', icon: 'child', match: ['/children'] },
-  {
-    href: '/settings',
-    label: '設定',
-    icon: 'settings',
-    match: ['/settings', '/pricing', '/account'],
-  },
 ]
 
 export function BottomNav() {
