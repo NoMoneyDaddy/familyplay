@@ -14,14 +14,19 @@ export async function getAdminEmail(): Promise<string | null> {
     .filter(Boolean)
   if (allow.length === 0) return null
 
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const email = user?.email?.toLowerCase()
-  if (!email || !allow.includes(email)) return null
-  return email
+  try {
+    const cookieStore = await cookies()
+    const supabase = createServerClient(url, anonKey, {
+      cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
+    })
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const email = user?.email?.toLowerCase()
+    if (!email || !allow.includes(email)) return null
+    return email
+  } catch {
+    // Supabase 連線/認證異常時優雅降級為「非管理員」→ 觸發 404，不讓整頁 500
+    return null
+  }
 }

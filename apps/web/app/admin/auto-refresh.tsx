@@ -19,7 +19,7 @@ export function AutoRefresh({ intervalMs = 30000 }: { intervalMs?: number }) {
 
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted">
-      <span className="h-2 w-2 animate-pulse rounded-full bg-success" />
+      <span className="h-2 w-2 rounded-full bg-success motion-safe:animate-pulse motion-reduce:animate-none" />
       即時 · 每 {Math.round(intervalMs / 1000)} 秒更新{updatedAt && ` · ${updatedAt}`}
     </span>
   )

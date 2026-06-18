@@ -270,7 +270,7 @@ export default async function AdminDashboardPage() {
               </span>
             </div>
             {sentry.data.issues.map((i) => (
-              <p key={i.title} className="truncate text-xs text-muted">
+              <p key={i.id} className="truncate text-xs text-muted">
                 {i.title}
               </p>
             ))}
