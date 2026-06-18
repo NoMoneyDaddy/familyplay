@@ -117,9 +117,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ childId: rpcChildId })
     }
 
-    // PGRST202 / 42883 = 函式不存在（migration 未套用）→ 走 fallback。其餘錯誤亦 fallback，
-    // 行為與既有兩段式一致（RLS 失敗會在 child insert 收斂成 500）。
-    console.error('create_child_with_capability RPC unavailable, falling back:', rpcError)
+    // 只有「函式不存在」（migration 未套用）才退回兩段式；其餘實質錯誤直接回對應狀態，
+    // 避免白跑一次必失敗的 fallback、避免誤導日誌、也避免 RPC 內部 bug 被靜默吞掉。
+    const isFuncMissing = rpcError?.code === 'PGRST202' || rpcError?.code === '42883'
+    if (rpcError && !isFuncMissing) {
+      console.error('create_child_with_capability RPC failed:', rpcError)
+      const status = rpcError.code === '42501' ? 403 : rpcError.code === '28000' ? 401 : 500
+      return NextResponse.json({ error: 'Failed to create child' }, { status })
+    }
+
+    console.warn(
+      'create_child_with_capability RPC unavailable, falling back to two-step:',
+      rpcError,
+    )
 
     const { data: child, error: childError } = await supabase
       .from('child_profiles')

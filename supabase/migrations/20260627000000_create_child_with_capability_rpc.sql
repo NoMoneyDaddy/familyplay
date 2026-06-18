@@ -25,17 +25,22 @@ DECLARE
   v_profile_id uuid;
   v_child_id   uuid;
 BEGIN
-  v_profile_id := auth_profile_id();
+  -- 直接由 auth.uid() 解析 user_profiles，使本 migration 自包含、不依賴 auth_profile_id()
+  -- 是否已定義；與 API route 的查詢邏輯一致。
+  SELECT id INTO v_profile_id
+    FROM public.user_profiles
+    WHERE auth_user_id = auth.uid();
+
   IF v_profile_id IS NULL THEN
     RAISE EXCEPTION 'unauthorized' USING ERRCODE = '28000';
   END IF;
 
   -- 防禦：SECURITY DEFINER 繞過 RLS，必須自行確認呼叫者屬於該家庭，
-  -- 否則任何登入者都能往別人家庭塞孩子。
+  -- 否則任何登入者都能往別人家庭塞孩子。只需判斷是否存在 → UNION ALL 免去重開銷。
   IF NOT EXISTS (
     SELECT 1 FROM public.households
       WHERE id = p_household_id AND owner_id = v_profile_id
-    UNION
+    UNION ALL
     SELECT 1 FROM public.household_members
       WHERE household_id = p_household_id AND user_profile_id = v_profile_id
   ) THEN
