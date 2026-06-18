@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ChildSwitcher } from '@/app/components/child-switcher'
 import {
   ActivityMeta,
   Card,
@@ -42,7 +43,8 @@ function pickActivity(row: {
 export default function SavedPage() {
   const [items, setItems] = useState<SavedActivity[] | null>(null)
   // 帶上目前孩子，否則活動頁缺 childId 會擋下「記一下」，收藏變成死路。
-  const { selectedChildId } = useChildStore()
+  // 用 selector 只訂閱 selectedChildId，避免 store 其他欄位變動就整頁重繪。
+  const selectedChildId = useChildStore((s) => s.selectedChildId)
 
   useEffect(() => {
     let cancelled = false
@@ -63,6 +65,8 @@ export default function SavedPage() {
 
   return (
     <PageShell>
+      {/* 掛載 ChildSwitcher 以抓孩子清單並設定當前孩子，確保活動連結能帶上 childId */}
+      <ChildSwitcher />
       <PageHeader title="我的收藏" subtitle="存下喜歡的活動，想玩時 2 下就找到" />
 
       {items === null ? (
