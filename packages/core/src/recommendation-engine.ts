@@ -110,11 +110,25 @@ function scoreByZpd(activities: Activity[], child: Child): ScoredActivity[] {
   })
 }
 
-// Step 5: Context and resource filtering
+// A drained parent shouldn't be handed a high-stimulation or long activity.
+// Step 5 of the spec includes "parent state"; cap the minimum duration we'll
+// offer per energy level (no cap for medium/high). The always-safe fallback
+// still guarantees a result if this filters everything out.
+const LOW_ENERGY_MAX_MINUTES: Partial<Record<ParentEnergy, number>> = {
+  exhausted: 10,
+  low: 15,
+}
+
+// Step 5: Context and resource filtering (space, resources, time, parent energy)
 function filterByContext(
   activities: ScoredActivity[],
   context: RecommendationContext,
 ): ScoredActivity[] {
+  // Keep the two concerns independent: a future energy level could cap duration
+  // without excluding high-stimulation (or vice versa).
+  const energyCap = LOW_ENERGY_MAX_MINUTES[context.parentEnergy]
+  const shouldExcludeHighStimulation =
+    context.parentEnergy === 'exhausted' || context.parentEnergy === 'low'
   return activities.filter((a) => {
     if (a.spaceRequirement !== 'anywhere' && a.spaceRequirement !== context.availableSpace) {
       return false
@@ -124,6 +138,9 @@ function filterByContext(
       if (!hasResources) return false
     }
     if (a.minDurationMinutes > context.maxDurationMinutes) return false
+    // Parent energy: drop high-stimulation and over-long activities when drained.
+    if (shouldExcludeHighStimulation && a.stimulationLevel === 'high') return false
+    if (energyCap != null && a.minDurationMinutes > energyCap) return false
     return true
   })
 }
