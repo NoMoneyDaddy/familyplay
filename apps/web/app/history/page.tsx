@@ -88,6 +88,12 @@ export default function HistoryPage() {
       .finally(() => setLoading(false))
   }, [selectedChildId])
 
+  // 進入編輯時把焦點移到第一個欄位，鍵盤/讀屏使用者才知道表單已展開、不會迷失在原處。
+  useEffect(() => {
+    if (!editingId) return
+    document.getElementById(`outcome-${editingId}`)?.focus()
+  }, [editingId])
+
   const startEdit = (log: Log) => {
     setError(null)
     setEditingId(log.id)
@@ -238,6 +244,8 @@ export default function HistoryPage() {
                       </p>
                     </div>
                     <span
+                      role="img"
+                      aria-label={`結果：${OUTCOME_LABEL[log.outcome] ?? log.outcome}`}
                       className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full ${badge.wrap}`}
                     >
                       <Icon name={badge.icon} className="h-[18px] w-[18px]" />
@@ -245,7 +253,10 @@ export default function HistoryPage() {
                   </div>
 
                   {isEditing ? (
-                    <div className="mt-3 space-y-3 border-t border-border pt-3">
+                    <div
+                      id={`edit-form-${log.id}`}
+                      className="mt-3 space-y-3 border-t border-border pt-3"
+                    >
                       <Field label="結果" htmlFor={`outcome-${log.id}`}>
                         <Select
                           id={`outcome-${log.id}`}
@@ -327,6 +338,8 @@ export default function HistoryPage() {
                           onClick={() => startEdit(log)}
                           className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand-tint"
                           aria-label="編輯這筆紀錄"
+                          aria-expanded={isEditing}
+                          aria-controls={`edit-form-${log.id}`}
                         >
                           <Icon name="edit" className="h-[15px] w-[15px]" />
                           編輯
