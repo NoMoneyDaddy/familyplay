@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
-import { Button, Card, Icon, type IconName, PageShell } from '@/app/components/ui'
+import { Button, Card, ErrorAlert, Icon, type IconName, PageShell } from '@/app/components/ui'
 
 interface Activity {
   id: string
@@ -42,6 +42,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   const [childReaction, setChildReaction] = useState<Reaction>('happy')
   const [startTime] = useState(Date.now())
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/activities/${id}`)
@@ -52,13 +53,20 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   }, [id])
 
   const handleComplete = async () => {
-    setLoading(true)
-
     const durationSecs = Math.round((Date.now() - startTime) / 1000)
     const childId = new URLSearchParams(window.location.search).get('childId')
 
+    // 沒有 childId 就送出只會 400 → 先擋下並提示，避免「以為記錄成功」卻什麼都沒存
+    if (!childId) {
+      setError('找不到孩子資料，請回首頁重新選擇後再記錄。')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
     try {
-      await fetch('/api/log', {
+      const res = await fetch('/api/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -70,7 +78,15 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
         }),
       })
 
+      // fetch 對 4xx/5xx 不會 throw；必須檢查 res.ok，否則失敗也會被當成成功跳轉
+      if (!res.ok) {
+        setError('記錄沒有成功，請稍後再試一次。')
+        return
+      }
+
       router.push('/select')
+    } catch {
+      setError('記錄失敗，請檢查網路後再試一次。')
     } finally {
       setLoading(false)
     }
@@ -190,6 +206,8 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             ))}
           </div>
         </fieldset>
+
+        <ErrorAlert message={error} />
 
         <Button type="button" onClick={handleComplete} loading={loading} size="lg" icon="check">
           {loading ? '記錄中...' : '完成並記錄'}
