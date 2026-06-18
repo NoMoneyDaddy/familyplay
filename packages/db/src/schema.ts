@@ -73,6 +73,24 @@ export const childCapabilityProfiles = pgTable('child_capability_profiles', {
   lastUpdated: timestamp('last_updated', { withTimezone: true }).defaultNow(),
 })
 
+export const savedActivities = pgTable(
+  'saved_activities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userProfileId: uuid('user_profile_id')
+      .notNull()
+      .references(() => userProfiles.id, { onDelete: 'cascade' }),
+    activityId: uuid('activity_id')
+      .notNull()
+      .references(() => companionActivities.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    unique().on(t.userProfileId, t.activityId),
+    index('idx_saved_activities_user').on(t.userProfileId, t.createdAt.desc()),
+  ],
+)
+
 export const companionActivities = pgTable('companion_activities', {
   id: uuid('id').primaryKey().defaultRandom(),
   title: text('title').notNull(),

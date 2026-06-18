@@ -49,6 +49,9 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   // 記錄成功後的小慶祝（最有成就感的時刻），停留約 1.8 秒再回首頁。
   const [celebrating, setCelebrating] = useState(false)
   const [savedMins, setSavedMins] = useState(0)
+  // 收藏（save for later）：掛載後查目前活動是否已收藏；toggle 時樂觀更新。
+  const [isSaved, setIsSaved] = useState(false)
+  const [savePending, setSavePending] = useState(false)
   const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 卸載時清掉未觸發的慶祝→導頁計時器，避免回上頁後被非預期導向 /select
@@ -66,6 +69,42 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
       .catch(() => setActivity(null))
       .finally(() => setActivityLoading(false))
   }, [id])
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/saved')
+      .then((res) => (res.ok ? res.json() : { saved: [] }))
+      .then((data) => {
+        if (!cancelled) {
+          setIsSaved((data.saved ?? []).some((s: { activity_id: string }) => s.activity_id === id))
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  const toggleSaved = async () => {
+    if (savePending) return
+    const next = !isSaved
+    setIsSaved(next) // 樂觀更新
+    setSavePending(true)
+    try {
+      const res = next
+        ? await fetch('/api/saved', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activityId: id }),
+          })
+        : await fetch(`/api/saved?activityId=${id}`, { method: 'DELETE' })
+      if (!res.ok) setIsSaved(!next) // 失敗回復
+    } catch {
+      setIsSaved(!next)
+    } finally {
+      setSavePending(false)
+    }
+  }
 
   const handleComplete = async () => {
     // 後端要求 durationSecs 為正整數；秒數可能 < 0.5（快速點擊）四捨五入成 0 而被 400 擋下，
@@ -141,7 +180,21 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   return (
     <PageShell>
       <Card className="space-y-4">
-        <h1 className="text-2xl font-bold text-text">{activity.title}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-bold text-text">{activity.title}</h1>
+          <button
+            type="button"
+            onClick={toggleSaved}
+            aria-pressed={isSaved}
+            aria-label={isSaved ? '取消收藏' : '收藏這個活動'}
+            className="-mr-1 shrink-0 rounded-full p-2 text-muted transition-colors hover:bg-brand-tint active:scale-95"
+          >
+            <Icon
+              name="heart"
+              className={`h-[24px] w-[24px] ${isSaved ? 'fill-current text-brand' : ''}`}
+            />
+          </button>
+        </div>
 
         <div className="space-y-4">
           <div>

@@ -34,6 +34,7 @@ const TABS: Tab[] = [
     match: ['/select', '/recommendations', '/activity'],
   },
   { href: '/history', label: '紀錄', icon: 'history', match: ['/history', '/capabilities'] },
+  { href: '/saved', label: '收藏', icon: 'heart', match: ['/saved'] },
   { href: '/children', label: '孩子', icon: 'child', match: ['/children'] },
 ]
 
