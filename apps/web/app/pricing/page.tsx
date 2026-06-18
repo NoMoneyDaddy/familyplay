@@ -12,6 +12,11 @@ const PLAN_LABELS: Record<string, string> = {
   plus: 'Plus',
 }
 
+/**
+ * Renders the pricing and subscription plans page.
+ *
+ * Determines the user's current plan on mount and displays content accordingly, including plan comparisons and subscription management options for active subscribers. Shows loading placeholders while fetching plan information.
+ */
 export default function PricingPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)

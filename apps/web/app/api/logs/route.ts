@@ -7,6 +7,14 @@ const querySchema = z.object({
   childId: z.string().uuid(),
 })
 
+/**
+ * Retrieves companion logs for a specified child, marked with edit permissions for the requesting user.
+ *
+ * Requires authentication. Returns up to 50 logs ordered by creation date (most recent first).
+ * Each log includes an `editable` flag that is true only when the authenticated user is the log's caregiver.
+ *
+ * @returns A NextResponse containing the logs array or an error message.
+ */
 export async function GET(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

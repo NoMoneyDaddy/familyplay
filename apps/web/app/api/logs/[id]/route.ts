@@ -17,6 +17,12 @@ const patchSchema = z
 
 const paramsSchema = z.object({ id: z.string().uuid() })
 
+/**
+ * Creates a Supabase server client for authenticated server-side operations.
+ *
+ * @param cookieStore - The Next.js cookie store used for managing authentication cookies
+ * @returns A Supabase server client configured with the provided cookie store, or `null` if required environment variables are not set
+ */
 function getClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -26,6 +32,16 @@ function getClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   })
 }
 
+/**
+ * Partially updates a companion log entry.
+ *
+ * The user must be authenticated and own the log. The request body is validated
+ * and only provided fields are updated.
+ *
+ * @returns `{ success: true }` on success; `{ error: string }` on failure with
+ * appropriate status code (400 for invalid input, 401 if unauthenticated, 404 if
+ * not found or not permitted, 500 for server errors).
+ */
 export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies()
   const supabase = getClient(cookieStore)
@@ -73,6 +89,13 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   }
 }
 
+/**
+ * Deletes a companion log for the authenticated user.
+ *
+ * The user must own the companion log being deleted.
+ *
+ * @returns A NextResponse with status 200 and `{ success: true }` on successful deletion, 401 if unauthorized, 400 for invalid request parameters, 404 if the log is not found or not owned, or 500 on server error.
+ */
 export async function DELETE(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies()
   const supabase = getClient(cookieStore)

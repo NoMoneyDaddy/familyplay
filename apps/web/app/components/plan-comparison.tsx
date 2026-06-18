@@ -74,8 +74,11 @@ const PLAN_CARDS: PlanCard[] = [
 ]
 
 /**
- * 方案比較與結帳區塊。pricing 頁與帳號方案頁共用，避免內容重複。
- * currentPlan：目前方案（'free' | 'supporter' | 'plus'），未登入時為 null。
+ * Renders a plan comparison and subscription management interface.
+ *
+ * Displays all available plans with features and determines the appropriate call-to-action (authentication, subscription, plan management, or disabled) based on the user's current plan. Handles the checkout flow for plan upgrades.
+ *
+ * @param currentPlan - The user's current plan ('free', 'supporter', or 'plus'), or `null` if not authenticated
  */
 export function PlanComparison({ currentPlan }: { currentPlan: string | null }) {
   const router = useRouter()

@@ -23,6 +23,9 @@ interface Entitlements {
   plusAiCallsResetAt: string | null
 }
 
+/**
+ * Displays the authenticated user's subscription plan details and plan comparison options.
+ */
 export default function EntitlementsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
