@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
 import {
   ActivityMeta,
@@ -121,17 +122,13 @@ export default function TryPage() {
                       最適合
                     </span>
                   )}
-                  <div className="mb-3 flex items-start gap-2.5">
-                    <span
-                      className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-xl font-display text-base font-bold ${
-                        isTop
-                          ? 'bg-[image:var(--gradient-brand)] text-white shadow-brand'
-                          : 'bg-brand-tint text-brand'
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
-                    <h2 className="min-w-0 flex-1 pt-0.5 text-lg font-semibold leading-snug text-text">
+                  <div className="mb-3 flex items-start gap-3">
+                    <FocusIllustration
+                      focus={rec.developmentalFocus?.[0]}
+                      rank={idx + 1}
+                      isTop={isTop}
+                    />
+                    <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
                       {rec.title}
                     </h2>
                   </div>
