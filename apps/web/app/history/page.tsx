@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
-import { Card, Icon, type IconName, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
+import {
+  Card,
+  EmptyState,
+  Icon,
+  type IconName,
+  LinkButton,
+  PageHeader,
+  PageShell,
+} from '@/app/components/ui'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Log {
@@ -51,21 +59,24 @@ export default function HistoryPage() {
           加載中...
         </div>
       ) : !selectedChildId ? (
-        <Card className="space-y-4 text-center">
-          <p className="text-muted">還沒有孩子檔案</p>
-          <LinkButton href="/children/add" icon="plus">
-            新增孩子
-          </LinkButton>
-        </Card>
+        <EmptyState
+          title="還沒有孩子檔案"
+          action={
+            <LinkButton href="/children/add" icon="plus">
+              新增孩子
+            </LinkButton>
+          }
+        >
+          先建立孩子檔案，之後的陪伴紀錄就會收在這裡。
+        </EmptyState>
       ) : loading ? (
         <div className="text-center text-muted" role="status">
           加載中...
         </div>
       ) : logs.length === 0 ? (
-        <Card className="text-center">
-          <p className="text-muted">還沒有紀錄</p>
-          <p className="text-xs text-faint">完成活動後會顯示在這裡</p>
-        </Card>
+        <EmptyState title="還沒有陪伴紀錄">
+          完成一個活動並記錄孩子的反應後，就會出現在這裡，陪你看見每天的累積。
+        </EmptyState>
       ) : (
         <ul className="space-y-3">
           {logs.map((log) => {

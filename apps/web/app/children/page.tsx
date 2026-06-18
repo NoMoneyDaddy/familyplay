@@ -5,6 +5,7 @@ import {
   Button,
   Callout,
   Card,
+  EmptyState,
   ErrorAlert,
   Icon,
   LinkButton,
@@ -86,12 +87,16 @@ export default function ChildrenPage() {
       <ErrorAlert message={error} />
 
       {children.length === 0 ? (
-        <Card className="space-y-4 text-center">
-          <p className="text-muted">還沒有孩子檔案</p>
-          <LinkButton href="/children/add" icon="plus">
-            新增孩子
-          </LinkButton>
-        </Card>
+        <EmptyState
+          title="還沒有孩子檔案"
+          action={
+            <LinkButton href="/children/add" icon="plus">
+              新增第一個孩子
+            </LinkButton>
+          }
+        >
+          建立孩子的檔案，波波就能依年齡與發展，給你今天最適合的陪伴方案。
+        </EmptyState>
       ) : (
         <>
           <ul className="space-y-3">

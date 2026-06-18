@@ -11,6 +11,7 @@
 
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { Mascot } from './mascot'
 
 /* ────────────────────────── 圖示集 ────────────────────────── */
 
@@ -202,6 +203,29 @@ const ICON_PATHS: Record<string, ReactNode> = {
       <rect x="13.4" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
     </>
   ),
+  faceHappy: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.3 14a4.2 4.2 0 007.4 0" />
+      <path d="M9 9.5h.01M15 9.5h.01" />
+    </>
+  ),
+  faceNeutral: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 14.5h7" />
+      <path d="M9 9.5h.01M15 9.5h.01" />
+    </>
+  ),
+  faceSad: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.3 15.5a4.2 4.2 0 017.4 0" />
+      <path d="M9 9.5h.01M15 9.5h.01" />
+    </>
+  ),
+  heart: <path d="M12 20s-7-4.4-7-9.3A3.8 3.8 0 0112 8a3.8 3.8 0 017 2.7c0 4.9-7 9.3-7 9.3z" />,
+  x: <path d="M6 6l12 12M18 6L6 18" />,
 }
 
 export type IconName = keyof typeof ICON_PATHS
@@ -322,6 +346,30 @@ export function PageHeader({
         {action}
       </div>
     </header>
+  )
+}
+
+/** 空狀態：吉祥物小熊 + 標題 + 說明 + 行動。讓「還沒有資料」也溫暖不冷清。 */
+export function EmptyState({
+  title,
+  children,
+  action,
+}: {
+  title: ReactNode
+  children?: ReactNode
+  action?: ReactNode
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-xl border border-border/60 bg-card p-8 text-center shadow-clay">
+      <span className="flex h-20 w-20 items-center justify-center rounded-[26px] bg-brand-tint">
+        <Mascot className="h-14 w-14" />
+      </span>
+      <div className="space-y-1">
+        <p className="font-semibold text-text">{title}</p>
+        {children && <p className="text-sm leading-relaxed text-muted">{children}</p>}
+      </div>
+      {action}
+    </div>
   )
 }
 
