@@ -7,6 +7,14 @@ const querySchema = z.object({
   childId: z.string().uuid(),
 })
 
+/**
+ * Retrieves companion logs for a specified child, marked with edit permissions for the requesting user.
+ *
+ * Requires authentication. Returns up to 50 logs ordered by creation date (most recent first).
+ * Each log includes an `editable` flag that is true only when the authenticated user is the log's caregiver.
+ *
+ * @returns A NextResponse containing the logs array or an error message.
+ */
 export async function GET(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -41,21 +49,30 @@ export async function GET(request: Request) {
 
     const { childId: validatedChildId } = querySchema.parse({ childId })
 
-    const { data: logs, error } = await supabase
-      .from('companion_logs')
-      .select(
-        `
+    // 兩個查詢彼此獨立 → 並行，縮短回應時間
+    // myProfile：目前使用者的 profile id，用來標記哪些紀錄是本人記的（可編輯／刪除）
+    const [profileResult, logsResult] = await Promise.all([
+      supabase.from('user_profiles').select('id').eq('auth_user_id', user.id).single(),
+      supabase
+        .from('companion_logs')
+        .select(
+          `
         id,
+        caregiver_id,
         outcome,
         child_reaction,
         duration_secs,
         created_at,
         companion_activities(title)
       `,
-      )
-      .eq('child_id', validatedChildId)
-      .order('created_at', { ascending: false })
-      .limit(50)
+        )
+        .eq('child_id', validatedChildId)
+        .order('created_at', { ascending: false })
+        .limit(50),
+    ])
+
+    const myProfileId = profileResult.data?.id ?? null
+    const { data: logs, error } = logsResult
 
     if (error) {
       console.error('Failed to fetch logs', error)
@@ -71,6 +88,8 @@ export async function GET(request: Request) {
         childReaction: log.child_reaction,
         createdAt: log.created_at,
         durationSecs: log.duration_secs,
+        // 只有本人記的紀錄能改／刪（與 RLS log_owner_update/delete 一致）
+        editable: myProfileId != null && log.caregiver_id === myProfileId,
       })),
     })
   } catch (error) {
