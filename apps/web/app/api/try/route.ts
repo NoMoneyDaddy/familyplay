@@ -30,7 +30,9 @@ export async function POST(request: Request) {
     request.headers.get('x-real-ip') ||
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     'anon'
-  const rl = await checkRateLimit(`try:${ip}`, 20)
+  // 未登入入口、且每次請求都打 service-role 讀全活動庫 → Upstash 故障時改 fail-closed，
+  // 避免限流靜默失效讓人無限刷。設了 Upstash 才會限流，沒設仍照常放行（本機/CI）。
+  const rl = await checkRateLimit(`try:${ip}`, 20, false)
   if (!rl.success) {
     return Response.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
