@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
 import {
@@ -43,6 +43,14 @@ const CONTEXT_OPTIONS: { value: string; label: string; icon: IconName }[] = [
   { value: 'sick_day', label: '生病/休息日', icon: 'thermometer' },
 ]
 
+const AGE_STORAGE_KEY = 'fp_try_age_months'
+
+// 依時段預設情境：傍晚到清晨偏「睡前」，其餘「正常時光」。只是預選、可改。
+function timeDefaultContext(): string {
+  const hour = new Date().getHours()
+  return hour >= 19 || hour < 5 ? 'bedtime' : 'normal'
+}
+
 interface Recommendation {
   id: string
   title: string
@@ -61,6 +69,32 @@ export default function TryPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<Recommendation[] | null>(null)
+
+  // 匿名回訪者免得每次重填：掛載後預填上次的年齡，並依時段預選情境（皆可改）。
+  // 精力是當下狀態、刻意不記憶。在 effect 內讀 localStorage 以避開 SSR 不一致。
+  useEffect(() => {
+    // localStorage 在隱私模式/停用儲存/沙盒 iframe 可能 throw；包 try-catch 免掛載崩潰。
+    // 用 prev ?? 預設，避免效果在首繪後蓋掉使用者已搶先點選的值。
+    const defaultContext = timeDefaultContext()
+    setContext((prev) => prev ?? defaultContext)
+    try {
+      const saved = Number(localStorage.getItem(AGE_STORAGE_KEY))
+      if (AGE_BANDS.some((b) => b.months === saved)) {
+        setAgeMonths((prev) => prev ?? saved)
+      }
+    } catch {
+      // 讀取失敗就不預填，不影響使用
+    }
+  }, [])
+
+  const selectAge = (months: number) => {
+    setAgeMonths(months)
+    try {
+      localStorage.setItem(AGE_STORAGE_KEY, String(months))
+    } catch {
+      // 寫入失敗（停用/配額）僅是無法記憶，不影響本次流程
+    }
+  }
 
   const canSubmit = ageMonths !== null && energy !== null && context !== null
 
@@ -216,7 +250,7 @@ export default function TryPage() {
               <button
                 key={band.months}
                 type="button"
-                onClick={() => setAgeMonths(band.months)}
+                onClick={() => selectAge(band.months)}
                 className={`rounded-xl border px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
                   ageMonths === band.months
                     ? 'border-brand bg-brand-tint text-brand-strong shadow-clay'
