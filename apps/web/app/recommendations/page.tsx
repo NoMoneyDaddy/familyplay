@@ -14,6 +14,7 @@ interface Recommendation {
   minDurationMinutes?: number
   maxDurationMinutes?: number
   stimulationLevel?: 'low' | 'medium' | 'high'
+  developmentalFocus?: string[]
 }
 
 function RecommendationsPageInner() {
@@ -138,6 +139,7 @@ function RecommendationsPageInner() {
                 </div>
 
                 <ActivityMeta
+                  developmentalFocus={rec.developmentalFocus}
                   minDurationMinutes={rec.minDurationMinutes}
                   maxDurationMinutes={rec.maxDurationMinutes}
                   stimulationLevel={rec.stimulationLevel}

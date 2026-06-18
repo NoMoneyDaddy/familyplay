@@ -50,6 +50,7 @@ interface Recommendation {
   minDurationMinutes?: number
   maxDurationMinutes?: number
   stimulationLevel?: 'low' | 'medium' | 'high'
+  developmentalFocus?: string[]
 }
 
 export default function TryPage() {
@@ -135,6 +136,7 @@ export default function TryPage() {
                     </h2>
                   </div>
                   <ActivityMeta
+                    developmentalFocus={rec.developmentalFocus}
                     minDurationMinutes={rec.minDurationMinutes}
                     maxDurationMinutes={rec.maxDurationMinutes}
                     stimulationLevel={rec.stimulationLevel}

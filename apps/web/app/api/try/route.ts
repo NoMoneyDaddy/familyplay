@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const { data: activities, error: activitiesError } = await supabase
       .from('companion_activities')
       .select(
-        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
+        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
       )
       .eq('is_active', true)
       .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
@@ -64,6 +64,11 @@ export async function POST(request: Request) {
     }
 
     const stageKey = getStageKey(ageMonths)
+
+    // 發展領域不參與評分，另存 id→focus 對照供前端分類標籤
+    const focusById = new Map<string, string[]>(
+      (activities || []).map((a) => [a.id, a.developmental_focus || []]),
+    )
 
     const recs = getRecommendations(
       (activities || []).map((a) => ({
@@ -111,6 +116,7 @@ export async function POST(request: Request) {
         minDurationMinutes: r.minDurationMinutes,
         maxDurationMinutes: r.maxDurationMinutes,
         stimulationLevel: r.stimulationLevel,
+        developmentalFocus: focusById.get(r.id) || [],
       })),
     })
   } catch (error) {

@@ -265,13 +265,25 @@ const STIMULATION_META: Record<'low' | 'medium' | 'high', { label: string; dot: 
   high: { label: '活潑', dot: 'bg-brand' },
 }
 
-/** 活動屬性列：時長 + 刺激強度，做成可快速掃讀的小標籤（仿競品卡片的資訊密度）。 */
+/** 發展領域 → 中文短標籤（對應 companion_activities.developmental_focus）。 */
+const FOCUS_LABEL: Record<string, string> = {
+  gross_motor: '大動作',
+  fine_motor: '精細動作',
+  language: '語言',
+  social_cognitive: '社交認知',
+  emotional: '情緒',
+}
+
+/** 活動屬性列：發展領域分類 + 時長 + 刺激強度，做成可快速掃讀的小標籤
+ *  （仿競品卡片的資訊密度——分類用品牌色凸顯，時長/強度用中性色輔助）。 */
 export function ActivityMeta({
+  developmentalFocus,
   minDurationMinutes,
   maxDurationMinutes,
   stimulationLevel,
   className = '',
 }: {
+  developmentalFocus?: string[]
   minDurationMinutes?: number
   maxDurationMinutes?: number
   stimulationLevel?: 'low' | 'medium' | 'high'
@@ -280,7 +292,12 @@ export function ActivityMeta({
   const hasDuration =
     typeof minDurationMinutes === 'number' && typeof maxDurationMinutes === 'number'
   const stim = stimulationLevel ? STIMULATION_META[stimulationLevel] : null
-  if (!hasDuration && !stim) return null
+  // 最多顯示 2 個領域，避免標籤過多稀釋重點
+  const focuses = (developmentalFocus || [])
+    .map((f) => FOCUS_LABEL[f])
+    .filter(Boolean)
+    .slice(0, 2)
+  if (!hasDuration && !stim && focuses.length === 0) return null
 
   const durationText =
     minDurationMinutes === maxDurationMinutes
@@ -289,6 +306,14 @@ export function ActivityMeta({
 
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+      {focuses.map((label) => (
+        <span
+          key={label}
+          className="inline-flex items-center rounded-full bg-brand-tint px-2 py-0.5 text-[11px] font-semibold text-brand-strong"
+        >
+          {label}
+        </span>
+      ))}
       {hasDuration && (
         <span className="inline-flex items-center gap-1 rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-muted">
           <Icon name="clock" className="h-[13px] w-[13px]" />
