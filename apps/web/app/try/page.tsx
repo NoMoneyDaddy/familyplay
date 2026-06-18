@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
 import {
+  ActivityMeta,
   Button,
   Card,
   ErrorAlert,
@@ -46,6 +48,10 @@ interface Recommendation {
   title: string
   score: number
   reasons: string[]
+  minDurationMinutes?: number
+  maxDurationMinutes?: number
+  stimulationLevel?: 'low' | 'medium' | 'high'
+  developmentalFocus?: string[]
 }
 
 export default function TryPage() {
@@ -116,20 +122,23 @@ export default function TryPage() {
                       最適合
                     </span>
                   )}
-                  <div className="mb-3 flex items-start gap-2.5">
-                    <span
-                      className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-xl font-display text-base font-bold ${
-                        isTop
-                          ? 'bg-[image:var(--gradient-brand)] text-white shadow-brand'
-                          : 'bg-brand-tint text-brand'
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
-                    <h2 className="min-w-0 flex-1 pt-0.5 text-lg font-semibold leading-snug text-text">
+                  <div className="mb-3 flex items-start gap-3">
+                    <FocusIllustration
+                      focus={rec.developmentalFocus?.[0]}
+                      rank={idx + 1}
+                      isTop={isTop}
+                    />
+                    <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
                       {rec.title}
                     </h2>
                   </div>
+                  <ActivityMeta
+                    developmentalFocus={rec.developmentalFocus}
+                    minDurationMinutes={rec.minDurationMinutes}
+                    maxDurationMinutes={rec.maxDurationMinutes}
+                    stimulationLevel={rec.stimulationLevel}
+                    className="mb-3"
+                  />
                   {rec.reasons.length > 0 && (
                     <ul className="space-y-1.5 text-xs text-muted">
                       {rec.reasons.map((reason, i) => (
@@ -172,6 +181,14 @@ export default function TryPage() {
           <Icon name="refresh" className="h-[16px] w-[16px]" />
           換個狀態再試
         </button>
+
+        <p className="px-2 text-center text-xs leading-relaxed text-faint">
+          活動建議僅供親子陪伴參考，非醫療或專業評估，請由成人全程監護。詳見{' '}
+          <Link href="/disclaimer" className="underline hover:text-muted">
+            免責聲明
+          </Link>
+          。
+        </p>
       </PageShell>
     )
   }

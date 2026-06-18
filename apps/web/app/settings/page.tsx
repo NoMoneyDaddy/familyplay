@@ -1,7 +1,8 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { LegalLinks } from '@/app/components/legal-links'
+import { ReminderToggle } from '@/app/components/reminder-toggle'
 import {
   Button,
   Callout,
@@ -25,7 +26,6 @@ const LINKS: { href: string; label: string; icon: IconName }[] = [
 ]
 
 export default function SettingsPage() {
-  const router = useRouter()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -40,9 +40,10 @@ export default function SettingsPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  // 登出/刪除帳號後用整頁導向（非 client 路由），確保 Zustand store、快取等記憶體狀態被清空
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/auth')
+    window.location.href = '/auth'
   }
 
   const handleDeleteAccount = async () => {
@@ -52,7 +53,7 @@ export default function SettingsPage() {
       const res = await fetch('/api/account', { method: 'DELETE' })
       if (res.ok) {
         await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-        router.push('/try')
+        window.location.href = '/try'
       } else {
         const data = await res.json().catch(() => ({}))
         setDeleteError(data.error || '刪除帳號失敗，請稍後再試')
@@ -84,6 +85,8 @@ export default function SettingsPage() {
             )}
             <p className="mt-2 text-xs text-muted">FamilyPlay MVP v0.1</p>
           </Card>
+
+          <ReminderToggle />
 
           <div className="space-y-2">
             {LINKS.map((link) => (
@@ -148,6 +151,8 @@ export default function SettingsPage() {
               </button>
             )}
           </div>
+
+          <LegalLinks className="pt-2" />
         </div>
       )}
     </PageShell>

@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     const { data: activities, error: activitiesError } = await supabase
       .from('companion_activities')
       .select(
-        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
+        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
       )
       .eq('is_active', true)
       .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
@@ -122,6 +122,11 @@ export async function POST(request: Request) {
     const stageKey = ALLOWED_STAGE_KEYS.includes(child.stage_key as never)
       ? (child.stage_key as (typeof ALLOWED_STAGE_KEYS)[number])
       : getStageKey(ageMonths)
+
+    // 發展領域不參與評分（引擎不需要），但要回傳給前端做分類標籤，故另存 id→focus 對照
+    const focusById = new Map<string, string[]>(
+      activities.map((a) => [a.id, a.developmental_focus || []]),
+    )
 
     // Get recommendations
     const recs = getRecommendations(
@@ -166,6 +171,10 @@ export async function POST(request: Request) {
         title: r.title,
         score: r.score,
         reasons: r.reasons,
+        minDurationMinutes: r.minDurationMinutes,
+        maxDurationMinutes: r.maxDurationMinutes,
+        stimulationLevel: r.stimulationLevel,
+        developmentalFocus: focusById.get(r.id) || [],
       })),
     })
   } catch (error) {

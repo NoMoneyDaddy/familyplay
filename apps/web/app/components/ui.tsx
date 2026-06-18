@@ -256,6 +256,80 @@ export function Icon({
   )
 }
 
+/* ──────────────────────── 活動屬性標籤 ──────────────────────── */
+
+/** 刺激強度 → 中文標籤與色調（安靜 / 適中 / 活潑）。 */
+const STIMULATION_META: Record<'low' | 'medium' | 'high', { label: string; dot: string }> = {
+  low: { label: '安靜', dot: 'bg-info' },
+  medium: { label: '適中', dot: 'bg-warning' },
+  high: { label: '活潑', dot: 'bg-brand' },
+}
+
+/** 發展領域 → 中文短標籤（對應 companion_activities.developmental_focus）。 */
+const FOCUS_LABEL: Record<string, string> = {
+  gross_motor: '大動作',
+  fine_motor: '精細動作',
+  language: '語言',
+  social_cognitive: '社交認知',
+  emotional: '情緒',
+}
+
+/** 活動屬性列：發展領域分類 + 時長 + 刺激強度，做成可快速掃讀的小標籤
+ *  （仿競品卡片的資訊密度——分類用品牌色凸顯，時長/強度用中性色輔助）。 */
+export function ActivityMeta({
+  developmentalFocus,
+  minDurationMinutes,
+  maxDurationMinutes,
+  stimulationLevel,
+  className = '',
+}: {
+  developmentalFocus?: string[]
+  minDurationMinutes?: number
+  maxDurationMinutes?: number
+  stimulationLevel?: 'low' | 'medium' | 'high'
+  className?: string
+}) {
+  const hasDuration =
+    typeof minDurationMinutes === 'number' && typeof maxDurationMinutes === 'number'
+  const stim = stimulationLevel ? STIMULATION_META[stimulationLevel] : null
+  // 最多顯示 2 個領域，避免標籤過多稀釋重點
+  const focuses = (developmentalFocus || [])
+    .map((f) => FOCUS_LABEL[f])
+    .filter(Boolean)
+    .slice(0, 2)
+  if (!hasDuration && !stim && focuses.length === 0) return null
+
+  const durationText =
+    minDurationMinutes === maxDurationMinutes
+      ? `${minDurationMinutes} 分鐘`
+      : `${minDurationMinutes}–${maxDurationMinutes} 分鐘`
+
+  return (
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+      {focuses.map((label) => (
+        <span
+          key={label}
+          className="inline-flex items-center rounded-full bg-brand-tint px-2 py-0.5 text-[11px] font-semibold text-brand-strong"
+        >
+          {label}
+        </span>
+      ))}
+      {hasDuration && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-muted">
+          <Icon name="clock" className="h-[13px] w-[13px]" />
+          {durationText}
+        </span>
+      )}
+      {stim && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-muted">
+          <span className={`h-[7px] w-[7px] rounded-full ${stim.dot}`} aria-hidden="true" />
+          {stim.label}
+        </span>
+      )}
+    </div>
+  )
+}
+
 /* ────────────────────────── 版面 ────────────────────────── */
 
 /** 一致的頁面外殼：取代各頁手寫的 `bg-gradient-to-b from-bg to-white`。

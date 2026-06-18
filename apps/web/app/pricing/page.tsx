@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { LegalLinks } from '@/app/components/legal-links'
 import { Button, Callout, Card, ErrorAlert, Icon, PageHeader, PageShell } from '@/app/components/ui'
 
 type PaidPlan = 'supporter' | 'plus'
@@ -14,17 +15,24 @@ interface PricingPageState {
   error: string | null
 }
 
+interface PlanFeature {
+  label: string
+  soon?: boolean // 尚未實作、開發中——明確標示「即將推出」，不誇大已交付的功能
+}
+
 interface PlanCard {
   id: 'free' | PaidPlan
   name: string
   price: string
   period: string
   tagline: string
-  features: string[]
+  features: PlanFeature[]
   highlight?: boolean
+  comingSoon?: boolean // 核心價值尚未實作的方案：暫不開放結帳，避免收費賣未交付功能
 }
 
 // 輕營利取向：大部分功能免費（以輕度廣告支撐）；付費可移除廣告並解鎖進階，價格溫和、隨時可取消。
+// 誠實原則：尚未實作的功能一律標「即將推出」，核心未交付的方案不開放結帳。
 // 顯示價格須與 LemonSqueezy variant 設定一致（見 README / env）。
 const PLAN_CARDS: PlanCard[] = [
   {
@@ -34,11 +42,11 @@ const PLAN_CARDS: PlanCard[] = [
     period: '永久',
     tagline: '大部分功能免費，僅有少量不干擾的廣告',
     features: [
-      '30 秒個人化陪伴方案',
-      '完整親子活動庫',
-      '發展階段與能力追蹤',
-      '近 7 天活動歷史',
-      '少量輕度廣告（可付費移除）',
+      { label: '30 秒個人化陪伴方案' },
+      { label: '完整親子活動庫' },
+      { label: '發展階段與能力追蹤' },
+      { label: '近 7 天活動歷史' },
+      { label: '少量輕度廣告（可付費移除）' },
     ],
   },
   {
@@ -48,11 +56,11 @@ const PLAN_CARDS: PlanCard[] = [
     period: '/月',
     tagline: '移除廣告、解鎖便利，一起支持開發 ☕',
     features: [
-      '移除廣告，乾淨體驗',
-      '免費版的全部功能',
-      '完整活動歷史（不限天數）',
-      '家庭成員共享（配偶／長輩一起用）',
-      '匯出陪伴紀錄',
+      { label: '移除廣告，乾淨體驗' },
+      { label: '免費版的全部功能' },
+      { label: '家庭成員共享（配偶／長輩一起用）' },
+      { label: '完整活動歷史（不限天數）', soon: true },
+      { label: '匯出陪伴紀錄', soon: true },
     ],
   },
   {
@@ -60,15 +68,16 @@ const PLAN_CARDS: PlanCard[] = [
     name: 'Plus',
     price: 'NT$170',
     period: '/月',
-    tagline: '進階陪伴，AI 為你客製',
+    tagline: '進階陪伴，AI 為你客製（開發中）',
     highlight: true,
+    comingSoon: true,
     features: [
-      '支持者的全部功能',
-      'AI 客製化活動生成',
-      '活動加密筆記',
-      '每月 100 次 AI 生成',
-      '交接摘要（給保母／長輩）',
-      '優先支援',
+      { label: '支持者的全部功能' },
+      { label: 'AI 客製化活動生成', soon: true },
+      { label: '活動加密筆記', soon: true },
+      { label: '每月 100 次 AI 生成', soon: true },
+      { label: '交接摘要（給保母／長輩）', soon: true },
+      { label: '優先支援', soon: true },
     ],
   },
 ]
@@ -160,13 +169,15 @@ export default function PricingPage() {
   // action：'auth' 導去登入/註冊；'subscribe' 建立結帳；'manage' 導去訂閱管理（避免重複訂閱）；'none' 靜態
   const ctaFor = (
     plan: PlanCard,
-  ): { label: string; action: 'auth' | 'subscribe' | 'manage' | 'none' } => {
+  ): { label: string; action: 'auth' | 'subscribe' | 'manage' | 'none' | 'soon' } => {
     const cp = state.currentPlan
     if (plan.id === 'free') {
       if (cp === null) return { label: '免費開始使用', action: 'auth' }
       if (cp === 'free') return { label: '你目前的方案', action: 'none' }
       return { label: '已包含在你的方案', action: 'none' }
     }
+    // 核心功能尚未實作的方案：暫不開放結帳（誠實，不收費賣未交付功能）
+    if (plan.comingSoon && cp !== plan.id) return { label: '即將推出', action: 'soon' }
     // 付費方案
     if (cp === plan.id) return { label: '你目前的方案', action: 'none' }
     // 已在另一個付費方案 → 不可直接結帳（會重複扣款），導去訂閱管理升降級
@@ -203,6 +214,11 @@ export default function PricingPage() {
             </Callout>
           )}
 
+          <Callout tone="tip" title="開發中功能不收費">
+            標示「即將推出」的功能仍在開發，<strong>尚未開放</strong>
+            。我們不會為還沒交付的功能收費—— Plus 方案會等核心功能上線後才開放訂閱。
+          </Callout>
+
           <ul className="space-y-4">
             {PLAN_CARDS.map((plan) => {
               const cta = ctaFor(plan)
@@ -232,12 +248,22 @@ export default function PricingPage() {
 
                   <ul className="mb-6 space-y-2">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3 text-sm text-text">
+                      <li
+                        key={feature.label}
+                        className={`flex items-start gap-3 text-sm ${feature.soon ? 'text-muted' : 'text-text'}`}
+                      >
                         <Icon
                           name="check"
-                          className="mt-0.5 h-[18px] w-[18px] shrink-0 text-brand"
+                          className={`mt-0.5 h-[18px] w-[18px] shrink-0 ${feature.soon ? 'text-faint' : 'text-brand'}`}
                         />
-                        <span>{feature}</span>
+                        <span>
+                          {feature.label}
+                          {feature.soon && (
+                            <span className="ml-1.5 inline-flex items-center rounded-full bg-info-tint px-1.5 py-0.5 text-[10px] font-semibold text-info align-middle">
+                              即將推出
+                            </span>
+                          )}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -263,6 +289,10 @@ export default function PricingPage() {
                     >
                       {cta.label}
                     </Button>
+                  ) : cta.action === 'soon' ? (
+                    <p className="rounded-md bg-info-tint py-3 text-center text-sm font-medium text-info">
+                      {cta.label}
+                    </p>
                   ) : (
                     <p className="rounded-md bg-bg py-3 text-center text-sm font-medium text-muted">
                       {cta.label}
@@ -306,6 +336,8 @@ export default function PricingPage() {
               </button>
             </p>
           )}
+
+          <LegalLinks className="pt-2" />
         </>
       )}
     </PageShell>
