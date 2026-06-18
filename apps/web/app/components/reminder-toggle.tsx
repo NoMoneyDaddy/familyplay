@@ -71,11 +71,15 @@ export function ReminderToggle() {
       </div>
 
       {state === 'denied' && (
-        <p className="text-xs text-warning">
+        <p className="text-xs text-warning" role="alert">
           你已封鎖此網站的通知。請到瀏覽器設定重新允許，才能開啟提醒。
         </p>
       )}
-      {error && <p className="text-xs text-danger">{error}</p>}
+      {error && (
+        <p className="text-xs text-danger" role="alert">
+          {error}
+        </p>
+      )}
     </Card>
   )
 }

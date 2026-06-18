@@ -257,9 +257,21 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
         )}
       </Card>
 
-      {/* 記錄成功的小慶祝：波波鼓掌 + 鼓勵語，停留約 1.8 秒 */}
+      {/* 記錄成功的小慶祝：波波鼓掌 + 鼓勵語，停留約 1.8 秒。
+          這是最重要的確認時刻——加 role="status"/aria-live 讓螢幕報讀器也聽得到，
+          並把焦點移到覆蓋層，避免焦點還停在被蓋住的按鈕上。 */}
       {celebrating && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-bg/95 px-8 text-center backdrop-blur-sm">
+        <div
+          ref={(el) => {
+            // inline ref 在每次 re-render 會先以 null 再以節點呼叫；只在尚未聚焦時
+            // 才 focus，避免 1.8 秒內反覆奪取焦點。
+            if (el && document.activeElement !== el) el.focus()
+          }}
+          tabIndex={-1}
+          role="status"
+          aria-live="assertive"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-bg/95 px-8 text-center outline-none backdrop-blur-sm"
+        >
           <span className="flex h-24 w-24 items-center justify-center rounded-[30px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint motion-safe:animate-bounce">
             <Mascot className="h-16 w-16" />
           </span>
