@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Callout, Card, PageHeader, PageShell } from '@/app/components/ui'
 
-const CONTACT_EMAIL = 'support@familyplay.app'
 const EFFECTIVE_DATE = '2026 年 6 月 18 日'
 
 export const metadata: Metadata = {
@@ -79,7 +78,7 @@ export default function DisclaimerPage() {
         </Section>
 
         <Section title="6. 聯絡我們">
-          <p>對本聲明有任何疑問，請來信：{CONTACT_EMAIL}。</p>
+          <p>對本聲明有任何疑問，正式聯絡管道將於服務上線時於本頁公布。</p>
         </Section>
       </Card>
     </PageShell>
