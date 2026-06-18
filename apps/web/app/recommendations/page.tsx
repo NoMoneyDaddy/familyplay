@@ -57,7 +57,11 @@ function RecommendationsPageInner() {
           setRecommendations(data.recommendations || [])
         }
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        // 不把技術錯誤（如 502 回非 JSON 時的 "Unexpected token <…"）直接顯示給家長
+        console.error('Failed to fetch recommendations:', err)
+        setError('系統忙線或網路不穩，請稍後再試。')
+      })
       .finally(() => setLoading(false))
   }, [childId, parentEnergy, context])
 
