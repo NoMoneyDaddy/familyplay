@@ -9,6 +9,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
+import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface SavedActivity {
   id: string
@@ -40,6 +41,8 @@ function pickActivity(row: {
 
 export default function SavedPage() {
   const [items, setItems] = useState<SavedActivity[] | null>(null)
+  // 帶上目前孩子，否則活動頁缺 childId 會擋下「記一下」，收藏變成死路。
+  const { selectedChildId } = useChildStore()
 
   useEffect(() => {
     let cancelled = false
@@ -81,7 +84,16 @@ export default function SavedPage() {
                 maxDurationMinutes={a.maxDurationMinutes}
                 stimulationLevel={a.stimulationLevel}
               />
-              <LinkButton href={`/activity/${a.id}`} variant="secondary" size="md" icon="book">
+              <LinkButton
+                href={
+                  selectedChildId
+                    ? `/activity/${a.id}?childId=${selectedChildId}`
+                    : `/activity/${a.id}`
+                }
+                variant="secondary"
+                size="md"
+                icon="book"
+              >
                 開始這個活動
               </LinkButton>
             </Card>
