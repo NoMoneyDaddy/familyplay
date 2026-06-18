@@ -289,6 +289,17 @@ describe('Recommendation Engine', () => {
     expect(recs.find((a) => a.id === 'short')).toBeDefined()
   })
 
+  it('caps activity length tighter for an exhausted parent (10 min)', () => {
+    activities = [
+      { ...activities[0], id: 'long', maxAgeMonths: 36, minDurationMinutes: 12 },
+      { ...activities[0], id: 'short', maxAgeMonths: 36, minDurationMinutes: 5 },
+    ]
+    context.parentEnergy = 'exhausted' // cap 10 min — a 12-min activity is excluded
+    const recs = getRecommendations(activities, context, 10)
+    expect(recs.find((a) => a.id === 'long')).toBeUndefined()
+    expect(recs.find((a) => a.id === 'short')).toBeDefined()
+  })
+
   it('does not cap length for a medium-energy parent', () => {
     activities = [{ ...activities[0], id: 'long', maxAgeMonths: 36, minDurationMinutes: 18 }]
     context.parentEnergy = 'medium'

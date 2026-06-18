@@ -124,8 +124,11 @@ function filterByContext(
   activities: ScoredActivity[],
   context: RecommendationContext,
 ): ScoredActivity[] {
+  // Keep the two concerns independent: a future energy level could cap duration
+  // without excluding high-stimulation (or vice versa).
   const energyCap = LOW_ENERGY_MAX_MINUTES[context.parentEnergy]
-  const lowEnergy = energyCap != null
+  const shouldExcludeHighStimulation =
+    context.parentEnergy === 'exhausted' || context.parentEnergy === 'low'
   return activities.filter((a) => {
     if (a.spaceRequirement !== 'anywhere' && a.spaceRequirement !== context.availableSpace) {
       return false
@@ -136,7 +139,7 @@ function filterByContext(
     }
     if (a.minDurationMinutes > context.maxDurationMinutes) return false
     // Parent energy: drop high-stimulation and over-long activities when drained.
-    if (lowEnergy && a.stimulationLevel === 'high') return false
+    if (shouldExcludeHighStimulation && a.stimulationLevel === 'high') return false
     if (energyCap != null && a.minDurationMinutes > energyCap) return false
     return true
   })
