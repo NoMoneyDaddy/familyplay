@@ -111,8 +111,30 @@ export default function InvitePage() {
     }
   }
 
-  const handleCopyLink = () => {
+  const handleCopyCode = () => {
     if (generatedInvite) {
+      navigator.clipboard.writeText(generatedInvite.code)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    }
+  }
+
+  // 系統分享：手機會跳出分享面板（LINE / WhatsApp / Messenger / 訊息…）；
+  // 不支援時退回複製連結。
+  const handleShare = async () => {
+    if (!generatedInvite) return
+    const shareData = {
+      title: 'FamilyPlay 家庭邀請',
+      text: `來一起照顧孩子吧！用這個邀請碼加入我的 FamilyPlay 家庭：${generatedInvite.code}`,
+      url: generatedInvite.inviteLink,
+    }
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch {
+        // 使用者取消分享，忽略
+      }
+    } else {
       navigator.clipboard.writeText(generatedInvite.inviteLink)
       setCopySuccess(true)
       setTimeout(() => setCopySuccess(false), 2000)
@@ -165,45 +187,33 @@ export default function InvitePage() {
 
               {/* Generated Invite Display */}
               {generatedInvite && (
-                <div className="space-y-3 rounded-md bg-brand-tint p-4">
-                  <div>
-                    <p className="mb-1 text-xs text-muted">邀請碼</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 rounded bg-card px-3 py-2 font-mono text-lg font-bold text-brand">
-                        {generatedInvite.code}
-                      </code>
-                      <Button
-                        variant="secondary"
-                        size="md"
-                        icon="copy"
-                        onClick={() => {
-                          navigator.clipboard.writeText(generatedInvite.code)
-                          setCopySuccess(true)
-                          setTimeout(() => setCopySuccess(false), 2000)
-                        }}
-                      >
-                        複製
-                      </Button>
-                    </div>
+                <div className="space-y-3 rounded-2xl bg-brand-tint p-4">
+                  {/* 邀請碼：大、置中 */}
+                  <div className="text-center">
+                    <p className="mb-1.5 text-xs text-muted">邀請碼</p>
+                    <code className="block truncate rounded-xl bg-card py-3 font-mono text-2xl font-bold tracking-[0.15em] text-brand">
+                      {generatedInvite.code}
+                    </code>
                   </div>
 
-                  <div>
-                    <p className="mb-1 text-xs text-muted">完整邀請連結</p>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        readOnly
-                        value={generatedInvite.inviteLink}
-                        className="flex-1 rounded border border-border bg-card px-3 py-2 text-xs text-text"
-                      />
-                      <Button variant="secondary" size="md" icon="copy" onClick={handleCopyLink}>
-                        {copySuccess ? '已複製' : '複製'}
-                      </Button>
-                    </div>
+                  {/* 動作：分享（系統面板→LINE/聊天室）/ 複製碼，等寬不溢出 */}
+                  <div className="flex gap-2">
+                    <Button size="md" icon="link" className="flex-1" onClick={handleShare}>
+                      分享連結
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      icon="copy"
+                      className="flex-1"
+                      onClick={handleCopyCode}
+                    >
+                      {copySuccess ? '已複製' : '複製碼'}
+                    </Button>
                   </div>
 
-                  <p className="text-xs text-brand-strong">
-                    30 天內有效。家長可以透過連結或手動輸入碼加入。
+                  <p className="text-center text-xs text-brand-strong">
+                    30 天內有效 · 對方可用連結或手動輸入碼加入
                   </p>
                 </div>
               )}

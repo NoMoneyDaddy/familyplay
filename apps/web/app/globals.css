@@ -69,8 +69,10 @@
   --radius-lg: 24px;
   --radius-xl: 30px;
 
-  /* ── Spacing ── */
-  --spacing: 8px;
+  /* ── Spacing ──
+     原本 8px 會把所有間距/尺寸放大成 Tailwind 預設（4px）的兩倍，造成手機上過於鬆散、
+     選項要一直往下滑、元素過寬被切掉。收斂到 6px：較緊湊、少滑動，仍保留一點呼吸感。 */
+  --spacing: 6px;
 }
 
 @layer base {

@@ -120,6 +120,7 @@ export default function ChildrenPage() {
                     size="md"
                     variant="secondary"
                     icon="edit"
+                    className="flex-1"
                   >
                     編輯
                   </LinkButton>
@@ -130,6 +131,7 @@ export default function ChildrenPage() {
                     onClick={() => handleDelete(child.id)}
                     loading={deleting === child.id}
                     disabled={deleting === child.id}
+                    className="flex-1"
                   >
                     刪除
                   </Button>

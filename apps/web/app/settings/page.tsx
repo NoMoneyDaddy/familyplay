@@ -6,6 +6,7 @@ import {
   Button,
   Callout,
   Card,
+  ErrorAlert,
   Icon,
   type IconName,
   PageHeader,
@@ -27,6 +28,9 @@ export default function SettingsPage() {
   const router = useRouter()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -39,6 +43,25 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/auth')
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch('/api/account', { method: 'DELETE' })
+      if (res.ok) {
+        await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
+        router.push('/try')
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setDeleteError(data.error || '刪除帳號失敗，請稍後再試')
+        setDeleting(false)
+      }
+    } catch {
+      setDeleteError('發生錯誤，請稍後再試')
+      setDeleting(false)
+    }
   }
 
   return (
@@ -83,6 +106,48 @@ export default function SettingsPage() {
           <Callout tone="tip" title="提示">
             你的資料已加密保存在 Supabase，符合隱私標準。
           </Callout>
+
+          {/* 危險區：刪除帳號（兩步確認） */}
+          <div className="pt-2">
+            {confirmingDelete ? (
+              <Card className="space-y-3 ring-1 ring-danger/30">
+                <p className="text-sm text-text">
+                  確定要刪除帳號嗎？這會<strong>永久刪除</strong>
+                  你的孩子檔案、陪伴紀錄與你建立的家庭資料，<strong>無法復原</strong>。
+                </p>
+                <ErrorAlert message={deleteError} />
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    className="flex-1"
+                    disabled={deleting}
+                    onClick={() => setConfirmingDelete(false)}
+                  >
+                    取消
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="md"
+                    icon="trash"
+                    className="flex-1"
+                    loading={deleting}
+                    onClick={handleDeleteAccount}
+                  >
+                    確認刪除
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                className="mx-auto block text-sm text-faint transition-colors hover:text-danger"
+              >
+                刪除帳號
+              </button>
+            )}
+          </div>
         </div>
       )}
     </PageShell>
