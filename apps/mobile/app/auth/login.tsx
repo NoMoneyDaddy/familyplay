@@ -63,11 +63,11 @@ export default function LoginScreen() {
         <View className="flex-1 items-center justify-center">
           <View className="mb-20 w-full space-y-2">
             <Text className="text-center text-4xl font-bold text-[#FF6B35]">FamilyPlay</Text>
-            <Text className="text-center text-base text-[#6B7280]">30 秒找到今天的陪伴方式</Text>
+            <Text className="text-center text-base text-[#6B615A]">30 秒找到今天的陪伴方式</Text>
           </View>
 
           <View className="w-full space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-            <Text className="text-center font-semibold text-[#1A1A1A]">選擇登入方式</Text>
+            <Text className="text-center font-semibold text-[#241F1B]">選擇登入方式</Text>
 
             {error && (
               <View className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -78,34 +78,34 @@ export default function LoginScreen() {
             <Pressable
               disabled={loading}
               onPress={handleGoogleSignIn}
-              className={`rounded-lg border-2 border-[#E5E7EB] py-4 active:opacity-80 ${loading ? 'opacity-50' : ''}`}
+              className={`rounded-lg border-2 border-[#ECE5DB] py-4 active:opacity-80 ${loading ? 'opacity-50' : ''}`}
               accessibilityLabel="用 Google 帳號登入"
               accessibilityRole="button"
             >
-              <Text className="text-center font-semibold text-[#1A1A1A]">
+              <Text className="text-center font-semibold text-[#241F1B]">
                 🔐 用 Google 帳號登入
               </Text>
             </Pressable>
 
             <View className="my-2 flex-row items-center">
-              <View className="flex-1 border-t border-[#E5E7EB]" />
-              <Text className="mx-3 text-xs text-[#9CA3AF]">或</Text>
-              <View className="flex-1 border-t border-[#E5E7EB]" />
+              <View className="flex-1 border-t border-[#ECE5DB]" />
+              <Text className="mx-3 text-xs text-[#9B9089]">或</Text>
+              <View className="flex-1 border-t border-[#ECE5DB]" />
             </View>
 
             <Pressable
               disabled={loading}
               onPress={handleEmailSignUp}
-              className={`rounded-lg border-2 border-[#E5E7EB] py-4 active:opacity-80 ${loading ? 'opacity-50' : ''}`}
+              className={`rounded-lg border-2 border-[#ECE5DB] py-4 active:opacity-80 ${loading ? 'opacity-50' : ''}`}
               accessibilityLabel="用 Email 登入"
               accessibilityRole="button"
             >
-              <Text className="text-center font-semibold text-[#1A1A1A]">
+              <Text className="text-center font-semibold text-[#241F1B]">
                 ✉️ 用 Email 登入或註冊
               </Text>
             </Pressable>
 
-            <Text className="text-center text-xs text-[#6B7280]">
+            <Text className="text-center text-xs text-[#6B615A]">
               你的資料使用 Supabase 安全保護
             </Text>
           </View>

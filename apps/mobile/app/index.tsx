@@ -4,14 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function HomeScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-[#FAFAF8]">
+    <SafeAreaView className="flex-1 bg-[#FAF6F0]">
       <View className="flex-1 items-center justify-center px-5">
         <Text className="text-3xl font-bold text-[#FF6B35] mb-2">FamilyPlay</Text>
-        <Text className="text-[#6B7280] mb-8">30 秒找到今天的陪伴方式</Text>
+        <Text className="text-[#6B615A] mb-8">30 秒找到今天的陪伴方式</Text>
 
-        <View className="w-full bg-white rounded-2xl p-6 shadow-sm border border-[#E5E7EB] mb-6">
-          <Text className="text-sm text-[#6B7280] mb-2">示範引導卡</Text>
-          <Text className="text-xl font-semibold text-[#1A1A1A] mb-2">問你一件今天的事</Text>
+        <View className="w-full bg-white rounded-2xl p-6 shadow-sm border border-[#ECE5DB] mb-6">
+          <Text className="text-sm text-[#6B615A] mb-2">示範引導卡</Text>
+          <Text className="text-xl font-semibold text-[#241F1B] mb-2">問你一件今天的事</Text>
           <Text className="text-2xl font-bold text-[#FF6B35]">你今天有什麼讓你開心的事嗎？</Text>
         </View>
 

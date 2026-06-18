@@ -32,9 +32,13 @@ export const metadata: Metadata = {
     title: 'FamilyPlay',
   },
   icons: {
-    icon: '/icon-192.png',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
     apple: '/apple-touch-icon.png',
-    shortcut: '/favicon.ico',
+    shortcut: '/favicon-32.png',
   },
   openGraph: {
     title: 'FamilyPlay',

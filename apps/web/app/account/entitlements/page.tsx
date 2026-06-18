@@ -56,8 +56,8 @@ export default function EntitlementsPage() {
   }, [router])
 
   const formatDate = (dateString: string | null): string => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return '—'
+    return new Date(dateString).toLocaleDateString('zh-TW', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -67,20 +67,20 @@ export default function EntitlementsPage() {
   const getPlanDisplay = (plan: string): { name: string; icon: IconName } => {
     switch (plan) {
       case 'free':
-        return { name: 'Free', icon: 'user' }
+        return { name: '免費', icon: 'user' }
       case 'supporter':
-        return { name: 'Supporter', icon: 'sparkle' }
+        return { name: '支持者', icon: 'sparkle' }
       case 'plus':
         return { name: 'Plus', icon: 'star' }
       default:
-        return { name: 'Unknown', icon: 'lock' }
+        return { name: '未知', icon: 'lock' }
     }
   }
 
   if (loading) {
     return (
       <PageShell>
-        <div className="h-96 animate-pulse rounded-lg bg-surface" />
+        <div className="h-96 animate-pulse rounded-xl bg-surface" />
       </PageShell>
     )
   }
@@ -88,8 +88,8 @@ export default function EntitlementsPage() {
   if (!entitlements) {
     return (
       <PageShell>
-        <PageHeader title="Account" align="center" />
-        <ErrorAlert message="Failed to load entitlements. Please try again." />
+        <PageHeader title="帳號" align="center" />
+        <ErrorAlert message="無法載入方案資訊，請稍後再試。" />
       </PageShell>
     )
   }
@@ -99,132 +99,121 @@ export default function EntitlementsPage() {
 
   return (
     <PageShell>
-      <PageHeader title="Subscription" subtitle="Manage your FamilyPlay plan" align="center" />
+      <PageHeader title="訂閱方案" subtitle="管理你的 FamilyPlay 方案" align="center" />
 
-      {/* Current Plan Card */}
-      <Card
-        className={
-          isCurrentPlanHighlighted ? 'border-brand bg-brand-tint' : 'border-border bg-card'
-        }
-      >
+      {/* 目前方案卡 */}
+      <Card className={isCurrentPlanHighlighted ? 'border-brand bg-brand-tint' : ''}>
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-muted">Current Plan</p>
+            <p className="text-sm font-medium text-muted">目前方案</p>
             <div className="mt-2 flex items-center gap-2">
-              <Icon name={planInfo.icon} className="h-[28px] w-[28px] text-brand" />
+              <Icon name={planInfo.icon} className="h-[26px] w-[26px] text-brand" />
               <h2 className="text-2xl font-bold text-text">{planInfo.name}</h2>
             </div>
           </div>
         </div>
 
-        {/* Plan details */}
-        <div className="space-y-3 border-t border-border pt-4">
-          {entitlements.plan === 'supporter' && entitlements.supporterPurchasedAt && (
-            <div className="flex justify-between">
-              <span className="text-sm text-muted">Purchased</span>
-              <span className="text-sm font-medium text-text">
-                {formatDate(entitlements.supporterPurchasedAt)}
-              </span>
-            </div>
-          )}
-
-          {entitlements.plan === 'plus' && (
-            <>
+        {/* 方案明細 */}
+        {(entitlements.plan === 'supporter' || entitlements.plan === 'plus') && (
+          <div className="space-y-3 border-t border-border pt-4">
+            {entitlements.plan === 'supporter' && entitlements.supporterPurchasedAt && (
               <div className="flex justify-between">
-                <span className="text-sm text-muted">Started</span>
+                <span className="text-sm text-muted">購買於</span>
                 <span className="text-sm font-medium text-text">
-                  {formatDate(entitlements.plusStartedAt)}
+                  {formatDate(entitlements.supporterPurchasedAt)}
                 </span>
               </div>
+            )}
 
-              <div className="flex justify-between">
-                <span className="text-sm text-muted">Renewal Date</span>
-                <span className="text-sm font-medium text-text">
-                  {formatDate(entitlements.plusEndsAt)}
-                </span>
-              </div>
-
-              {/* AI calls remaining */}
-              <div className="space-y-2 border-t border-border pt-3">
+            {entitlements.plan === 'plus' && (
+              <>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted">AI Calls Remaining</span>
-                  <span className="text-sm font-bold text-brand">
-                    {entitlements.plusAiCallsRemaining}
+                  <span className="text-sm text-muted">開始於</span>
+                  <span className="text-sm font-medium text-text">
+                    {formatDate(entitlements.plusStartedAt)}
                   </span>
                 </div>
 
-                {/* Progress bar */}
-                <div className="h-2 w-full overflow-hidden rounded-full bg-border">
-                  <div
-                    className="h-full bg-brand transition-all"
-                    style={{
-                      width: `${Math.min(100, (entitlements.plusAiCallsRemaining / 100) * 100)}%`,
-                    }}
-                  />
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted">續訂日期</span>
+                  <span className="text-sm font-medium text-text">
+                    {formatDate(entitlements.plusEndsAt)}
+                  </span>
                 </div>
-                <p className="text-xs text-muted">
-                  Resets {formatDate(entitlements.plusAiCallsResetAt)}
-                </p>
-              </div>
-            </>
-          )}
-        </div>
+
+                {/* AI 生成剩餘次數 */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted">AI 生成剩餘</span>
+                    <span className="text-sm font-bold text-brand">
+                      {entitlements.plusAiCallsRemaining}
+                    </span>
+                  </div>
+
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+                    <div
+                      className="h-full bg-[image:var(--gradient-brand)] transition-all"
+                      style={{
+                        width: `${Math.min(100, (entitlements.plusAiCallsRemaining / 100) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                  {entitlements.plusAiCallsResetAt && (
+                    <p className="text-xs text-muted">
+                      {formatDate(entitlements.plusAiCallsResetAt)} 重置
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </Card>
 
-      {/* Action buttons */}
+      {/* 行動按鈕 */}
       <div className="space-y-3">
         {entitlements.plan === 'free' && (
-          <Button size="lg" onClick={() => router.push('/pricing')}>
-            Explore Plans
+          <Button size="lg" icon="sparkle" onClick={() => router.push('/pricing')}>
+            探索方案
           </Button>
         )}
 
         {entitlements.plan === 'supporter' && (
-          <Button size="lg" onClick={() => router.push('/pricing')}>
-            Upgrade to Plus
+          <Button size="lg" icon="star" onClick={() => router.push('/pricing')}>
+            升級 Plus
           </Button>
         )}
 
         {entitlements.plan !== 'free' && (
           <Button variant="secondary" size="lg" disabled>
-            Manage Subscription via LemonSqueezy
+            透過 LemonSqueezy 管理訂閱
           </Button>
         )}
 
         <LinkButton href="/pricing" variant="secondary" size="lg">
-          View All Plans
+          查看所有方案
         </LinkButton>
       </div>
 
-      {/* Information section */}
-      <Callout tone="info" title="About Your Plan">
+      {/* 說明 */}
+      <Callout tone="tip" title="關於你的方案">
         {entitlements.plan === 'free' && (
-          <>
-            <p>You're using the free version of FamilyPlay.</p>
-            <p>Upgrade to Supporter or Plus to unlock more features.</p>
-          </>
+          <p>你目前使用免費版。升級為「支持者」或「Plus」可解鎖更多功能、移除廣告。</p>
         )}
         {entitlements.plan === 'supporter' && (
-          <>
-            <p>Thank you for supporting FamilyPlay development!</p>
-            <p>You can upgrade to Plus anytime to unlock AI-powered activity generation.</p>
-          </>
+          <p>謝謝你支持 FamilyPlay！隨時可升級 Plus 解鎖 AI 客製活動生成。</p>
         )}
         {entitlements.plan === 'plus' && (
-          <>
-            <p>You have full access to all Plus features.</p>
-            <p>Your subscription auto-renews on {formatDate(entitlements.plusEndsAt)}.</p>
-          </>
+          <p>你已擁有完整 Plus 功能。訂閱將於 {formatDate(entitlements.plusEndsAt)} 自動續訂。</p>
         )}
       </Callout>
 
-      {/* Back link */}
       <button
         type="button"
         onClick={() => router.back()}
-        className="text-center text-sm text-brand transition-opacity hover:opacity-70"
+        className="text-center text-sm font-medium text-brand transition-opacity hover:opacity-70"
       >
-        Back
+        返回
       </button>
     </PageShell>
   )
