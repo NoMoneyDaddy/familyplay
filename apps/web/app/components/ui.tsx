@@ -159,6 +159,49 @@ const ICON_PATHS: Record<string, ReactNode> = {
       <path d="M15.5 8.5l-2 5-5 2 2-5z" />
     </>
   ),
+  moon: <path d="M21 12.8A8.5 8.5 0 1111.2 3a6.6 6.6 0 109.8 9.8z" />,
+  cloudBolt: (
+    <>
+      <path d="M7 16.5a4 4 0 01.5-8 5.5 5.5 0 0110.5 1.6A3.4 3.4 0 0117 16.5" />
+      <path d="M12 12.5l-2 3.5h3l-2 3.5" />
+    </>
+  ),
+  thermometer: (
+    <>
+      <path d="M14 14.8V5a2 2 0 10-4 0v9.8a4 4 0 104 0z" />
+      <path d="M12 9.5v5" />
+    </>
+  ),
+  batteryEmpty: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+    </>
+  ),
+  batteryLow: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+      <rect x="5" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  batteryMid: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+      <rect x="5" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+      <rect x="9.2" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  batteryFull: (
+    <>
+      <rect x="2.5" y="8" width="16.5" height="9" rx="2.5" />
+      <path d="M21.5 11.5v3" />
+      <rect x="5" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+      <rect x="9.2" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+      <rect x="13.4" y="10.3" width="3" height="4.4" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
 }
 
 export type IconName = keyof typeof ICON_PATHS

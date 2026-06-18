@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { Mascot } from '@/app/components/mascot'
 import { createClient } from '@/lib/supabase/client'
 
 function GoogleIcon() {
@@ -123,8 +124,8 @@ function AuthPageInner() {
         <div className="space-y-7 rounded-[30px] bg-card p-7 shadow-clay ring-1 ring-border/50">
           {/* Hero */}
           <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-[68px] w-[68px] items-center justify-center rounded-[24px] bg-[image:var(--gradient-brand)] text-3xl shadow-brand ring-4 ring-brand-tint">
-              <span aria-hidden="true">🧸</span>
+            <div className="mx-auto flex h-[72px] w-[72px] items-center justify-center rounded-[26px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
+              <Mascot className="h-12 w-12" />
             </div>
             <div className="space-y-1.5">
               <h1 className="text-[28px] font-bold leading-tight text-text">FamilyPlay</h1>
