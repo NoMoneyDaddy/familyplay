@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useRef, useState } from 'react'
 import { Mascot } from '@/app/components/mascot'
 import { Button, Card, ErrorAlert, Icon, type IconName, PageShell } from '@/app/components/ui'
 
@@ -49,6 +49,15 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   // 記錄成功後的小慶祝（最有成就感的時刻），停留約 1.8 秒再回首頁。
   const [celebrating, setCelebrating] = useState(false)
   const [savedMins, setSavedMins] = useState(0)
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 卸載時清掉未觸發的慶祝→導頁計時器，避免回上頁後被非預期導向 /select
+  useEffect(
+    () => () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current)
+    },
+    [],
+  )
 
   useEffect(() => {
     fetch(`/api/activities/${id}`)
@@ -101,7 +110,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
       // 成功 → 小慶祝再回首頁（保持 loading，避免覆蓋層後面還能再按）
       setSavedMins(Math.round(durationSecs / 60))
       setCelebrating(true)
-      setTimeout(() => router.push('/select'), 1800)
+      redirectTimer.current = setTimeout(() => router.push('/select'), 1800)
     } catch (err) {
       console.error('Failed to log activity:', err)
       setError('記錄失敗，請檢查網路後再試一次。')
