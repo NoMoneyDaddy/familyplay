@@ -116,10 +116,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create child' }, { status: 500 })
     }
 
-    await supabase.from('child_capability_profiles').insert({
+    // 能力 profile 是 ZPD 推薦的前提；先前忽略此 insert 的錯誤 → 孩子可能存在卻無
+    // 能力檔，推薦靜默降級。檢查錯誤，失敗就回滾剛建立的孩子，避免半套資料。
+    const { error: capError } = await supabase.from('child_capability_profiles').insert({
       child_id: child.id,
       capabilities: {},
     })
+
+    if (capError) {
+      await supabase.from('child_profiles').delete().eq('id', child.id)
+      return NextResponse.json({ error: 'Failed to create child' }, { status: 500 })
+    }
 
     return NextResponse.json({ childId: child.id })
   } catch (error) {
