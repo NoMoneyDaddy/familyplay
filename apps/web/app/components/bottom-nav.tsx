@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Icon, type IconName } from './ui'
 
 /** 不顯示底部導覽的「進入前」頁面（登入、引導、加入家庭、離線、錯誤頁）。 */
-const HIDDEN_PREFIXES = ['/auth', '/onboarding', '/join', '/offline']
+const HIDDEN_PREFIXES = ['/auth', '/onboarding', '/join', '/offline', '/try']
 
 interface Tab {
   href: string

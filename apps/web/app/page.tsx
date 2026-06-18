@@ -17,8 +17,9 @@ export default async function HomePage() {
 
   const { data } = await supabase.auth.getSession()
 
+  // 未登入：直接帶到「免費試用」（不強制登入、先給價值）；要保存/記錄再從那裡登入。
   if (!data.session) {
-    redirect('/auth')
+    redirect('/try')
   }
 
   const { data: children } = await supabase.from('child_profiles').select('id').limit(1)

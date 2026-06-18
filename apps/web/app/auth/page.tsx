@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Mascot } from '@/app/components/mascot'
@@ -176,6 +177,14 @@ function AuthPageInner() {
 
           {/* 信任元素 */}
           <p className="text-center text-xs text-muted">免費開始 · 免信用卡 · 30 秒上手</p>
+
+          {/* 不強制登入：可先免登入試用 */}
+          <p className="text-center text-sm text-muted">
+            想先看看？{' '}
+            <Link href="/try" className="font-medium text-brand hover:underline">
+              免登入直接試用
+            </Link>
+          </p>
         </div>
 
         {/* 卡片外的安心說明 */}
