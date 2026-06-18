@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SettingsGearLink } from '@/app/components/settings-gear-link'
 import {
   Button,
   Callout,
@@ -12,6 +13,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
+import { stageLabel } from '@/lib/stage-labels'
 
 interface Child {
   id: string
@@ -82,7 +84,11 @@ export default function ChildrenPage() {
 
   return (
     <PageShell>
-      <PageHeader title="管理孩子" subtitle="編輯和管理你的孩子檔案" />
+      <PageHeader
+        title="管理孩子"
+        subtitle="編輯和管理你的孩子檔案"
+        action={<SettingsGearLink />}
+      />
 
       <ErrorAlert message={error} />
 
@@ -109,8 +115,8 @@ export default function ChildrenPage() {
                     {child.birthYearMonth && (
                       <p className="text-sm text-muted">出生: {child.birthYearMonth}</p>
                     )}
-                    {child.stageKey && (
-                      <p className="mt-1 text-xs text-faint">階段: {child.stageKey}</p>
+                    {stageLabel(child.stageKey) && (
+                      <p className="mt-1 text-xs text-faint">{stageLabel(child.stageKey)}</p>
                     )}
                   </div>
                 </div>
