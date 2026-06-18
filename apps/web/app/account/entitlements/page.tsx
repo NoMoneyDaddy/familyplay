@@ -158,9 +158,11 @@ export default function EntitlementsPage() {
                       }}
                     />
                   </div>
-                  <p className="text-xs text-muted">
-                    {formatDate(entitlements.plusAiCallsResetAt)} 重置
-                  </p>
+                  {entitlements.plusAiCallsResetAt && (
+                    <p className="text-xs text-muted">
+                      {formatDate(entitlements.plusAiCallsResetAt)} 重置
+                    </p>
+                  )}
                 </div>
               </>
             )}

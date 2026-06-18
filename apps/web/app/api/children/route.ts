@@ -52,21 +52,29 @@ export async function POST(request: Request) {
     //   2) 否則用自己「以成員身分加入」的家庭——受邀的 caregiver 也能往共用家庭新增孩子，
     //      而不是被迫另開新家庭，這樣家人才是真的「共同」管理同一批孩子
     //   3) 都沒有才新建一個自己擁有的家庭
-    const { data: ownedHousehold } = await supabase
+    const { data: ownedHousehold, error: ownedError } = await supabase
       .from('households')
       .select('id')
       .eq('owner_id', userProfile.id)
       .maybeSingle()
 
+    // 查詢失敗（RLS/網路/暫時性錯誤）時必須中止——否則會誤判「沒有家庭」而誤建重複家庭
+    if (ownedError) {
+      return NextResponse.json({ error: 'Failed to look up household' }, { status: 500 })
+    }
+
     let householdId = ownedHousehold?.id
 
     if (!householdId) {
-      const { data: membership } = await supabase
+      const { data: membership, error: membershipError } = await supabase
         .from('household_members')
         .select('household_id')
         .eq('user_profile_id', userProfile.id)
         .limit(1)
         .maybeSingle()
+      if (membershipError) {
+        return NextResponse.json({ error: 'Failed to look up membership' }, { status: 500 })
+      }
       householdId = membership?.household_id
     }
 
