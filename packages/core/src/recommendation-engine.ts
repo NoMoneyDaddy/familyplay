@@ -1,3 +1,4 @@
+import { ALLOWED_CAPABILITY_KEYS } from './capability-keys'
 import {
   type CompanionContext,
   containsBlockedMaterial,
@@ -5,7 +6,7 @@ import {
   HIGH_RISK_STAGES,
   hasBlockedContextKeyword,
 } from './safety-rules'
-import type { StageKey } from './stage-keys'
+import { ALLOWED_STAGE_KEYS, getStageKey, type StageKey } from './stage-keys'
 export type ParentEnergy = 'exhausted' | 'low' | 'medium' | 'high'
 export type SpaceType = 'anywhere' | 'living_room' | 'bedroom' | 'outdoor' | 'kitchen'
 
@@ -157,12 +158,57 @@ function applyRecencyPenalty(
   })
 }
 
+// Safety boundary: the engine is the reusable choking/safety filter, called from
+// multiple routes. Never trust the caller's stageKey or capability set — a
+// malformed stageKey would make HIGH_RISK_STAGES.includes() return false and
+// silently disable the under-3 small-parts filter. Re-derive on any mismatch and
+// fall back to the most conservative (newborn = HIGH_RISK) assumption.
+function normalizeChild(child: Child): Child {
+  // Bad ageMonths (undefined/null/NaN) must NOT fall through getStageKey to
+  // 'preschooler_plus' (non-high-risk) and re-open the choking bypass. Coerce to
+  // 0 → newborn → HIGH_RISK (fail safe) before deriving.
+  const ageMonths = Number.isFinite(child.ageMonths) ? child.ageMonths : 0
+  const stageKey = ALLOWED_STAGE_KEYS.includes(child.stageKey)
+    ? child.stageKey
+    : getStageKey(ageMonths)
+  // A non-iterable acquiredCapabilities (e.g. a plain object from JSON) would
+  // throw on spread and crash the request — guard before iterating.
+  const rawCaps =
+    typeof child.acquiredCapabilities?.[Symbol.iterator] === 'function'
+      ? [...child.acquiredCapabilities]
+      : []
+  const acquiredCapabilities = new Set(
+    rawCaps.filter((c) => (ALLOWED_CAPABILITY_KEYS as string[]).includes(c)),
+  )
+  return { ...child, ageMonths, stageKey, acquiredCapabilities }
+}
+
+// DB rows aren't validated against the TS types at runtime. A NaN/undefined
+// duration poisons score arithmetic and makes the entire .sort() non-deterministic
+// (NaN comparisons). Coerce numeric fields to finite values before scoring.
+function normalizeActivity(a: Activity): Activity {
+  const min = Number.isFinite(a.minDurationMinutes) ? a.minDurationMinutes : 1
+  const max = Number.isFinite(a.maxDurationMinutes) ? a.maxDurationMinutes : min
+  return {
+    ...a,
+    minDurationMinutes: min,
+    maxDurationMinutes: Math.max(min, max),
+    minAgeMonths: Number.isFinite(a.minAgeMonths) ? a.minAgeMonths : 0,
+    // Bad maxAge → 0 so only age 0 passes: fail closed rather than match everyone.
+    maxAgeMonths: Number.isFinite(a.maxAgeMonths) ? a.maxAgeMonths : 0,
+  }
+}
+
 export function getRecommendations(
   activities: Activity[],
-  context: RecommendationContext,
+  rawContext: RecommendationContext,
   limit = 3,
 ): ScoredActivity[] {
-  let filtered = activities.filter((a) => a.isActive)
+  const context: RecommendationContext = {
+    ...rawContext,
+    child: normalizeChild(rawContext.child),
+  }
+  let filtered = activities.map(normalizeActivity).filter((a) => a.isActive)
 
   // Step 1–3: Filter chain
   filtered = filterByAgeSafety(filtered, context.child)

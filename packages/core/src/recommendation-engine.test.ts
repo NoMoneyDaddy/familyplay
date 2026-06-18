@@ -199,6 +199,73 @@ describe('Recommendation Engine', () => {
     expect(recs[0].isFallback).toBe(true)
   })
 
+  it('still blocks choking hazards when stageKey is malformed (re-derives from age)', () => {
+    // A bad stageKey must NOT silently disable the under-3 small-parts filter.
+    activities.push({
+      ...activities[0],
+      id: 'hazard',
+      title: '用鈕扣排排看',
+      minAgeMonths: 0,
+      maxAgeMonths: 36,
+    })
+    // @ts-expect-error — deliberately invalid stageKey to test the safety boundary
+    child.stageKey = 'toddler'
+    child.ageMonths = 10 // under 3 → must be treated as HIGH_RISK
+    context.child = child
+    const recs = getRecommendations(activities, context, 10)
+    expect(recs.find((a) => a.id === 'hazard')).toBeUndefined()
+  })
+
+  it('blocks choking hazards even when ageMonths is invalid (fails safe to newborn)', () => {
+    activities.push({
+      ...activities[0],
+      id: 'hazard',
+      title: '用磁鐵排排看',
+      minAgeMonths: 0,
+      maxAgeMonths: 36,
+    })
+    // @ts-expect-error — deliberately invalid stageKey
+    child.stageKey = 'unknown'
+    // @ts-expect-error — deliberately invalid age (e.g. unvalidated external input)
+    child.ageMonths = undefined
+    context.child = child
+    const recs = getRecommendations(activities, context, 10)
+    expect(recs.find((a) => a.id === 'hazard')).toBeUndefined()
+  })
+
+  it('does not crash when acquiredCapabilities is not iterable', () => {
+    // @ts-expect-error — simulating a plain object that never got converted to a Set
+    child.acquiredCapabilities = { objectPermanence: true }
+    context.child = child
+    expect(() => getRecommendations(activities, context, 5)).not.toThrow()
+  })
+
+  it('does not let a NaN duration poison the ranking', () => {
+    activities = [
+      // biome-ignore lint/suspicious/noExplicitAny: simulating an unvalidated DB row
+      { ...activities[0], id: 'bad', maxAgeMonths: 36, minDurationMinutes: NaN as any },
+      { ...activities[0], id: 'good', maxAgeMonths: 36, minDurationMinutes: 5 },
+    ]
+    const recs = getRecommendations(activities, context, 5)
+    // Every score must be a finite number — no NaN leaking into the sort.
+    expect(recs.every((a) => Number.isFinite(a.score))).toBe(true)
+    expect(recs.length).toBe(2)
+  })
+
+  it('ignores acquired capabilities outside the whitelist', () => {
+    activities.push({
+      ...activities[0],
+      id: 'needs-real-cap',
+      maxAgeMonths: 36,
+      requiredCapabilities: ['objectPermanence'],
+    })
+    // A bogus acquired cap must not satisfy a real requiredCapability.
+    child.acquiredCapabilities = new Set(['not_a_real_capability'])
+    context.child = child
+    const recs = getRecommendations(activities, context, 10)
+    expect(recs.find((a) => a.id === 'needs-real-cap')).toBeUndefined()
+  })
+
   it('prioritizes zero-resource (free) activities', () => {
     activities = [
       {
