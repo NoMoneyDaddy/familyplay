@@ -7,18 +7,9 @@ import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Mascot } from '@/components/Mascot'
 import { createMobileClient } from '@/lib/supabase/mobile'
-import { colors } from '@/lib/theme'
+import { brandGradient, clayCard, colors } from '@/lib/theme'
 
 WebBrowser.maybeCompleteAuthSession()
-
-// 黏土卡片陰影（暖色、柔和）
-const clayCard = {
-  shadowColor: '#4A311C',
-  shadowOffset: { width: 0, height: 10 },
-  shadowOpacity: 0.12,
-  shadowRadius: 24,
-  elevation: 6,
-}
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -75,7 +66,7 @@ export default function LoginScreen() {
         {/* Hero：吉祥物徽章 + 標題 */}
         <View className="mb-10 items-center">
           <LinearGradient
-            colors={['#ff8a5c', '#ff6b35', '#e8551f']}
+            colors={brandGradient}
             style={{
               width: 80,
               height: 80,
@@ -138,7 +129,7 @@ export default function LoginScreen() {
             accessibilityRole="button"
           >
             <LinearGradient
-              colors={['#ff8a5c', '#ff6b35', '#e8551f']}
+              colors={brandGradient}
               style={{ paddingVertical: 16, alignItems: 'center' }}
             >
               <Text className="text-center text-base font-semibold text-white">

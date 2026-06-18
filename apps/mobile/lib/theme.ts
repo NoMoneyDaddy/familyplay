@@ -36,4 +36,16 @@ export const radius = {
   xl: 30,
 } as const
 
+/** 黏土卡片陰影（暖色、柔和）—— RN style 物件，給卡片/徽章共用，避免各畫面重複定義。 */
+export const clayCard = {
+  shadowColor: '#4A311C',
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.12,
+  shadowRadius: 24,
+  elevation: 6,
+} as const
+
+/** 品牌漸層（上淺下深），給 expo-linear-gradient 的 colors 用。 */
+export const brandGradient = ['#FF8A5C', '#FF6B35', '#E8551F'] as const
+
 export type ColorToken = keyof typeof colors

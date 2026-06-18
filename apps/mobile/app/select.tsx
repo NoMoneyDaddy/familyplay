@@ -6,20 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Mascot } from '@/components/Mascot'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
-import { colors } from '@/lib/theme'
+import { brandGradient, clayCard, colors } from '@/lib/theme'
 
 interface ChildProfile {
   id: string
   nickname: string
   birth_year_month: string
-}
-
-const clayCard = {
-  shadowColor: '#4A311C',
-  shadowOffset: { width: 0, height: 10 },
-  shadowOpacity: 0.12,
-  shadowRadius: 24,
-  elevation: 6,
 }
 
 export default function SelectScreen() {
@@ -129,7 +121,7 @@ export default function SelectScreen() {
               style={clayCard}
             >
               <LinearGradient
-                colors={['#ff8a5c', '#ff6b35', '#e8551f']}
+                colors={brandGradient}
                 style={{ paddingHorizontal: 28, paddingVertical: 14 }}
               >
                 <Text className="font-semibold text-white">新增第一個孩子</Text>
