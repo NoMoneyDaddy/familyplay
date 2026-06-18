@@ -216,6 +216,30 @@ describe('Recommendation Engine', () => {
     expect(recs.find((a) => a.id === 'hazard')).toBeUndefined()
   })
 
+  it('blocks choking hazards even when ageMonths is invalid (fails safe to newborn)', () => {
+    activities.push({
+      ...activities[0],
+      id: 'hazard',
+      title: '用磁鐵排排看',
+      minAgeMonths: 0,
+      maxAgeMonths: 36,
+    })
+    // @ts-expect-error — deliberately invalid stageKey
+    child.stageKey = 'unknown'
+    // @ts-expect-error — deliberately invalid age (e.g. unvalidated external input)
+    child.ageMonths = undefined
+    context.child = child
+    const recs = getRecommendations(activities, context, 10)
+    expect(recs.find((a) => a.id === 'hazard')).toBeUndefined()
+  })
+
+  it('does not crash when acquiredCapabilities is not iterable', () => {
+    // @ts-expect-error — simulating a plain object that never got converted to a Set
+    child.acquiredCapabilities = { objectPermanence: true }
+    context.child = child
+    expect(() => getRecommendations(activities, context, 5)).not.toThrow()
+  })
+
   it('does not let a NaN duration poison the ranking', () => {
     activities = [
       // biome-ignore lint/suspicious/noExplicitAny: simulating an unvalidated DB row

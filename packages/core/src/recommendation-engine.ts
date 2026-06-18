@@ -164,15 +164,23 @@ function applyRecencyPenalty(
 // silently disable the under-3 small-parts filter. Re-derive on any mismatch and
 // fall back to the most conservative (newborn = HIGH_RISK) assumption.
 function normalizeChild(child: Child): Child {
+  // Bad ageMonths (undefined/null/NaN) must NOT fall through getStageKey to
+  // 'preschooler_plus' (non-high-risk) and re-open the choking bypass. Coerce to
+  // 0 → newborn → HIGH_RISK (fail safe) before deriving.
+  const ageMonths = Number.isFinite(child.ageMonths) ? child.ageMonths : 0
   const stageKey = ALLOWED_STAGE_KEYS.includes(child.stageKey)
     ? child.stageKey
-    : getStageKey(child.ageMonths) // returns 'newborn' (most conservative) on bad age
+    : getStageKey(ageMonths)
+  // A non-iterable acquiredCapabilities (e.g. a plain object from JSON) would
+  // throw on spread and crash the request — guard before iterating.
+  const rawCaps =
+    typeof child.acquiredCapabilities?.[Symbol.iterator] === 'function'
+      ? [...child.acquiredCapabilities]
+      : []
   const acquiredCapabilities = new Set(
-    [...child.acquiredCapabilities].filter((c) =>
-      (ALLOWED_CAPABILITY_KEYS as string[]).includes(c),
-    ),
+    rawCaps.filter((c) => (ALLOWED_CAPABILITY_KEYS as string[]).includes(c)),
   )
-  return { ...child, stageKey, acquiredCapabilities }
+  return { ...child, ageMonths, stageKey, acquiredCapabilities }
 }
 
 // DB rows aren't validated against the TS types at runtime. A NaN/undefined
