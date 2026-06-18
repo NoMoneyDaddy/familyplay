@@ -41,11 +41,20 @@ export async function GET(request: Request) {
 
     const { childId: validatedChildId } = querySchema.parse({ childId })
 
+    // 目前使用者的 profile id —— 用來標記哪些紀錄是本人記的（可編輯／刪除）
+    const { data: myProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single()
+    const myProfileId = myProfile?.id ?? null
+
     const { data: logs, error } = await supabase
       .from('companion_logs')
       .select(
         `
         id,
+        caregiver_id,
         outcome,
         child_reaction,
         duration_secs,
@@ -71,6 +80,8 @@ export async function GET(request: Request) {
         childReaction: log.child_reaction,
         createdAt: log.created_at,
         durationSecs: log.duration_secs,
+        // 只有本人記的紀錄能改／刪（與 RLS log_owner_update/delete 一致）
+        editable: myProfileId != null && log.caregiver_id === myProfileId,
       })),
     })
   } catch (error) {

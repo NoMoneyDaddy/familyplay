@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { PlanComparison } from '@/app/components/plan-comparison'
 import {
   Button,
   Callout,
@@ -169,26 +170,12 @@ export default function EntitlementsPage() {
         )}
       </Card>
 
-      {/* 行動按鈕：單一 CTA，避免重複 */}
-      <div className="space-y-3">
-        {entitlements.plan === 'free' && (
-          <Button size="lg" icon="sparkle" onClick={() => router.push('/pricing')}>
-            查看方案
-          </Button>
-        )}
-
-        {entitlements.plan === 'supporter' && (
-          <Button size="lg" icon="star" onClick={() => router.push('/pricing')}>
-            升級 Plus
-          </Button>
-        )}
-
-        {entitlements.plan !== 'free' && (
-          <Button variant="secondary" size="lg" disabled>
-            透過 LemonSqueezy 管理訂閱
-          </Button>
-        )}
-      </div>
+      {/* 訂閱管理（付費方案）：直接在本頁操作，不必再跳到別頁 */}
+      {entitlements.plan !== 'free' && (
+        <Button variant="secondary" size="lg" disabled>
+          透過 LemonSqueezy 管理訂閱
+        </Button>
+      )}
 
       {/* 說明 */}
       <Callout tone="tip" title="關於你的方案">
@@ -202,6 +189,15 @@ export default function EntitlementsPage() {
           <p>你已擁有完整 Plus 功能。訂閱將於 {formatDate(entitlements.plusEndsAt)} 自動續訂。</p>
         )}
       </Callout>
+
+      {/* 方案比較與升級：直接內嵌（原 /pricing 內容），不必再跳到另一頁 */}
+      <section className="space-y-4 border-t border-border pt-6">
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-text">所有方案</h2>
+          <p className="text-sm text-muted">大部分功能免費；付費可移除廣告並解鎖進階。</p>
+        </div>
+        <PlanComparison currentPlan={entitlements.plan} />
+      </section>
 
       <button
         type="button"

@@ -1,0 +1,110 @@
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+// 編輯紀錄：只允許改結果/反應/時長（不可變更 child_id、household_id —— RLS 的 WITH CHECK 鎖死）。
+// 至少要帶一個欄位，避免空更新。
+const patchSchema = z
+  .object({
+    outcome: z.enum(['completed', 'tried', 'abandoned']).optional(),
+    childReaction: z
+      .enum(['happy', 'engaged', 'neutral', 'leaving', 'disinterested', 'calmed'])
+      .optional(),
+    durationSecs: z.number().int().positive().nullable().optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: '至少需要一個欄位' })
+
+const paramsSchema = z.object({ id: z.string().uuid() })
+
+function getClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !anonKey) return null
+  return createServerClient(url, anonKey, {
+    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
+  })
+}
+
+export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const cookieStore = await cookies()
+  const supabase = getClient(cookieStore)
+  if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const { id } = paramsSchema.parse(await ctx.params)
+    const body = await request.json()
+    const patch = patchSchema.parse(body)
+
+    const update: Record<string, unknown> = {}
+    if (patch.outcome !== undefined) update.outcome = patch.outcome
+    if (patch.childReaction !== undefined) update.child_reaction = patch.childReaction
+    if (patch.durationSecs !== undefined) update.duration_secs = patch.durationSecs
+
+    // RLS（log_owner_update）保證只有建立者能改；.select() 回傳 0 列代表非擁有者或不存在
+    const { data, error } = await supabase
+      .from('companion_logs')
+      .update(update)
+      .eq('id', id)
+      .select('id')
+
+    if (error) {
+      console.error('Failed to update companion log', error)
+      return NextResponse.json({ error: 'Failed to update log' }, { status: 500 })
+    }
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Not found or not permitted' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const cookieStore = await cookies()
+  const supabase = getClient(cookieStore)
+  if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const { id } = paramsSchema.parse(await ctx.params)
+
+    // RLS（log_owner_delete）保證只有建立者能刪；.select() 回傳 0 列代表非擁有者或不存在
+    const { data, error } = await supabase.from('companion_logs').delete().eq('id', id).select('id')
+
+    if (error) {
+      console.error('Failed to delete companion log', error)
+      return NextResponse.json({ error: 'Failed to delete log' }, { status: 500 })
+    }
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Not found or not permitted' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
