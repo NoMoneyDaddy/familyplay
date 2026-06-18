@@ -329,4 +329,64 @@ describe('Recommendation Engine', () => {
     const recs = getRecommendations(activities, context, 5)
     expect(recs[0].id).toBe('free') // zero-cost ranks first
   })
+
+  it('penalizes a recently-seen activity by exactly 30% (Step 7)', () => {
+    // Two identical activities; only one is recent. Locks the 0.7 factor so a
+    // change to e.g. 0.97 would fail (the old test only checked the reason string).
+    activities = [
+      { ...activities[0], id: 'fresh', maxAgeMonths: 36, zpdTargets: [] },
+      { ...activities[0], id: 'seen', maxAgeMonths: 36, zpdTargets: [] },
+    ]
+    context.recentActivityIds = new Set(['seen'])
+    const recs = getRecommendations(activities, context, 5)
+    const fresh = recs.find((a) => a.id === 'fresh')
+    const seen = recs.find((a) => a.id === 'seen')
+    expect(fresh && seen).toBeTruthy()
+    if (fresh && seen) expect(seen.score).toBeCloseTo(fresh.score * 0.7, 5)
+  })
+
+  it('gives no ZPD bonus when the target capability is already acquired (Step 4)', () => {
+    activities = [
+      { ...activities[0], id: 'zpd', maxAgeMonths: 36, zpdTargets: ['objectPermanence'] },
+      { ...activities[0], id: 'plain', maxAgeMonths: 36, zpdTargets: [] },
+    ]
+    child.acquiredCapabilities = new Set(['objectPermanence']) // already mastered
+    context.child = child
+    const recs = getRecommendations(activities, context, 5)
+    const zpd = recs.find((a) => a.id === 'zpd')
+    const plain = recs.find((a) => a.id === 'plain')
+    expect(zpd && plain).toBeTruthy()
+    // No developing edge → no +10; otherwise identical → equal score (not higher).
+    if (zpd && plain) expect(zpd.score).toBeCloseTo(plain.score, 5)
+  })
+
+  it('excludes sick-day-unsafe activities in sick_day context (Step 2)', () => {
+    activities.push({
+      ...activities[0],
+      id: 'unsafe',
+      maxAgeMonths: 36,
+      isSickDaySafe: false,
+    })
+    context.context = 'sick_day'
+    const recs = getRecommendations(activities, context, 10)
+    expect(recs.find((a) => a.id === 'unsafe')).toBeUndefined()
+    expect(recs.every((a) => a.isSickDaySafe)).toBe(true)
+  })
+
+  it('includes an activity at exactly its min and max age boundaries (Step 1)', () => {
+    activities = [{ ...activities[0], id: 'band', minAgeMonths: 6, maxAgeMonths: 12 }]
+    child.acquiredCapabilities = new Set()
+    // exactly min
+    child.ageMonths = 6
+    context.child = child
+    expect(getRecommendations(activities, context, 5).find((a) => a.id === 'band')).toBeDefined()
+    // exactly max (max is inclusive in the age filter)
+    child.ageMonths = 12
+    context.child = child
+    expect(getRecommendations(activities, context, 5).find((a) => a.id === 'band')).toBeDefined()
+    // just past max → excluded
+    child.ageMonths = 13
+    context.child = child
+    expect(getRecommendations(activities, context, 5).find((a) => a.id === 'band')).toBeUndefined()
+  })
 })
