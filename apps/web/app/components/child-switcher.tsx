@@ -20,6 +20,10 @@ export function ChildSwitcher() {
   useEffect(() => {
     if (!mounted) return
 
+    // 快速切頁可能在 fetch 回來前卸載。全域 Zustand 操作（setChildren/setHasHydrated）
+    // 卸載後更新仍安全且有益——資料快取在全域，回到此頁可免重打。只有本地 useState
+    // （setLoading）才需要 cancelled 守衛，避免卸載後 setState 警告。
+    let cancelled = false
     const fetchChildren = async () => {
       try {
         const res = await fetch('/api/children/list')
@@ -30,12 +34,15 @@ export function ChildSwitcher() {
       } catch (error) {
         console.error('Failed to fetch children:', error)
       } finally {
-        setLoading(false)
         setHasHydrated(true)
+        if (!cancelled) setLoading(false)
       }
     }
 
     fetchChildren()
+    return () => {
+      cancelled = true
+    }
   }, [mounted, setChildren, setHasHydrated])
 
   // 載入中也保留右上角設定入口（避免頂列閃動消失）

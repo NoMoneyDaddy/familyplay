@@ -16,9 +16,13 @@ let planPromise: Promise<string> | null = null
 function getPlanCached(): Promise<string> {
   if (!planPromise) {
     planPromise = fetch('/api/account/entitlements')
-      .then((res) => (res.ok ? res.json() : { plan: 'free' }))
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('entitlements failed'))))
       .then((d) => (d?.plan as string) ?? 'free')
-      .catch(() => 'free')
+      .catch(() => {
+        // 暫時失敗不長存：清掉快取讓下次重試，否則一次網路抖動會把整個 session 鎖成 free。
+        planPromise = null
+        return 'free'
+      })
   }
   return planPromise
 }

@@ -8,9 +8,12 @@ import crypto from 'node:crypto'
  * @returns true if signature is valid
  */
 export function verifyWebhookSignature(body: string, signature: string, secret: string): boolean {
-  const hmac = crypto.createHmac('sha256', secret).update(body).digest('hex')
-  if (hmac.length !== signature.length) return false
-  return crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(signature, 'hex'))
+  // SHA-256 hex 簽章固定 64 字元（32 bytes）。先精確驗格式：非法或長度不符直接回
+  // false（→路由 401），不浪費 HMAC 計算，也避免 timingSafeEqual 因長度不等 throw。
+  if (typeof signature !== 'string' || !/^[0-9a-f]{64}$/i.test(signature)) return false
+  const hmacBuf = crypto.createHmac('sha256', secret).update(body).digest() // Buffer，免 hex 來回轉
+  const sigBuf = Buffer.from(signature, 'hex')
+  return crypto.timingSafeEqual(hmacBuf, sigBuf)
 }
 
 /**
