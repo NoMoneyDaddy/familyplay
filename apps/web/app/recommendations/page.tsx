@@ -134,10 +134,7 @@ function RecommendationsPageInner() {
                   <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
                     {rec.title}
                   </h2>
-                  <span className="shrink-0 rounded-full bg-brand-tint px-2 py-0.5 text-[11px] font-semibold text-brand-strong">
-                    <span className="sr-only">適合度 </span>
-                    {rec.score.toFixed(1)}
-                  </span>
+                  {/* ponytail: 拿掉 score 數字——對家長無意義，只是引擎 debug 值 */}
                 </div>
 
                 <ActivityMeta
@@ -148,7 +145,8 @@ function RecommendationsPageInner() {
                   className="mb-4"
                 />
 
-                {rec.reasons.length > 0 && (
+                {/* 只在最適合的卡列出理由，其餘保持安靜——一個主答案，不是並排比較 */}
+                {isTop && rec.reasons.length > 0 && (
                   <ul className="mb-4 space-y-1.5 text-xs text-muted">
                     {rec.reasons.map((reason, i) => (
                       // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
