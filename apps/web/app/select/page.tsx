@@ -6,6 +6,7 @@ import { ChildSwitcher } from '@/app/components/child-switcher'
 import { DashboardGreeting } from '@/app/components/dashboard-greeting'
 import { Button, ErrorAlert, Icon, type IconName, PageHeader, PageShell } from '@/app/components/ui'
 import { useChildStore } from '@/lib/stores/useChildStore'
+import { useGoBack } from '@/lib/use-go-back'
 
 // 家長精力：用電量隱喻（直覺、好懂、適合做成乾淨的線性圖示，取代 emoji）
 const ENERGY_OPTIONS: { value: string; label: string; icon: IconName }[] = [
@@ -32,6 +33,7 @@ function timeDefaultContext(): string {
 
 export default function SelectPage() {
   const router = useRouter()
+  const goBack = useGoBack('/now')
   const { selectedChildId, hasHydrated } = useChildStore()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,6 +84,7 @@ export default function SelectPage() {
         title="你今天怎麼樣？"
         subtitle="選擇你的狀態，30 秒拿到陪伴方案"
         align="center"
+        onBack={goBack}
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">

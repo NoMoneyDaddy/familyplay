@@ -14,6 +14,7 @@ import {
   PageShell,
 } from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
+import { useGoBack } from '@/lib/use-go-back'
 
 interface UserProfile {
   displayName?: string
@@ -26,6 +27,7 @@ const LINKS: { href: string; label: string; icon: IconName }[] = [
 ]
 
 export default function SettingsPage() {
+  const goBack = useGoBack('/now')
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -67,7 +69,7 @@ export default function SettingsPage() {
 
   return (
     <PageShell>
-      <PageHeader title="設定" />
+      <PageHeader title="設定" onBack={goBack} />
 
       {loading ? (
         <div className="text-center text-muted" role="status">

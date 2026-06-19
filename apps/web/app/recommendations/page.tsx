@@ -17,6 +17,7 @@ import {
   PageShell,
 } from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
+import { useGoBack } from '@/lib/use-go-back'
 
 interface Recommendation {
   id: string
@@ -37,6 +38,7 @@ function isRealActivity(id: string): boolean {
 
 function RecommendationsPageInner() {
   const searchParams = useSearchParams()
+  const goBack = useGoBack('/select')
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [loading, setLoading] = useState(true)
   const [shuffling, setShuffling] = useState(false)
@@ -164,6 +166,7 @@ function RecommendationsPageInner() {
         title="今天的陪伴方案"
         subtitle="根據現在的狀態，這些活動最適合你"
         align="center"
+        onBack={goBack}
       />
 
       {recommendations.length === 0 ? (

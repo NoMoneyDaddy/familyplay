@@ -5,6 +5,7 @@ import { ChildSwitcher } from '@/app/components/child-switcher'
 import { Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { useChildStore } from '@/lib/stores/useChildStore'
+import { useGoBack } from '@/lib/use-go-back'
 
 interface Capability {
   key: string
@@ -14,6 +15,7 @@ interface Capability {
 
 export default function CapabilitiesPage() {
   const { selectedChildId, hasHydrated } = useChildStore()
+  const goBack = useGoBack('/history')
   const [capabilities, setCapabilities] = useState<Capability[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -37,7 +39,11 @@ export default function CapabilitiesPage() {
     <PageShell>
       {/* ChildSwitcher 一律掛載：它負責抓孩子清單並設定當前孩子 */}
       <ChildSwitcher />
-      <PageHeader title="能力追蹤" subtitle={`${achievedCount} / ${capabilities.length} 已達成`} />
+      <PageHeader
+        title="能力追蹤"
+        subtitle={`${achievedCount} / ${capabilities.length} 已達成`}
+        onBack={goBack}
+      />
 
       {!hasHydrated ? (
         <div className="text-center text-muted" role="status">
