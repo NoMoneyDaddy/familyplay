@@ -1,6 +1,6 @@
 # 目前進度 — Web UI 完整化 + 發展評估 + AI 生成
 
-**狀態：** 核心 API 完成、Web UI 主要流程上線中。單一正式分支 `main`，PR → CI 綠燈 → 合併即 Zeabur 部署。
+**狀態：** 核心 API 完成、Web UI 主要流程＋AI 生成上線中。單一正式分支 `main`，直接在 main 開發：本地驗證綠燈 → `git push origin main` 即 Zeabur 部署。
 
 ---
 
@@ -61,8 +61,8 @@
 
 ```bash
 pnpm install
-pnpm biome check .
-pnpm turbo type-check
-pnpm turbo test
-git push origin <feature-branch>   # 開 PR → CI 綠燈 → 合併 main 即 Zeabur 部署
+pnpm biome check .       # 全綠才 push
+pnpm turbo type-check    # 全綠才 push
+pnpm turbo test          # 全綠才 push
+git push origin main     # 直接推 main，Zeabur 自動部署正式版（push 即上線）
 ```
