@@ -28,10 +28,10 @@ interface Tab {
 // 設定改放在每頁右上角的齒輪（見 SettingsGearLink），不再佔一個底部分頁。
 const TABS: Tab[] = [
   {
-    href: '/select',
+    href: '/now',
     label: '今天',
     icon: 'today',
-    match: ['/select', '/recommendations', '/activity'],
+    match: ['/now', '/select', '/recommendations', '/activity'],
   },
   { href: '/history', label: '紀錄', icon: 'history', match: ['/history', '/capabilities'] },
   { href: '/saved', label: '收藏', icon: 'heart', match: ['/saved'] },

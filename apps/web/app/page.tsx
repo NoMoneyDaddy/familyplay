@@ -28,5 +28,7 @@ export default async function HomePage() {
     redirect('/onboarding')
   }
 
-  redirect('/select')
+  // 全傻瓜入口：直接到「現在就陪」一鍵頁（一個答案 + 換一個 + 一鍵記錄）。
+  // 想自己挑年齡/精力/情境，可從那裡進 /select。
+  redirect('/now')
 }
