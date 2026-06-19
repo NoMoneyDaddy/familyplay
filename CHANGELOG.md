@@ -22,7 +22,14 @@
 - `packages/ai`：實作 Gemini / Groq / OpenAI / Ollama provider（逾時、錯誤映射、原生 JSON mode），活動生成 prompt（繁中、適齡、0–3 歲窒息警語、禁醫療/連結、無個資），`parseGeneratedActivity`。
 - `POST /api/ai/activity`：BYO 金鑰（用完即丟、不寫 log/DB）、限流 10/min fail-closed、伺服器端推 stageKey + ZPD（不送個資）、全程 Safety Filter、任何失敗安靜降回規則式。
 - model 版本識別碼不寫死於 repo（由環境變數帶入）。
+- 設定頁 BYO key UI（sessionStorage、白名單驗證 provider、寫入失敗如實回報）。
+- `/now`「都看過了」接「請 AI 生一個」：依時段挑安撫/玩耍型、重入保護、未設金鑰引導去設定。
 - （託管/Plus 配額計次需 service-role，待後續。）
+
+### 首次導覽與多人家庭
+- `/now` 首次三步上手提示（一次性、localStorage、顯示即標記看過，未點關閉也不重複）。
+- 陪伴紀錄顯示「誰陪的」：多人家庭標出本人「你」/同戶暱稱/「家人」，單人家庭不顯示避免雜訊。
+- 修正家庭成員清單把 `display_name`（RLS 僅讀自己）當顯示名而一律「Unknown User」：改以 `household_members.nickname` 為主、本人加註「（你）」；`HouseholdMember` 型別集中於 store。
 
 ### 待手動套用 migration
 - `supabase/migrations/20260619100000_set_child_capability_rpc.sql`
