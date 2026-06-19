@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AIGenerateCard } from '@/app/components/ai-generate-card'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { FirstRunHint } from '@/app/components/first-run-hint'
 import { Mascot } from '@/app/components/mascot'
 import {
   ActivityMeta,
@@ -216,6 +217,8 @@ export default function NowPage() {
   return (
     <PageShell>
       <ChildSwitcher />
+      {/* 有選到孩子才顯示導覽：沒孩子時 /now 會導去 onboarding，提前顯示會閃一下 */}
+      {selectedChildId && <FirstRunHint />}
 
       {loading ? (
         <div
