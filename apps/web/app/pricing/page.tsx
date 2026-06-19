@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { LegalLinks } from '@/app/components/legal-links'
 import { PlanComparison } from '@/app/components/plan-comparison'
 import { Callout, Card, PageHeader, PageShell } from '@/app/components/ui'
+import { useGoBack } from '@/lib/use-go-back'
 
 const PLAN_LABELS: Record<string, string> = {
   free: '免費',
@@ -19,6 +20,7 @@ const PLAN_LABELS: Record<string, string> = {
  */
 export default function PricingPage() {
   const router = useRouter()
+  const goBack = useGoBack('/settings')
   const [loading, setLoading] = useState(true)
   const [currentPlan, setCurrentPlan] = useState<string | null>(null)
 
@@ -55,6 +57,7 @@ export default function PricingPage() {
       <PageHeader
         title="方案與支持"
         subtitle="大部分功能免費（含少量廣告）；付費可移除廣告並解鎖進階"
+        onBack={goBack}
       />
 
       {loading ? (
