@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { Mascot } from '@/app/components/mascot'
@@ -189,6 +190,21 @@ export default function HistoryPage() {
       {/* ChildSwitcher 一律掛載：它負責抓孩子清單並設定當前孩子 */}
       <ChildSwitcher />
       <PageHeader title="陪伴紀錄" subtitle="回顧過去的親子時光，可隨時修改或刪除" />
+
+      {/* 發展里程碑入口：標記孩子會了什麼 → 讓推薦更貼近他的程度 */}
+      <Link
+        href="/capabilities"
+        className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3.5 shadow-clay-sm transition-colors hover:border-brand/50"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+          <Icon name="sparkle" className="h-[20px] w-[20px]" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-text">發展里程碑</span>
+          <span className="block text-xs text-muted">標記孩子會了什麼，推薦更貼近他的程度</span>
+        </span>
+        <Icon name="chevronRight" className="h-[18px] w-[18px] shrink-0 text-faint" />
+      </Link>
 
       {error && (
         <p className="rounded-lg bg-danger-tint px-4 py-3 text-sm text-danger" role="alert">
