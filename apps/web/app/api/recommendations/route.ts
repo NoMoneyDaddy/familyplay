@@ -11,6 +11,8 @@ const requestSchema = z.object({
   availableSpace: z.enum(['anywhere', 'living_room', 'bedroom', 'outdoor', 'kitchen']),
   availableResources: z.array(z.string()).default([]),
   maxDurationMinutes: z.number().int().positive().default(30),
+  // 「換一批」：硬排除已看過的活動，回傳真正不同的一組（上限避免超長 payload）。
+  excludeIds: z.array(z.string().uuid()).max(120).default([]),
 })
 
 export async function POST(request: Request) {
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
       availableSpace,
       availableResources,
       maxDurationMinutes,
+      excludeIds,
     } = requestSchema.parse(body)
 
     // Fetch child
@@ -123,14 +126,22 @@ export async function POST(request: Request) {
       ? (child.stage_key as (typeof ALLOWED_STAGE_KEYS)[number])
       : getStageKey(ageMonths)
 
+    // 「換一批」：把已看過的活動從候選中硬移除，確保回傳的是真正不同的一組
+    // （僅靠歷史降權不保證會換掉高分活動）。fallback 不排除，避免完全沒結果時無安全兜底。
+    const excludeSet = new Set(excludeIds)
+    const candidates =
+      excludeSet.size > 0
+        ? activities.filter((a) => a.is_fallback || !excludeSet.has(a.id))
+        : activities
+
     // 發展領域不參與評分（引擎不需要），但要回傳給前端做分類標籤，故另存 id→focus 對照
     const focusById = new Map<string, string[]>(
-      activities.map((a) => [a.id, a.developmental_focus || []]),
+      candidates.map((a) => [a.id, a.developmental_focus || []]),
     )
 
     // Get recommendations
     const recs = getRecommendations(
-      activities.map((a) => ({
+      candidates.map((a) => ({
         id: a.id,
         title: a.title,
         minAgeMonths: a.min_age_months,
