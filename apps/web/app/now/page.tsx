@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { AIGenerateCard } from '@/app/components/ai-generate-card'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { Mascot } from '@/app/components/mascot'
 import {
@@ -235,13 +236,16 @@ export default function NowPage() {
           </Button>
         </Card>
       ) : exhausted && !rec ? (
-        <Card className="space-y-3 py-10 text-center">
-          <p className="text-text">這個時段的活動都看過了。</p>
-          <p className="text-sm text-muted">換個精力或情境，常常就有新的。</p>
-          <LinkButton href="/select" variant="primary" size="lg" icon="compass">
-            自己挑狀態
-          </LinkButton>
-        </Card>
+        <div className="space-y-4">
+          <Card className="space-y-3 py-8 text-center">
+            <p className="text-text">這個時段的活動都看過了。</p>
+            <p className="text-sm text-muted">換個精力或情境，常常就有新的。</p>
+            <LinkButton href="/select" variant="primary" size="lg" icon="compass">
+              自己挑狀態
+            </LinkButton>
+          </Card>
+          {selectedChildId && <AIGenerateCard childId={selectedChildId} />}
+        </div>
       ) : rec ? (
         <div className="space-y-4">
           {/* 首頁品牌：波波 + FamilyPlay 站名，讓主畫面有「家」的識別（先前 /now 沒有任何品牌） */}
@@ -312,6 +316,9 @@ export default function NowPage() {
               {exhausted ? '暫時沒有更多了' : '換一個'}
             </Button>
           </Card>
+
+          {/* 換到沒得換時，給「請 AI 生一個」的出口 */}
+          {exhausted && selectedChildId && <AIGenerateCard childId={selectedChildId} />}
 
           {/* 玩完一鍵記錄，不必填表。回退方案非真實活動、無法記錄，不顯示以免「記下了」假象。 */}
           {isRealActivity(rec.id) && (

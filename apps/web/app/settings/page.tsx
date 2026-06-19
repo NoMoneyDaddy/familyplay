@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { AIKeySettings } from '@/app/components/ai-key-settings'
 import { LegalLinks } from '@/app/components/legal-links'
 import { ReminderToggle } from '@/app/components/reminder-toggle'
 import {
@@ -89,6 +90,8 @@ export default function SettingsPage() {
           </Card>
 
           <ReminderToggle />
+
+          <AIKeySettings />
 
           <div className="space-y-2">
             {LINKS.map((link) => (
