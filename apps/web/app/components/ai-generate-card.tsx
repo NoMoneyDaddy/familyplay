@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { hasAIKey, readAIKey } from '@/lib/ai-key'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { Button, Card, Icon } from './ui'
@@ -28,9 +28,22 @@ export function AIGenerateCard({ childId }: { childId: string }) {
   const [activity, setActivity] = useState<GeneratedActivity | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [configured] = useState(() => hasAIKey())
+  // 掛載後才讀 sessionStorage：避免 SSR（伺服器無 sessionStorage）與客戶端 hydration 不一致。
+  // 回到分頁時重讀，使在設定頁存/清金鑰後 CTA 即時更新。
+  const [configured, setConfigured] = useState(false)
+  useEffect(() => {
+    const refresh = () => setConfigured(hasAIKey())
+    refresh()
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [])
 
   const generate = async () => {
+    if (loading) return // 重入保護：避免快速連點觸發多個並發請求
     const key = readAIKey()
     if (!key) {
       setError('還沒設定 AI 金鑰，先去設定頁加上吧。')
@@ -84,7 +97,7 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           <p className="text-lg font-semibold text-brand">{activity.openingLine}</p>
         )}
         <ol className="space-y-2">
-          {activity.steps.map((step, i) => (
+          {(activity.steps ?? []).map((step, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: AI 步驟靜態且有序
             <li key={i} className="flex gap-3">
               <span className="font-semibold text-brand">{i + 1}</span>
@@ -92,7 +105,7 @@ export function AIGenerateCard({ childId }: { childId: string }) {
             </li>
           ))}
         </ol>
-        {activity.followUpQuestions.length > 0 && (
+        {Array.isArray(activity.followUpQuestions) && activity.followUpQuestions.length > 0 && (
           <ul className="space-y-1">
             {activity.followUpQuestions.map((q, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: AI 問題靜態且有序
@@ -108,6 +121,12 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           </p>
         )}
         <p className="text-xs text-faint">AI 生成、未經編審；請依現場狀況斟酌安全。</p>
+        {/* 再生失敗時也要顯示訊息，避免靜默無回饋 */}
+        {error && (
+          <p className="rounded-lg bg-warning-tint px-3 py-2 text-xs text-warning" role="status">
+            {error}
+          </p>
+        )}
         <Button variant="secondary" size="md" icon="refresh" loading={loading} onClick={generate}>
           再生一個
         </Button>

@@ -8,6 +8,8 @@
 
 export type AIProviderChoice = 'gemini' | 'groq' | 'openai' | 'ollama'
 
+const PROVIDERS: readonly AIProviderChoice[] = ['gemini', 'groq', 'openai', 'ollama'] as const
+
 export interface StoredAIKey {
   provider: AIProviderChoice
   apiKey?: string
@@ -19,19 +21,23 @@ export function readAIKey(): StoredAIKey | null {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as StoredAIKey
-    if (!parsed?.provider) return null
-    return parsed
+    const parsed = JSON.parse(raw) as Partial<StoredAIKey>
+    // 白名單驗證 provider（不只判斷存在），避免殘留/亂填的值造成 hasAIKey 假陽性
+    if (!parsed?.provider || !PROVIDERS.includes(parsed.provider as AIProviderChoice)) return null
+    return { provider: parsed.provider, apiKey: parsed.apiKey }
   } catch {
     return null
   }
 }
 
-export function saveAIKey(value: StoredAIKey): void {
+/** 回傳是否成功寫入（隱私模式/停用儲存會失敗），讓呼叫端據此更新 UI。 */
+export function saveAIKey(value: StoredAIKey): boolean {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+    return true
   } catch {
     // 無法寫入僅代表此分頁不能用 AI；不影響其他功能
+    return false
   }
 }
 

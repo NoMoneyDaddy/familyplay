@@ -18,6 +18,7 @@ export function AIKeySettings() {
   const [provider, setProvider] = useState<AIProviderChoice>('gemini')
   const [apiKey, setApiKey] = useState('')
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [hydrated, setHydrated] = useState(false)
 
   // 掛載後讀取目前設定（避免 SSR/hydration 不一致）
@@ -34,8 +35,10 @@ export function AIKeySettings() {
   const needsKey = PROVIDER_OPTIONS.find((p) => p.value === provider)?.needsKey ?? true
 
   const handleSave = () => {
-    saveAIKey({ provider, apiKey: needsKey ? apiKey.trim() : undefined })
-    setSaved(true)
+    // 依實際寫入結果更新狀態：隱私模式/封鎖儲存時 saveAIKey 回 false，別假報「已儲存」
+    const ok = saveAIKey({ provider, apiKey: needsKey ? apiKey.trim() : undefined })
+    setSaved(ok)
+    setSaveError(ok ? null : '這個瀏覽器分頁無法儲存金鑰（可能是隱私模式或停用了儲存空間）。')
   }
 
   const handleClear = () => {
@@ -99,6 +102,12 @@ export function AIKeySettings() {
           </Button>
         )}
       </div>
+
+      {saveError && (
+        <p className="rounded-lg bg-danger-tint px-3 py-2 text-xs text-danger" role="alert">
+          {saveError}
+        </p>
+      )}
 
       {hydrated && (
         <Callout tone="tip" title="金鑰只留在這台裝置">
