@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { reportError } from '@/lib/observability'
 
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -39,31 +40,36 @@ export async function GET() {
       householdId: null,
       role: null,
       plan: 'free',
+      planStatus: 'ok',
       plusEndsAt: null,
       revenuecatCustomerId: null,
     })
   }
 
-  // Get household membership
+  // Get household membership（maybeSingle：沒有 household 是正常情況，不算錯誤）
   const { data: householdMember } = await supabase
     .from('household_members')
     .select('household_id,role')
     .eq('user_profile_id', profile.id)
-    .single()
+    .maybeSingle()
 
-  // Get entitlements (subscription info)
-  const { data: entitlements } = await supabase
+  // Get entitlements (subscription info)。用 maybeSingle 區分「沒有列＝free」與「查詢錯誤」：
+  // 真正的 DB/RLS 錯誤回 planStatus:'unknown' + plan:null，前端據此「不要把 Plus 入口藏掉」，
+  // 避免短暫錯誤把 Plus 使用者誤判成 free。
+  const { data: entitlements, error: entError } = await supabase
     .from('entitlements')
     .select('plan,plus_ends_at,revenuecat_customer_id')
     .eq('user_profile_id', profile.id)
-    .single()
+    .maybeSingle()
+  if (entError) reportError(entError, { route: '/api/profile#entitlements' })
 
   return NextResponse.json({
     displayName: profile.display_name || user.user_metadata?.name || 'User',
     avatarUrl: profile.avatar_url,
     householdId: householdMember?.household_id || null,
     role: householdMember?.role || null,
-    plan: entitlements?.plan || 'free',
+    plan: entError ? null : entitlements?.plan || 'free',
+    planStatus: entError ? 'unknown' : 'ok',
     plusEndsAt: entitlements?.plus_ends_at || null,
     revenuecatCustomerId: entitlements?.revenuecat_customer_id || null,
   })

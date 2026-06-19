@@ -44,18 +44,23 @@ export function AIGenerateCard({ childId }: { childId: string }) {
   }, [])
 
   // Plus 會員可用「託管金鑰」免設定生成；查方案決定要不要直接給生成按鈕。
-  // 只在成功讀到方案時更新（暫時的網路/DB 錯誤不要把 Plus 誤判成非 Plus 而藏掉入口）；
-  // 回到分頁時重讀，讓升級/掉訂後即時反映。後端仍以配額把關，前端判斷僅影響顯示。
-  const [isPlus, setIsPlus] = useState(false)
+  // 方案讀不到（網路/DB 錯誤、planStatus:'unknown'）時不要把入口藏掉——寧可顯示按鈕，
+  // 後端仍以配額把關（非 Plus 會安靜降回）。回到分頁時重讀，升級/掉訂後即時反映。
+  const [allowManaged, setAllowManaged] = useState(false)
   useEffect(() => {
     let cancelled = false
     const refresh = () => {
       fetch('/api/profile')
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
-          if (!cancelled && d && typeof d.plan === 'string') setIsPlus(d.plan === 'plus')
+          if (cancelled) return
+          // 讀失敗或狀態未知 → 視為可嘗試（不藏入口）；讀到明確方案才依 plan 判斷
+          if (!d || d.planStatus === 'unknown') setAllowManaged(true)
+          else setAllowManaged(d.plan === 'plus')
         })
-        .catch(() => {})
+        .catch(() => {
+          if (!cancelled) setAllowManaged(true)
+        })
     }
     refresh()
     window.addEventListener('focus', refresh)
@@ -162,7 +167,9 @@ export function AIGenerateCard({ childId }: { childId: string }) {
       <div className="space-y-1">
         <p className="font-semibold text-text">都看過了？請 AI 生一個</p>
         <p className="text-sm text-muted">
-          {isPlus ? 'Plus 免設定，依孩子的程度生一個。' : '依孩子的程度，現場生一個全新的小活動。'}
+          {allowManaged && !configured
+            ? 'Plus 免設定，依孩子的程度生一個。'
+            : '依孩子的程度，現場生一個全新的小活動。'}
         </p>
       </div>
       {error && (
@@ -170,7 +177,7 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           {error}
         </p>
       )}
-      {configured || isPlus ? (
+      {configured || allowManaged ? (
         <>
           <Button size="lg" icon="sparkle" loading={loading} onClick={generate} className="w-full">
             請 AI 生一個
