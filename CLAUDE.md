@@ -166,22 +166,20 @@ perf: 性能優化
 - 全站一致返回導覽（`useGoBack`）
 - 發展里程碑評估 `/capabilities`（標記 → 驅動 ZPD 推薦）
 - 陪伴紀錄 / 收藏 / 孩子管理 / 設定 / 付費頁
-- AI 客製活動生成「後端」（`/api/ai/activity`，免費版 BYO key）
+- AI 客製活動生成（`/api/ai/activity`）：免費版 BYO key + 設定頁 UI + `/now`「都看過了」出口
+- Plus 託管 AI 配額計次（`consume_plus_ai_call`/`refund_plus_ai_call` RPC，service-role 退還）
+- 首次三步導覽提示、陪伴紀錄「誰陪的」、交接小卡 `/handoff`、里程碑「下一步」建議
 
 ### 待實現 🚧
-- AI 生成「前端」串接（設定頁 BYO key + /now「都看過了」出口）
-- 託管/Plus AI 配額計次（需 service-role）
-- Mobile UI（Expo）
-- 付費整合 UI
-- 首次導覽教學
-- 推送通知
-- 本地化
+- Mobile UI（Expo，`apps/mobile`）
+- 付費整合 UI（LemonSqueezy web / RevenueCat mobile；後端 `/api/lemon/*` 已存在）
+- 推送通知、本地化、離線強化
 
 ---
 
 ## MVP 狀態
 
-**✅ API 核心完成 | Web UI 主要流程上線中 | Mobile/付費 UI 待實現**
+**✅ API 核心完成 | Web UI 主要流程＋AI 生成（BYO/Plus 託管）上線 | Mobile/付費 UI 待實現**
 
 Web 端已可實際操作（一鍵陪伴、里程碑評估、AI 生成後端）。詳見 `CURRENT_SPRINT.md`。
 

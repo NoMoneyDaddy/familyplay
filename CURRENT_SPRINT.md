@@ -50,10 +50,10 @@
 
 ## 下一步候選
 
-- 託管/Plus AI 配額計次（需 service-role 寫 entitlements）
+- 行動端（Expo）UI（`apps/mobile`）：把 Web 的「現在就陪」「里程碑」「紀錄」流程移植到 Expo Router
+- 付費整合 UI：LemonSqueezy（web，後端 `/api/lemon/*` 已存在）／RevenueCat（mobile）的升級頁與結帳串接
 - 交接摘要 AI 強化（目前 `/handoff` 為規則式唯讀；可選持久化到 `handoff_summaries`）
-- 多孩子 UI/流程優化
-- 行動端（Expo）UI、付費整合 UI、推送通知、離線、本地化
+- 多孩子 UI/流程優化、推送通知、離線、本地化
 
 ---
 
