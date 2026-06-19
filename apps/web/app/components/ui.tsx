@@ -345,6 +345,8 @@ export function PageShell({
 }) {
   return (
     <main
+      id="main"
+      tabIndex={-1}
       className={`relative min-h-dvh overflow-hidden px-5 pt-7 ${withNav ? 'pb-28' : 'pb-10'} ${className}`}
     >
       {/* 黏土調性氛圍：兩顆柔和暖色飄移球，給頁面一點溫度與深度（不可互動、可降動態） */}

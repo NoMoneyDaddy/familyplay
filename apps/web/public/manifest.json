@@ -3,6 +3,7 @@
   "short_name": "FamilyPlay",
   "description": "給疲憊家長的親子陪伴導航",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#FAFAF8",
   "theme_color": "#FF6B35",
