@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Icon, type IconName } from './ui'
+import { Button, Icon, type IconName } from './ui'
 
 // 首次到 /now 的一次性上手提示。疲憊家長導向：極簡、可一鍵關、看過就不再出現。
 // 用 localStorage 記住「看過」；隱私模式可能 throw，全包 try-catch。
@@ -29,18 +29,19 @@ const STEPS: { icon: IconName; text: string }[] = [
 ]
 
 export function FirstRunHint() {
-  // 掛載後才讀 localStorage（避免 SSR/hydration 不一致與首屏閃動）
+  // 掛載後才讀 localStorage（避免 SSR/hydration 不一致與首屏閃動）。
+  // 一旦顯示就立即標記「看過」，這樣即使使用者沒點關閉、直接離開或重整，也不會反覆出現。
   const [show, setShow] = useState(false)
   useEffect(() => {
-    if (!readSeen()) setShow(true)
+    if (!readSeen()) {
+      setShow(true)
+      markSeen()
+    }
   }, [])
 
   if (!show) return null
 
-  const dismiss = () => {
-    markSeen()
-    setShow(false)
-  }
+  const dismiss = () => setShow(false)
 
   return (
     <section
@@ -67,13 +68,9 @@ export function FirstRunHint() {
           </li>
         ))}
       </ul>
-      <button
-        type="button"
-        onClick={dismiss}
-        className="w-full rounded-xl bg-card py-2 text-sm font-medium text-brand-strong shadow-clay-sm transition-colors hover:bg-bg"
-      >
+      <Button variant="secondary" size="md" className="w-full" onClick={dismiss}>
         知道了，開始陪
-      </button>
+      </Button>
     </section>
   )
 }

@@ -217,7 +217,8 @@ export default function NowPage() {
   return (
     <PageShell>
       <ChildSwitcher />
-      <FirstRunHint />
+      {/* 有選到孩子才顯示導覽：沒孩子時 /now 會導去 onboarding，提前顯示會閃一下 */}
+      {selectedChildId && <FirstRunHint />}
 
       {loading ? (
         <div
