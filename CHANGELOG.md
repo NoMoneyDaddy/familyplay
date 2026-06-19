@@ -30,6 +30,11 @@
 - `/now` 首次三步上手提示（一次性、localStorage、顯示即標記看過，未點關閉也不重複）。
 - 陪伴紀錄顯示「誰陪的」：多人家庭標出本人「你」/同戶暱稱/「家人」，單人家庭不顯示避免雜訊。
 - 修正家庭成員清單把 `display_name`（RLS 僅讀自己）當顯示名而一律「Unknown User」：改以 `household_members.nickname` 為主、本人加註「（你）」；`HouseholdMember` 型別集中於 store。
+- 交接小卡 `/handoff`：把孩子近況（現在階段、最近三次陪玩含誰陪的、接下來在發展中的里程碑）濃縮成一張可分享的卡，給接手的家人快速進入狀況。唯讀、用既有 API 即時組（不寫 `handoff_summaries`、不送 AI）；分享優先 `navigator.share`、退回剪貼簿；使用者取消分享不偷偷複製；非 2xx 顯示載入失敗+重試；stageKey 過白名單。
+
+### 發展里程碑（續）
+- 里程碑頁顯示「接下來正在發展中」（依已勾選用 `getZpdTargets` 推出 ZPD 下一步，連到 `/now`）。
+- 能力狀態型別硬化：`achieved`/`toggle`/`pending` 收斂為 `CapabilityProfile`/`CapabilityKey`，從白名單推導避免 unsafe cast。
 
 ### 待手動套用 migration
 - `supabase/migrations/20260619100000_set_child_capability_rpc.sql`
