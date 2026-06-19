@@ -1,7 +1,7 @@
 'use client'
 
 import { getZpdTargets, MILESTONE_MAP } from '@familyplay/assessment'
-import { ALLOWED_CAPABILITY_KEYS } from '@familyplay/core'
+import { ALLOWED_CAPABILITY_KEYS, ALLOWED_STAGE_KEYS } from '@familyplay/core'
 import { useEffect, useMemo, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import {
@@ -43,10 +43,15 @@ export default function HandoffPage() {
   const [logs, setLogs] = useState<Log[]>([])
   const [achieved, setAchieved] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [shareNote, setShareNote] = useState<string | null>(null)
+  // 重試用：bump 即重新抓
+  const [reloadTick, setReloadTick] = useState(0)
 
   const child = children.find((c) => c.id === selectedChildId)
 
+  // reloadTick 不在 effect 內被讀取，但作為「重試」觸發器需列入依賴
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 刻意用 reloadTick 觸發重抓
   useEffect(() => {
     if (!selectedChildId) {
       setLoading(false)
@@ -54,23 +59,33 @@ export default function HandoffPage() {
     }
     let cancelled = false
     setLoading(true)
+    setLoadError(false)
+    // 非 2xx（401/429/500…）視為載入失敗而非「沒有資料」：否則會把失敗渲染成空小卡、
+    // 甚至被分享成不完整快照。任一來源失敗即整體標記錯誤、顯示重試。
+    const fetchJson = async (url: string) => {
+      const r = await fetchWithTimeout(url)
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      return r.json()
+    }
     Promise.all([
-      fetchWithTimeout(`/api/logs?childId=${selectedChildId}`)
-        .then((r) => (r.ok ? r.json() : { logs: [] }))
-        .catch(() => ({ logs: [] })),
-      fetchWithTimeout(`/api/capabilities?childId=${selectedChildId}`)
-        .then((r) => (r.ok ? r.json() : { capabilities: {} }))
-        .catch(() => ({ capabilities: {} })),
-    ]).then(([logData, capData]) => {
-      if (cancelled) return
-      setLogs(logData.logs || [])
-      setAchieved(capData.capabilities || {})
-      setLoading(false)
-    })
+      fetchJson(`/api/logs?childId=${selectedChildId}`),
+      fetchJson(`/api/capabilities?childId=${selectedChildId}`),
+    ])
+      .then(([logData, capData]) => {
+        if (cancelled) return
+        setLogs(logData.logs || [])
+        setAchieved(capData.capabilities || {})
+        setLoading(false)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setLoadError(true)
+        setLoading(false)
+      })
     return () => {
       cancelled = true
     }
-  }, [selectedChildId])
+  }, [selectedChildId, reloadTick])
 
   const recent = logs.slice(0, RECENT_COUNT)
 
@@ -81,7 +96,12 @@ export default function HandoffPage() {
       .filter((m): m is NonNullable<typeof m> => Boolean(m))
   }, [achieved])
 
-  const stage = stageLabel(child?.stageKey)
+  // stageKey 先過白名單再進顯示邏輯（CLAUDE.md：所有 stageKey 須對 STAGE_KEYS 驗證）
+  const safeStageKey =
+    child?.stageKey && (ALLOWED_STAGE_KEYS as readonly string[]).includes(child.stageKey)
+      ? child.stageKey
+      : undefined
+  const stage = stageLabel(safeStageKey)
 
   // 成功類提示 2.5 秒自動收起；卸載即清掉計時器避免對已卸載組件 setState。
   // 「不支援」屬需要使用者看到並手動操作的提示，不自動消失。
@@ -121,8 +141,10 @@ export default function HandoffPage() {
       try {
         await navigator.share(shareData)
         return
-      } catch {
-        // 使用者取消或不支援，往下退回複製
+      } catch (error) {
+        // 使用者主動取消分享：尊重其選擇，不要再偷偷複製到剪貼簿（隱私）
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        // 其餘錯誤（不支援等）才往下退回複製
       }
     }
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
@@ -165,6 +187,18 @@ export default function HandoffPage() {
         <div className="text-center text-muted" role="status">
           加載中...
         </div>
+      ) : loadError ? (
+        // 失敗時明確報錯並提供重試，避免把載入失敗誤顯示成空小卡、甚至被分享
+        <EmptyState
+          title="載入失敗"
+          action={
+            <Button icon="refresh" onClick={() => setReloadTick((n) => n + 1)}>
+              重試
+            </Button>
+          }
+        >
+          沒辦法整理出小卡，請檢查網路後再試一次。
+        </EmptyState>
       ) : (
         <div className="space-y-4">
           <Card className="space-y-4">
