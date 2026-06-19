@@ -28,6 +28,7 @@ interface Log {
   createdAt: string
   durationSecs?: number
   editable?: boolean
+  caregiverName?: string | null
 }
 
 const OUTCOME_BADGE: Record<string, { icon: IconName; wrap: string }> = {
@@ -256,8 +257,15 @@ export default function HistoryPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <p className="font-semibold text-text">{log.activityTitle}</p>
-                      <p className="text-xs text-muted">
-                        {new Date(log.createdAt).toLocaleDateString('zh-TW')}
+                      <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
+                        <span>{new Date(log.createdAt).toLocaleDateString('zh-TW')}</span>
+                        {/* 多人家庭才有值：讓家長一眼看出這次是誰陪的 */}
+                        {log.caregiverName && (
+                          <span className="inline-flex items-center gap-1 text-brand-strong">
+                            <Icon name="user" className="h-[13px] w-[13px]" />
+                            {log.caregiverName} 陪的
+                          </span>
+                        )}
                       </p>
                     </div>
                     <span

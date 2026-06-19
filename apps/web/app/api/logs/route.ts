@@ -55,10 +55,12 @@ export async function GET(request: Request) {
 
     const { childId: validatedChildId } = querySchema.parse({ childId })
 
-    // 兩個查詢彼此獨立 → 並行，縮短回應時間
+    // 三個查詢彼此獨立 → 並行，縮短回應時間
     // myProfile：目前使用者的 profile id，用來標記哪些紀錄是本人記的（可編輯／刪除）
-    const [profileResult, logsResult] = await Promise.all([
+    // child：取得所屬 household，用來解析「誰陪的」名稱（多人家庭才需要）
+    const [profileResult, childResult, logsResult] = await Promise.all([
       supabase.from('user_profiles').select('id').eq('auth_user_id', user.id).single(),
+      supabase.from('child_profiles').select('household_id').eq('id', validatedChildId).single(),
       supabase
         .from('companion_logs')
         .select(
@@ -85,18 +87,47 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 })
     }
 
-    return NextResponse.json({
-      logs: (logs || []).map((log) => ({
-        id: log.id,
+    // 解析陪伴者名稱：只在「多人家庭」時顯示，單人家庭一律本人、標籤只是雜訊。
+    // 名稱優先用 household_members.nickname（可被同戶成員讀取）；display_name 受 RLS
+    // 限制只讀得到自己，故僅作本人後備。讀失敗不影響主要紀錄回傳。
+    const householdId = childResult.data?.household_id ?? null
+    const memberNames = new Map<string, string>()
+    let memberCount = 0
+    if (householdId) {
+      const { data: members } = await supabase
+        .from('household_members')
+        .select('user_profile_id, nickname, user_profiles:user_profile_id(display_name)')
+        .eq('household_id', householdId)
+      memberCount = members?.length ?? 0
+      for (const m of members ?? []) {
         // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
-        activityTitle: (log.companion_activities as any)?.title || 'Unknown Activity',
-        outcome: log.outcome,
-        childReaction: log.child_reaction,
-        createdAt: log.created_at,
-        durationSecs: log.duration_secs,
-        // 只有本人記的紀錄能改／刪（與 RLS log_owner_update/delete 一致）
-        editable: myProfileId != null && log.caregiver_id === myProfileId,
-      })),
+        const name = m.nickname || (m.user_profiles as any)?.display_name || null
+        if (name) memberNames.set(m.user_profile_id, name)
+      }
+    }
+    const shared = memberCount > 1
+
+    return NextResponse.json({
+      logs: (logs || []).map((log) => {
+        const byMe = myProfileId != null && log.caregiver_id === myProfileId
+        return {
+          id: log.id,
+          // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
+          activityTitle: (log.companion_activities as any)?.title || 'Unknown Activity',
+          outcome: log.outcome,
+          childReaction: log.child_reaction,
+          createdAt: log.created_at,
+          durationSecs: log.duration_secs,
+          // 只有本人記的紀錄能改／刪（與 RLS log_owner_update/delete 一致）
+          editable: byMe,
+          // 多人家庭才標「誰陪的」：本人顯示「你」，其餘用暱稱、未設則「家人」
+          caregiverName: shared
+            ? byMe
+              ? '你'
+              : (log.caregiver_id && memberNames.get(log.caregiver_id)) || '家人'
+            : null,
+        }
+      }),
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
