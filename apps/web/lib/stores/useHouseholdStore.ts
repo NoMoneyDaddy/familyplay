@@ -5,6 +5,7 @@ export interface HouseholdMember {
   displayName: string
   role: 'owner' | 'caregiver' | 'viewer'
   nickname?: string
+  isSelf?: boolean
   joinedAt: string
 }
 

@@ -13,16 +13,7 @@ import {
   PageShell,
   Select,
 } from '@/app/components/ui'
-import { useHouseholdStore } from '@/lib/stores/useHouseholdStore'
-
-interface HouseholdMember {
-  id: string
-  displayName: string
-  role: 'owner' | 'caregiver' | 'viewer'
-  nickname?: string
-  isSelf?: boolean
-  joinedAt: string
-}
+import { type HouseholdMember, useHouseholdStore } from '@/lib/stores/useHouseholdStore'
 
 interface GeneratedInvite {
   code: string
