@@ -10,11 +10,13 @@ export default function OnboardingPage() {
   const { setSelectedChildId } = useChildStore()
 
   const handleSuccess = (child?: { nickname: string; childId?: string }) => {
-    // 立刻把新孩子設為當前孩子，/select 才不會因為「尚未選孩子」而跳回引導頁
+    // 立刻把新孩子設為當前孩子，/now 才不會因為「尚未選孩子」而跳回引導頁
     if (child?.childId) {
       setSelectedChildId(child.childId)
     }
-    router.push('/select')
+    // 建完直接進「現在就陪」一鍵頁，首次就拿到一個方案（而非再面對一張選擇表單）。
+    // 用 replace：引導是一次性流程，按返回鍵不該回到 onboarding 表單。
+    router.replace('/now')
   }
 
   return (
