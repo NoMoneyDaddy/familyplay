@@ -16,6 +16,7 @@ import {
   Select,
   TextInput,
 } from '@/app/components/ui'
+import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Log {
@@ -81,7 +82,7 @@ export default function HistoryPage() {
     }
 
     setLoading(true)
-    fetch(`/api/logs?childId=${selectedChildId}`)
+    fetchWithTimeout(`/api/logs?childId=${selectedChildId}`)
       .then((res) => res.json())
       .then((data) => setLogs(data.logs || []))
       .catch(() => setLogs([]))

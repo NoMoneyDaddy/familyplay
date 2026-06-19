@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { use, useEffect, useRef, useState } from 'react'
 import { Mascot } from '@/app/components/mascot'
 import { Button, Card, ErrorAlert, Icon, type IconName, PageShell } from '@/app/components/ui'
+import { fetchWithTimeout } from '@/lib/fetch-timeout'
 
 interface Activity {
   id: string
@@ -63,7 +64,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   )
 
   useEffect(() => {
-    fetch(`/api/activities/${id}`)
+    fetchWithTimeout(`/api/activities/${id}`)
       .then((res) => res.json())
       .then((data) => setActivity(data))
       .catch(() => setActivity(null))
@@ -72,7 +73,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/saved')
+    fetchWithTimeout('/api/saved')
       .then((res) => (res.ok ? res.json() : { saved: [] }))
       .then((data) => {
         if (!cancelled) {

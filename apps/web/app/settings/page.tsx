@@ -13,6 +13,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
+import { fetchWithTimeout } from '@/lib/fetch-timeout'
 
 interface UserProfile {
   displayName?: string
@@ -32,7 +33,7 @@ export default function SettingsPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/profile')
+    fetchWithTimeout('/api/profile')
       .then((res) => res.json())
       .then((data) => setUser(data))
       .catch(() => setUser(null))

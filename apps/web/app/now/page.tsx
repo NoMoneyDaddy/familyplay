@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { ActivityMeta, Button, Card, Icon, LinkButton, PageShell } from '@/app/components/ui'
+import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Rec {
@@ -59,7 +60,7 @@ export default function NowPage() {
       else setLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/recommendations', {
+        const res = await fetchWithTimeout('/api/recommendations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -16,6 +16,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
+import { fetchWithTimeout } from '@/lib/fetch-timeout'
 
 interface Recommendation {
   id: string
@@ -61,7 +62,7 @@ function RecommendationsPageInner() {
       else setLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/recommendations', {
+        const res = await fetchWithTimeout('/api/recommendations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -111,7 +112,7 @@ function RecommendationsPageInner() {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/saved')
+    fetchWithTimeout('/api/saved')
       .then((res) => (res.ok ? res.json() : { saved: [] }))
       .then((data) => {
         if (!cancelled) {
