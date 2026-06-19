@@ -43,18 +43,25 @@ export function AIGenerateCard({ childId }: { childId: string }) {
     }
   }, [])
 
-  // Plus 會員可用「託管金鑰」免設定生成；查一次方案決定要不要直接給生成按鈕。
+  // Plus 會員可用「託管金鑰」免設定生成；查方案決定要不要直接給生成按鈕。
+  // 只在成功讀到方案時更新（暫時的網路/DB 錯誤不要把 Plus 誤判成非 Plus 而藏掉入口）；
+  // 回到分頁時重讀，讓升級/掉訂後即時反映。後端仍以配額把關，前端判斷僅影響顯示。
   const [isPlus, setIsPlus] = useState(false)
   useEffect(() => {
     let cancelled = false
-    fetch('/api/profile')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!cancelled) setIsPlus(d?.plan === 'plus')
-      })
-      .catch(() => {})
+    const refresh = () => {
+      fetch('/api/profile')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!cancelled && d && typeof d.plan === 'string') setIsPlus(d.plan === 'plus')
+        })
+        .catch(() => {})
+    }
+    refresh()
+    window.addEventListener('focus', refresh)
     return () => {
       cancelled = true
+      window.removeEventListener('focus', refresh)
     }
   }, [])
 

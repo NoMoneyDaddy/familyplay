@@ -140,14 +140,16 @@ async function handlePost(request: Request) {
   if (wantsManaged) {
     const mp = process.env.AI_MANAGED_PROVIDER
     const mk = process.env.AI_MANAGED_KEY
-    // 未配置託管金鑰 → 當作沒有可用 provider（前端安靜降回規則式）
-    if (!mp || !mk || !(PROVIDERS as readonly string[]).includes(mp)) {
-      return fallback('no_provider')
-    }
+    // 未配置或非白名單 provider → 當作沒有可用 provider（前端安靜降回規則式）
+    if (!mp || !(PROVIDERS as readonly string[]).includes(mp)) return fallback('no_provider')
+    // ollama 免金鑰；其餘託管 provider 必須有金鑰
+    if (mp !== 'ollama' && !mk) return fallback('no_provider')
     providerName = mp as AIProviderName
-    apiKey = mk
+    apiKey = mp === 'ollama' ? undefined : mk
     // 未設 AI_MANAGED_MODEL 時退回該 provider 的預設模型，避免空字串導致生成失敗
     model = process.env.AI_MANAGED_MODEL || envModelFor(providerName)
+    // ollama 託管也只能用伺服器端 env URL（防 SSRF）
+    ollamaBaseUrl = mp === 'ollama' ? process.env.AI_OLLAMA_URL : undefined
   } else if (input.provider) {
     // BYO：ollama 走伺服器端 env URL（不收 client baseUrl，避免 SSRF）；其餘必須帶 apiKey
     if (input.provider !== 'ollama' && !input.apiKey) return fallback('no_key')
@@ -159,6 +161,12 @@ async function handlePost(request: Request) {
     // 不可達（wantsManaged 為 false 即代表 input.provider 有值），僅為型別窮舉
     return fallback('no_provider')
   }
+
+  // SSRF 防護：ollama 缺伺服器端 base URL 時，provider 會 fallback 到 localhost:11434，
+  // 讓登入者得以觸發伺服器對 loopback 發 request → 一律擋下。
+  if (providerName === 'ollama' && !ollamaBaseUrl) return fallback('no_provider')
+  // provider 都需要非空 model；缺 model 會在「已扣配額後」才失敗，提前擋下避免無謂 consume/refund。
+  if (!model) return fallback('no_provider')
 
   // ── 取孩子的階段 + 發展中能力（ZPD），組成不含個資的 AIInput ──
   const { data: child, error: childError } = await supabase
