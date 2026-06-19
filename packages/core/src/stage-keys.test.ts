@@ -30,6 +30,13 @@ describe('getStageKey', () => {
   it('returns newborn for NaN rather than misclassifying', () => {
     expect(getStageKey(Number.NaN)).toBe(STAGE_KEYS.NEWBORN)
   })
+
+  it('clamps a negative age to newborn (never returns the top band)', () => {
+    // A negative age (e.g. unvalidated/future birth date) must fail safe to the
+    // youngest, most-restrictive stage — not the oldest band.
+    expect(getStageKey(-1)).toBe(STAGE_KEYS.NEWBORN)
+    expect(getStageKey(-120)).toBe(STAGE_KEYS.NEWBORN)
+  })
 })
 
 describe('getAgeMonths', () => {
