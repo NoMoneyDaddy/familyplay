@@ -1,6 +1,13 @@
 'use client'
 
-import { type AssessmentDomain, MILESTONES } from '@familyplay/assessment'
+import {
+  type AssessmentDomain,
+  getZpdTargets,
+  MILESTONE_MAP,
+  MILESTONES,
+} from '@familyplay/assessment'
+import type { CapabilityKey } from '@familyplay/core'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { Callout, FOCUS_LABEL, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
@@ -60,6 +67,15 @@ export default function CapabilitiesPage() {
   }, [selectedChildId])
 
   const achievedCount = Object.values(achieved).filter(Boolean).length
+
+  // 「下一步」建議：依已會的里程碑推出正在發展中（ZPD）的下一顆，連到推薦引擎的 ZPD 評分一致。
+  // 只在有勾選且有後續里程碑時出現，給家長一個具體的努力方向。
+  const achievedKeys = Object.entries(achieved)
+    .filter(([, v]) => v)
+    .map(([k]) => k) as CapabilityKey[]
+  const nextItems = getZpdTargets(achievedKeys)
+    .map((k) => MILESTONE_MAP.get(k))
+    .filter((m): m is NonNullable<typeof m> => Boolean(m))
 
   const toggle = async (key: string) => {
     if (!selectedChildId || pending.has(key)) return
@@ -137,6 +153,35 @@ export default function CapabilitiesPage() {
             <p className="rounded-lg bg-danger-tint px-4 py-3 text-sm text-danger" role="alert">
               {error}
             </p>
+          )}
+
+          {/* 下一步：把評估結果轉成一個具體方向 + 直接看適合的活動 */}
+          {nextItems.length > 0 && (
+            <section className="space-y-3 rounded-2xl border border-brand/20 bg-brand-tint/40 p-4">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-card text-brand">
+                  <Icon name="sparkle" className="h-[16px] w-[16px]" />
+                </span>
+                <h2 className="text-sm font-semibold text-text">接下來正在發展中</h2>
+              </div>
+              <ul className="flex flex-wrap gap-2">
+                {nextItems.map((m) => (
+                  <li
+                    key={m.key}
+                    className="rounded-full bg-card px-3 py-1.5 text-xs font-medium text-brand-strong"
+                  >
+                    {m.label}
+                    <span className="ml-1 text-faint">約 {m.typicalMonths}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-muted">
+                推薦會優先挑能練到這些的活動——
+                <Link href="/now" className="font-medium text-brand hover:opacity-70">
+                  去看適合的陪玩 →
+                </Link>
+              </p>
+            </section>
           )}
 
           {MILESTONES_BY_DOMAIN.map(({ domain, label, items }) => {
