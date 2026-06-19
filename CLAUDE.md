@@ -205,6 +205,9 @@ perf: 性能優化
 
 ## 提交與 PR 紀律
 
-- commit 訊息結尾固定加 `Co-Authored-By` 與 `Claude-Session` trailer。
-- **絕不**把模型代號寫進 commit／PR／程式碼／任何推進 repo 的產物（僅限聊天）。
-- 開發一律在 `claude/...` 功能分支；migration 只新增、不改舊檔，且手動套用。
+- commit 訊息結尾加 harness 規定的 `Co-Authored-By` 與 `Claude-Session` trailer
+  （固定格式，非模型版本碼，不在此限）。
+- **絕不**把**模型版本識別碼**（如 opus 版本字串）寫進 commit／PR／程式碼／任何推進
+  repo 的產物（僅限聊天）。
+- 開發一律在 `claude/...` 功能分支；migration 只新增、不改舊檔（套用方式依專案既有
+  部署流程，見 `docs/DEPLOYMENT.md`／`production.yml`，本檔不另行規定）。
