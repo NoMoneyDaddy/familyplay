@@ -80,9 +80,8 @@ export default function CapabilitiesPage() {
         body: JSON.stringify({ childId: selectedChildId, capabilityKey: key, achieved: next }),
       })
       if (!res.ok) throw new Error('save failed')
-      const data = await res.json()
-      // 以伺服器回傳的權威 map 為準（避免本地與後端不同步）
-      setAchieved(data.capabilities || {})
+      // 不用伺服器回傳的整份 map 覆蓋本地：併發標記不同能力時，先回來的請求其回應
+      // 不含尚在處理中的另一鍵，覆蓋會造成勾選閃爍。樂觀更新已精準，成功即維持。
     } catch {
       // 失敗回復
       setAchieved((prev) => {

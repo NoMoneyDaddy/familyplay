@@ -113,7 +113,39 @@ export async function PATCH(request: Request) {
   }
   const { childId, capabilityKey, achieved } = parsed.data
 
-  // 讀目前能力 map，合併單一鍵後寫回（RLS 確保只有本家庭照顧者能讀寫此孩子的檔）
+  // 原子更新單一鍵（DB 端 JSONB 合併/刪除），避免並發 read-modify-write 互相覆蓋；
+  // RPC 內含缺檔自我修復。RLS 仍在 RPC 內生效（SECURITY INVOKER）。
+  const { data, error } = await supabase.rpc('set_child_capability', {
+    p_child_id: childId,
+    p_key: capabilityKey,
+    p_achieved: achieved,
+  })
+
+  if (error) {
+    // RPC 尚未部署（migration 未套用）→ 退回應用層 read-modify-write，確保上線可用
+    if (error.code === 'PGRST202' || /function.+does not exist/i.test(error.message)) {
+      return legacyUpdate(supabase, childId, capabilityKey, achieved)
+    }
+    reportError(error, { route: '/api/capabilities#PATCH:rpc' })
+    return NextResponse.json({ error: '儲存失敗，請稍後再試' }, { status: 500 })
+  }
+
+  // RLS 擋下（非授權孩子）→ 0 列 → NULL
+  if (data == null) {
+    return NextResponse.json({ error: '找不到孩子的能力檔' }, { status: 404 })
+  }
+
+  return NextResponse.json({ capabilities: pickAchieved(data as Record<string, boolean>) })
+}
+
+// RPC 尚未部署時的退路：讀-改-寫（含缺檔自我修復）。並發覆蓋風險僅在過渡期存在，
+// migration 套用後即走原子 RPC 路徑。
+async function legacyUpdate(
+  supabase: ReturnType<typeof getSupabase>,
+  childId: string,
+  capabilityKey: string,
+  achieved: boolean,
+) {
   const { data: existing, error: readError } = await supabase
     .from('child_capability_profiles')
     .select('capabilities')
@@ -124,12 +156,19 @@ export async function PATCH(request: Request) {
     reportError(readError, { route: '/api/capabilities#PATCH:read' })
     return NextResponse.json({ error: '無法載入能力資料' }, { status: 500 })
   }
+
+  // 缺檔自我修復：補建空檔（RLS WITH CHECK 擋掉非授權孩子）
   if (!existing) {
-    // 沒有能力檔代表孩子不存在或不屬於此使用者（被 RLS 擋下）→ 當 404
-    return NextResponse.json({ error: '找不到孩子的能力檔' }, { status: 404 })
+    const { error: insertError } = await supabase
+      .from('child_capability_profiles')
+      .insert({ child_id: childId, capabilities: {} })
+    if (insertError) {
+      // 多半是 RLS 擋下（非本家庭孩子）→ 當 404；其餘上報
+      return NextResponse.json({ error: '找不到孩子的能力檔' }, { status: 404 })
+    }
   }
 
-  const next = { ...((existing.capabilities as Record<string, boolean> | null) || {}) }
+  const next = { ...((existing?.capabilities as Record<string, boolean> | null) || {}) }
   if (achieved) next[capabilityKey] = true
   else delete next[capabilityKey]
 
