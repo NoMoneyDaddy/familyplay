@@ -1,4 +1,6 @@
 export * from './generate'
+export * from './prompt'
+export * from './providers'
 export * from './safety'
 export * from './types'
 export * from './validate'
