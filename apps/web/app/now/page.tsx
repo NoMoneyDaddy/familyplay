@@ -181,6 +181,9 @@ export default function NowPage() {
     load([], 'initial')
   }
 
+  // 白話化的推薦理由（過濾引擎術語）；算一次供卡片重用
+  const reasons = friendlyReasons(rec?.reasons)
+
   // ── 結束畫面：記錄後 ──
   if (logged) {
     return (
@@ -269,19 +272,14 @@ export default function NowPage() {
               maxDurationMinutes={rec.maxDurationMinutes}
               stimulationLevel={rec.stimulationLevel}
             />
-            {friendlyReasons(rec.reasons).length > 0 && (
+            {reasons.length > 0 && (
               <ul className="space-y-1.5 text-xs text-muted">
-                {friendlyReasons(rec.reasons)
-                  .slice(0, 2)
-                  .map((reason) => (
-                    <li key={reason} className="flex items-start gap-1.5">
-                      <Icon
-                        name="check"
-                        className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success"
-                      />
-                      <span>{reason}</span>
-                    </li>
-                  ))}
+                {reasons.slice(0, 2).map((reason) => (
+                  <li key={reason} className="flex items-start gap-1.5">
+                    <Icon name="check" className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success" />
+                    <span>{reason}</span>
+                  </li>
+                ))}
               </ul>
             )}
 
