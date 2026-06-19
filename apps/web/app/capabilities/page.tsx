@@ -44,7 +44,7 @@ export default function CapabilitiesPage() {
   const [achieved, setAchieved] = useState<CapabilityProfile>({})
   const [loading, setLoading] = useState(true)
   // 正在送出的 key（避免重複點擊；逐顆顯示 pending）
-  const [pending, setPending] = useState<Set<string>>(new Set())
+  const [pending, setPending] = useState<Set<CapabilityKey>>(new Set())
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
