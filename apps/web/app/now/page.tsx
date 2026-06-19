@@ -27,6 +27,12 @@ function timeDefaultContext(): string {
   return hour >= 19 || hour < 5 ? 'bedtime' : 'normal'
 }
 
+// 真實活動才有詳情頁（DB UUID）；引擎合成的安全回退方案 id 非 UUID，無對應頁面。
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function isRealActivity(id: string): boolean {
+  return UUID_RE.test(id)
+}
+
 export default function NowPage() {
   const router = useRouter()
   const selectedChildId = useChildStore((s) => s.selectedChildId)
@@ -217,14 +223,22 @@ export default function NowPage() {
               </ul>
             )}
 
-            <LinkButton
-              href={`/activity/${rec.id}?childId=${selectedChildId}`}
-              size="lg"
-              icon="book"
-              className="w-full"
-            >
-              開始這個活動
-            </LinkButton>
+            {/* 引擎在無匹配時會回「安全回退」方案，其 id 非真實活動 UUID、沒有詳情頁。
+                此時不要渲染會 404 的「開始這個活動」，改提示這就是當下可做的小事。 */}
+            {isRealActivity(rec.id) ? (
+              <LinkButton
+                href={`/activity/${rec.id}?childId=${selectedChildId}`}
+                size="lg"
+                icon="book"
+                className="w-full"
+              >
+                開始這個活動
+              </LinkButton>
+            ) : (
+              <p className="rounded-xl bg-brand-tint/60 px-4 py-3 text-center text-sm text-text">
+                這個就很適合現在——坐到孩子旁邊，直接開始吧。
+              </p>
+            )}
 
             <Button
               variant="secondary"
@@ -239,30 +253,32 @@ export default function NowPage() {
             </Button>
           </Card>
 
-          {/* 玩完一鍵記錄，不必填表 */}
-          <div className="space-y-2">
-            <p className="text-center text-xs text-muted">玩過了嗎？一鍵記一下</p>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="secondary"
-                size="lg"
-                icon="faceHappy"
-                loading={logging}
-                onClick={() => handleLog('completed')}
-              >
-                做完了
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                icon="faceNeutral"
-                loading={logging}
-                onClick={() => handleLog('tried')}
-              >
-                沒成功
-              </Button>
+          {/* 玩完一鍵記錄，不必填表。回退方案非真實活動、無法記錄，不顯示以免「記下了」假象。 */}
+          {isRealActivity(rec.id) && (
+            <div className="space-y-2">
+              <p className="text-center text-xs text-muted">玩過了嗎？一鍵記一下</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  icon="faceHappy"
+                  loading={logging}
+                  onClick={() => handleLog('completed')}
+                >
+                  做完了
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  icon="faceNeutral"
+                  loading={logging}
+                  onClick={() => handleLog('tried')}
+                >
+                  沒成功
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           <Link
             href="/select"
