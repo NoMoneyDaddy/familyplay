@@ -2,12 +2,20 @@
 
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
 import { FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
 import { SaveHeart } from '@/app/components/save-heart'
-import { ActivityMeta, Card, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
+import {
+  ActivityMeta,
+  Button,
+  Card,
+  Icon,
+  LinkButton,
+  PageHeader,
+  PageShell,
+} from '@/app/components/ui'
 
 interface Recommendation {
   id: string
@@ -24,49 +32,76 @@ function RecommendationsPageInner() {
   const searchParams = useSearchParams()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [loading, setLoading] = useState(true)
+  const [shuffling, setShuffling] = useState(false)
+  const [exhausted, setExhausted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // 一次抓收藏清單，逐卡以 initialSaved 傳入 SaveHeart，避免每張卡各打一次 /api/saved。
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+  // 累積看過的活動 id，「換一批」時整批排除，確保每次都換不同的。
+  const seenIds = useRef<Set<string>>(new Set())
 
   const childId = searchParams.get('childId') || ''
   const parentEnergy = searchParams.get('parentEnergy') || ''
   const context = searchParams.get('context') || ''
 
-  useEffect(() => {
-    if (!childId || !parentEnergy || !context) {
-      setError('缺少必要的參數')
-      setLoading(false)
-      return
-    }
-
-    fetch('/api/recommendations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        childId,
-        parentEnergy,
-        context,
-        availableSpace: 'anywhere',
-        availableResources: [],
-        maxDurationMinutes: 20,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+  const load = useCallback(
+    async (excludeIds: string[], mode: 'initial' | 'shuffle') => {
+      if (!childId || !parentEnergy || !context) {
+        setError('缺少必要的參數')
+        setLoading(false)
+        return
+      }
+      if (mode === 'shuffle') setShuffling(true)
+      else setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch('/api/recommendations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            childId,
+            parentEnergy,
+            context,
+            availableSpace: 'anywhere',
+            availableResources: [],
+            maxDurationMinutes: 20,
+            excludeIds,
+          }),
+        })
+        const data = await res.json()
         if (data.error) {
-          setError(data.error)
-        } else {
-          // 後端正常時必有陣列；仍以 [] 兜底，避免 undefined 讓 .length/.map 崩潰
-          setRecommendations(data.recommendations || [])
+          // 換一批失敗不該清掉現有結果；只在初次載入時顯示錯誤畫面
+          if (mode === 'initial') setError(data.error)
+          return
         }
-      })
-      .catch((err) => {
+        const next: Recommendation[] = data.recommendations || []
+        // 換一批換不到新的（只剩看過的或安全兜底）→ 標記已看完，不覆蓋現有清單
+        const allSeen = mode === 'shuffle' && next.every((r) => seenIds.current.has(r.id))
+        if (allSeen) {
+          setExhausted(true)
+          return
+        }
+        for (const r of next) seenIds.current.add(r.id)
+        setRecommendations(next)
+      } catch (err) {
         // 不把技術錯誤（如 502 回非 JSON 時的 "Unexpected token <…"）直接顯示給家長
         console.error('Failed to fetch recommendations:', err)
-        setError('系統忙線或網路不穩，請稍後再試。')
-      })
-      .finally(() => setLoading(false))
-  }, [childId, parentEnergy, context])
+        if (mode === 'initial') setError('系統忙線或網路不穩，請稍後再試。')
+      } finally {
+        setLoading(false)
+        setShuffling(false)
+      }
+    },
+    [childId, parentEnergy, context],
+  )
+
+  useEffect(() => {
+    seenIds.current = new Set()
+    setExhausted(false)
+    load([], 'initial')
+  }, [load])
+
+  const handleShuffle = () => load([...seenIds.current], 'shuffle')
 
   useEffect(() => {
     let cancelled = false
@@ -202,6 +237,28 @@ function RecommendationsPageInner() {
             )
           })}
         </ol>
+      )}
+
+      {recommendations.length > 0 && (
+        <div className="space-y-2">
+          {/* 不喜歡這幾個就換一批不同的，免得家長被迫重跑整個流程 */}
+          <Button
+            variant="secondary"
+            size="lg"
+            icon="refresh"
+            loading={shuffling}
+            disabled={exhausted}
+            onClick={handleShuffle}
+            className="w-full"
+          >
+            {exhausted ? '暫時沒有更多了' : '換一批不同的'}
+          </Button>
+          {exhausted && (
+            <p className="text-center text-xs text-muted">
+              這個狀態下的活動都看過了，換個精力或情境會有新的。
+            </p>
+          )}
+        </div>
       )}
 
       <LinkButton href="/select" variant="secondary" size="lg" icon="refresh">
