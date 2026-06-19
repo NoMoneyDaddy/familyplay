@@ -18,9 +18,11 @@ import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
-// BYO（自帶金鑰）provider 白名單。
-// 註：此端點目前只做「免費版自帶金鑰」；Plus 託管金鑰＋配額計次需要 service-role 寫
-// entitlements（anon client 受 RLS 擋，且涉及付費資安），留待後續 PR。
+// AI 生成 provider 白名單（BYO 自帶金鑰與 Plus 託管金鑰都從此白名單取用）。
+// 兩種模式：
+//   1) 免費版「自帶金鑰」(BYO)：request 帶 provider + apiKey，用完即丟、不寫 log/DB。
+//   2) Plus「託管金鑰」：request 不帶 provider；伺服器用 env 的託管金鑰，並透過
+//      consume_plus_ai_call RPC（SECURITY DEFINER）原子扣 1 次月配額，生成失敗則退還。
 const PROVIDERS = ['gemini', 'groq', 'openai', 'ollama'] as const
 
 const bodySchema = z.object({
@@ -94,6 +96,12 @@ async function handlePost(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // 託管配額退還（生成失敗時呼叫）；退還失敗只上報、不影響回應
+  const refundManaged = async () => {
+    const { error } = await supabase.rpc('refund_plus_ai_call')
+    if (error) reportError(error, { route: '/api/ai/activity#refund' })
+  }
+
   // 限流：每用戶每分鐘 10 次 AI 請求（CLAUDE.md AI 安全規則 #4）。
   // AI 端點成本/濫用敏感 → fail-closed（限流服務異常時擋下，而非放行）。
   const rl = await checkRateLimit(`ai:${user.id}`, 10, false)
@@ -113,9 +121,33 @@ async function handlePost(request: Request) {
   }
   const input = parsed.data
 
-  // BYO：ollama 走伺服器端 env URL（不收 client baseUrl，避免 SSRF）；其餘必須帶 apiKey
-  if (!input.provider) return fallback('no_provider')
-  if (input.provider !== 'ollama' && !input.apiKey) return fallback('no_key')
+  // 決定走「自帶金鑰(BYO)」或「Plus 託管」：request 不帶 provider 即視為要用託管金鑰。
+  const wantsManaged = !input.provider
+  let providerName: AIProviderName
+  let apiKey: string | undefined
+  let model: string
+  let ollamaBaseUrl: string | undefined
+  if (wantsManaged) {
+    const mp = process.env.AI_MANAGED_PROVIDER
+    const mk = process.env.AI_MANAGED_KEY
+    // 未配置託管金鑰 → 當作沒有可用 provider（前端安靜降回規則式）
+    if (!mp || !mk || !(PROVIDERS as readonly string[]).includes(mp)) {
+      return fallback('no_provider')
+    }
+    providerName = mp as AIProviderName
+    apiKey = mk
+    model = process.env.AI_MANAGED_MODEL || ''
+  } else if (input.provider) {
+    // BYO：ollama 走伺服器端 env URL（不收 client baseUrl，避免 SSRF）；其餘必須帶 apiKey
+    if (input.provider !== 'ollama' && !input.apiKey) return fallback('no_key')
+    providerName = input.provider
+    apiKey = input.apiKey
+    model = input.model || envModelFor(input.provider)
+    ollamaBaseUrl = input.provider === 'ollama' ? process.env.AI_OLLAMA_URL : undefined
+  } else {
+    // 不可達（wantsManaged 為 false 即代表 input.provider 有值），僅為型別窮舉
+    return fallback('no_provider')
+  }
 
   // ── 取孩子的階段 + 發展中能力（ZPD），組成不含個資的 AIInput ──
   const { data: child, error: childError } = await supabase
@@ -163,22 +195,42 @@ async function handlePost(request: Request) {
     availableResources: input.availableResources as AIInput['availableResources'],
   }
 
-  const provider = getProvider(input.provider, {
-    apiKey: input.apiKey,
+  const provider = getProvider(providerName, {
+    apiKey,
     // ollama base URL 只能來自伺服器設定，不接受客戶端輸入（防 SSRF）
-    baseUrl: input.provider === 'ollama' ? process.env.AI_OLLAMA_URL : undefined,
-    model: input.model || envModelFor(input.provider),
+    baseUrl: ollamaBaseUrl,
+    model,
   })
   if (!provider) return fallback('no_provider')
+
+  // 託管模式：在實際呼叫 AI 前原子扣 1 次月配額（非 Plus / 額度用盡 → 安靜降回）。
+  // BYO 模式不計配額。扣完才生成，生成失敗會退還。
+  let managed = false
+  if (wantsManaged) {
+    const { data: consume, error: consumeErr } = await supabase.rpc('consume_plus_ai_call')
+    if (consumeErr) {
+      reportError(consumeErr, { route: '/api/ai/activity#consume' })
+      return fallback('quota_error')
+    }
+    const consumed = consume as { allowed?: boolean; reason?: string } | null
+    if (consumed?.allowed !== true) {
+      return fallback(consumed?.reason || 'not_plus')
+    }
+    managed = true
+  }
 
   const result = await generateSafe(provider, aiInput, buildActivityPrompt)
   if (!result.ok) {
     // invalid_input / safety_blocked / provider_failed → 安靜降回規則式
+    if (managed) await refundManaged()
     return fallback(result.reason)
   }
 
   const activity = parseGeneratedActivity(result.content)
-  if (!activity) return fallback('parse_failed')
+  if (!activity) {
+    if (managed) await refundManaged()
+    return fallback('parse_failed')
+  }
 
   return NextResponse.json({ ok: true, source: 'ai', activity })
 }

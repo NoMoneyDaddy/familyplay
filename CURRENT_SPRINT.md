@@ -27,7 +27,7 @@
 - [x] `packages/ai` provider 實作（Gemini/Groq/OpenAI/Ollama）+ 生成 prompt + 解析器
 - [x] `POST /api/ai/activity`：免費版 BYO key、限流、Safety Filter、降回規則式
 - [x] 設定頁 BYO key UI（sessionStorage）+ `/now`「都看過了」接「AI 生一個」
-- [ ] 託管/Plus 配額計次（需 service-role 寫 entitlements）
+- [x] 託管/Plus 配額計次：`consume_plus_ai_call`／`refund_plus_ai_call` RPC（SECURITY DEFINER、伺服器端定額），AI 端點無 BYO key 時走託管金鑰並原子扣配額、失敗退還；卡片 Plus 免設定
 
 ### 首次導覽與多人家庭
 - [x] `/now` 首次三步上手提示（一次性、localStorage、顯示即標記看過）
@@ -43,6 +43,8 @@
 
 - `supabase/migrations/20260619100000_set_child_capability_rpc.sql`
   （里程碑原子寫入；未套用前 API 走退路仍可標記，但缺原子保證）
+- `supabase/migrations/20260703000000_consume_plus_ai_call_rpc.sql`
+  （Plus 託管 AI 配額 consume/refund RPC；未套用前託管生成走不通、BYO 不受影響）
 
 ---
 
