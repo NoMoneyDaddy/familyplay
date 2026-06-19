@@ -281,7 +281,10 @@ const REASON_FRIENDLY: Record<string, string> = {
   發展中能力加分: '正好練到他正在發展的能力',
 }
 export function friendlyReasons(reasons: string[] | undefined): string[] {
-  return (reasons || []).map((r) => REASON_FRIENDLY[r]).filter(Boolean)
+  if (!Array.isArray(reasons)) return []
+  // 去重：多個內部評分可能對應同一句白話，避免列表出現重複（也避免 React 重複 key）
+  const mapped = reasons.map((r) => REASON_FRIENDLY[r]).filter((r): r is string => Boolean(r))
+  return Array.from(new Set(mapped))
 }
 
 /** 活動屬性列：發展領域分類 + 時長 + 刺激強度，做成可快速掃讀的小標籤
