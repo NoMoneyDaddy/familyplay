@@ -34,6 +34,25 @@ function isRealActivity(id: string): boolean {
   return UUID_RE.test(id)
 }
 
+// 離線快取：記住每個孩子上次成功拿到的主方案，斷網/掛起時還能顯示一個能玩的，
+// 而非只給錯誤畫面。localStorage 在隱私模式可能 throw，全包 try-catch。
+const cacheKey = (childId: string) => `fp_now_rec_${childId}`
+function saveCachedRec(childId: string, rec: Rec) {
+  try {
+    localStorage.setItem(cacheKey(childId), JSON.stringify(rec))
+  } catch {
+    // 寫入失敗僅是無法離線回放，不影響本次
+  }
+}
+function readCachedRec(childId: string): Rec | null {
+  try {
+    const raw = localStorage.getItem(cacheKey(childId))
+    return raw ? (JSON.parse(raw) as Rec) : null
+  } catch {
+    return null
+  }
+}
+
 export default function NowPage() {
   const router = useRouter()
   const selectedChildId = useChildStore((s) => s.selectedChildId)
@@ -46,6 +65,7 @@ export default function NowPage() {
   const [logged, setLogged] = useState<null | 'completed' | 'tried'>(null)
   const [exhausted, setExhausted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [stale, setStale] = useState(false) // 離線/失敗時顯示的是上次快取的方案
   const seenIds = useRef<Set<string>>(new Set())
 
   // 沒孩子就先去引導建立（等 store 水合完才判斷，避免誤跳）
@@ -85,9 +105,21 @@ export default function NowPage() {
         }
         seenIds.current.add(next.id)
         setRec(next)
+        setStale(false)
+        saveCachedRec(selectedChildId, next) // 成功就更新離線快取
       } catch (err) {
         console.error('Failed to fetch recommendation:', err)
-        if (mode === 'initial') setError('系統忙線或網路不穩，請稍後再試。')
+        // 初次載入失敗（多半是離線/掛起）：有上次快取就回放，標記為「離線顯示」，
+        // 別讓疲憊家長只看到錯誤；換一個失敗則維持原畫面。
+        if (mode === 'initial') {
+          const cached = readCachedRec(selectedChildId)
+          if (cached) {
+            setRec(cached)
+            setStale(true)
+          } else {
+            setError('系統忙線或網路不穩，請稍後再試。')
+          }
+        }
       } finally {
         setLoading(false)
         setShuffling(false)
@@ -135,6 +167,7 @@ export default function NowPage() {
     seenIds.current = new Set()
     setExhausted(false)
     setLogged(null)
+    setStale(false)
     setRec(null)
     load([], 'initial')
   }
@@ -203,6 +236,15 @@ export default function NowPage() {
             <p className="text-sm font-medium text-brand-strong">現在就陪</p>
             <p className="text-xs text-muted">幫你選好了，直接開始就行</p>
           </div>
+
+          {stale && (
+            <p
+              className="rounded-xl bg-warning-tint px-4 py-2.5 text-center text-xs text-warning"
+              role="status"
+            >
+              目前離線，顯示的是上次的方案
+            </p>
+          )}
 
           <Card className="relative space-y-4 ring-2 ring-brand/60">
             <h1 className="text-xl font-bold leading-snug text-text">{rec.title}</h1>
