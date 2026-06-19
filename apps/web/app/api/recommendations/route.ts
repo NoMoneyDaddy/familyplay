@@ -83,38 +83,43 @@ export async function POST(request: Request) {
       return Response.json({ error: '孩子的出生年月不能在未來' }, { status: 400 })
     }
 
-    // Pre-filter activities by age in SQL (only columns the engine needs)
-    const { data: activities, error: activitiesError } = await supabase
-      .from('companion_activities')
-      .select(
-        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
-      )
-      .eq('is_active', true)
-      .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
-      .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`)
+    // 這三個查詢只依賴已取得的 childId / ageMonths，彼此獨立 → 併行，省兩趟 round-trip。
+    // recentLogs 加上限：近 7 天紀錄理論上可能很多，但降權只需「出現過的活動集合」，
+    // 500 筆已遠超實際需求，避免狂記錄的家長把整段歷史一次拉回。
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const [activitiesResult, recentLogsResult, capProfileResult] = await Promise.all([
+      supabase
+        .from('companion_activities')
+        .select(
+          'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
+        )
+        .eq('is_active', true)
+        .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
+        .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`),
+      supabase
+        .from('companion_logs')
+        .select('activity_id')
+        .eq('child_id', childId)
+        .gt('created_at', sevenDaysAgo)
+        .limit(500),
+      supabase
+        .from('child_capability_profiles')
+        .select('capabilities')
+        .eq('child_id', childId)
+        .single(),
+    ])
 
+    const { data: activities, error: activitiesError } = activitiesResult
     if (activitiesError) {
       console.error('Failed to fetch activities', activitiesError)
       return Response.json({ error: '無法載入活動資料' }, { status: 500 })
     }
 
-    // Fetch recent logs for recency penalty
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    const { data: recentLogs } = await supabase
-      .from('companion_logs')
-      .select('activity_id')
-      .eq('child_id', childId)
-      .gt('created_at', sevenDaysAgo)
+    const recentActivityIds = new Set(
+      recentLogsResult.data?.map((l) => l.activity_id).filter(Boolean) || [],
+    )
 
-    const recentActivityIds = new Set(recentLogs?.map((l) => l.activity_id).filter(Boolean) || [])
-
-    // Fetch child capabilities
-    const { data: capProfile } = await supabase
-      .from('child_capability_profiles')
-      .select('capabilities')
-      .eq('child_id', childId)
-      .single()
-
+    const capProfile = capProfileResult.data
     const acquiredCapabilities = new Set(
       Object.keys(capProfile?.capabilities || {}).filter(
         (key) => capProfile?.capabilities[key] === true,
