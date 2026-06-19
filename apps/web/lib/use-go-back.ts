@@ -13,7 +13,12 @@ import { useCallback } from 'react'
 export function useGoBack(fallback = '/now') {
   const router = useRouter()
   return useCallback(() => {
-    const idx = (window.history.state as { idx?: number } | null)?.idx
+    // 防禦性檢查：回呼雖只在用戶端點擊時觸發，仍守 typeof window，確保 SSR／
+    // Node 測試環境不會因存取 window 拋 ReferenceError。
+    const idx =
+      typeof window !== 'undefined'
+        ? (window.history.state as { idx?: number } | null)?.idx
+        : undefined
     if (typeof idx === 'number' && idx > 0) router.back()
     else router.push(fallback)
   }, [router, fallback])
