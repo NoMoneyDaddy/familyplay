@@ -3,7 +3,15 @@
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useRef, useState } from 'react'
 import { Mascot } from '@/app/components/mascot'
-import { Button, Card, ErrorAlert, Icon, type IconName, PageShell } from '@/app/components/ui'
+import {
+  Button,
+  Card,
+  ErrorAlert,
+  FOCUS_LABEL,
+  Icon,
+  type IconName,
+  PageShell,
+} from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
 
 interface Activity {
@@ -15,6 +23,8 @@ interface Activity {
   endingLine?: string
   minDurationMinutes: number
   maxDurationMinutes: number
+  developmentalFocus?: string[]
+  targetSkills?: string[]
 }
 
 type Reaction = 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
@@ -64,9 +74,12 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   )
 
   useEffect(() => {
+    // fetchWithTimeout 對 4xx/5xx 不 throw；非 2xx（404/401/500）會回 { error: ... }，
+    // 直接 setActivity 會讓 !activity 的錯誤畫面失效、後續 activity.steps 崩潰。
+    // 故先檢查 res.ok，失敗一律當讀取失敗（null）→ 顯示錯誤畫面與返回鍵。
     fetchWithTimeout(`/api/activities/${id}`)
-      .then((res) => res.json())
-      .then((data) => setActivity(data))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setActivity(data?.id ? data : null))
       .catch(() => setActivity(null))
       .finally(() => setActivityLoading(false))
   }, [id])
@@ -105,6 +118,16 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
     } finally {
       setSavePending(false)
     }
+  }
+
+  // 返回：優先回上一頁（多半是 /now、/recommendations、/saved）。
+  // 用 Next.js App Router 寫在 history.state 的 idx 判斷「站內是否有上一頁」：
+  // idx > 0 代表是站內導覽進來的，router.back() 安全；idx 為 0／不存在代表直接開連結
+  // （外部連結、重新整理），此時 back() 可能跳出網站，改回 /now。
+  const goBack = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx
+    if (typeof idx === 'number' && idx > 0) router.back()
+    else router.push('/now')
   }
 
   const handleComplete = async () => {
@@ -171,15 +194,37 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   if (!activity) {
     return (
       <PageShell>
+        <button
+          type="button"
+          onClick={goBack}
+          className="-ml-1 inline-flex items-center gap-1 self-start text-sm font-medium text-muted transition-colors hover:text-text"
+        >
+          <Icon name="back" className="h-[16px] w-[16px]" />
+          返回
+        </button>
         <p className="py-12 text-center text-danger" role="alert">
-          活動不存在
+          活動不存在或暫時讀取失敗
         </p>
       </PageShell>
     )
   }
 
+  const focusLabels = (activity.developmentalFocus || []).map((f) => FOCUS_LABEL[f]).filter(Boolean)
+  // 領域（大動作/語言…）＋ ZPD 目標能力，合併去重成「會練到什麼」標籤
+  const learnTags = Array.from(new Set([...focusLabels, ...(activity.targetSkills || [])]))
+
   return (
     <PageShell>
+      {/* 返回：點進活動後可回到原本的清單／首頁 */}
+      <button
+        type="button"
+        onClick={goBack}
+        className="-ml-1 inline-flex items-center gap-1 self-start text-sm font-medium text-muted transition-colors hover:text-text"
+      >
+        <Icon name="back" className="h-[16px] w-[16px]" />
+        返回
+      </button>
+
       <Card className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-2xl font-bold text-text">{activity.title}</h1>
@@ -229,12 +274,41 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
             </div>
           )}
 
+          {activity.endingLine && (
+            <p className="rounded-xl bg-bg px-3 py-2.5 text-sm italic text-muted">
+              {activity.endingLine}
+            </p>
+          )}
+
           <div className="flex items-center gap-1.5 text-xs text-muted">
             <Icon name="clock" className="h-[14px] w-[14px]" />約 {activity.minDurationMinutes}–
             {activity.maxDurationMinutes} 分鐘
           </div>
         </div>
       </Card>
+
+      {/* 做這個活動能練到什麼：發展領域 + ZPD 目標能力，讓家長看到陪伴的意義 */}
+      {learnTags.length > 0 && (
+        <Card className="space-y-2.5">
+          <div className="flex items-center gap-1.5">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-tint text-brand">
+              <Icon name="sparkle" className="h-[15px] w-[15px]" />
+            </span>
+            <h2 className="text-sm font-semibold text-text">陪這個，孩子在練</h2>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {learnTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center rounded-full bg-brand-tint px-2.5 py-1 text-xs font-semibold text-brand-strong"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-faint">陪玩自然帶到這些能力，不用刻意「教」。</p>
+        </Card>
+      )}
 
       <Card className="space-y-4">
         <h2 className="font-semibold text-text">記一下今天</h2>

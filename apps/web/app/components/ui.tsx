@@ -266,7 +266,7 @@ const STIMULATION_META: Record<'low' | 'medium' | 'high', { label: string; dot: 
 }
 
 /** 發展領域 → 中文短標籤（對應 companion_activities.developmental_focus）。 */
-const FOCUS_LABEL: Record<string, string> = {
+export const FOCUS_LABEL: Record<string, string> = {
   gross_motor: '大動作',
   fine_motor: '精細動作',
   language: '語言',
