@@ -21,23 +21,24 @@ CREATE OR REPLACE FUNCTION public.consume_plus_ai_call()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+-- 空 search_path + 全部表名用 public. 限定：避免 definer 權限函式受呼叫者 search_path 影響
+SET search_path = ''
 AS $$
 DECLARE
   PLUS_MONTHLY_QUOTA constant int := 100;
   v_profile uuid;
-  v_ent entitlements%ROWTYPE;
+  v_ent public.entitlements%ROWTYPE;
   v_now timestamptz := now();
   v_remaining int;
   v_reset timestamptz;
 BEGIN
-  SELECT id INTO v_profile FROM user_profiles WHERE auth_user_id = auth.uid();
+  SELECT id INTO v_profile FROM public.user_profiles WHERE auth_user_id = auth.uid();
   IF v_profile IS NULL THEN
     RETURN jsonb_build_object('allowed', false, 'reason', 'no_profile');
   END IF;
 
   -- 鎖定該列避免並發超扣
-  SELECT * INTO v_ent FROM entitlements WHERE user_profile_id = v_profile FOR UPDATE;
+  SELECT * INTO v_ent FROM public.entitlements WHERE user_profile_id = v_profile FOR UPDATE;
   IF NOT FOUND THEN
     RETURN jsonb_build_object('allowed', false, 'reason', 'no_entitlement');
   END IF;
@@ -67,7 +68,7 @@ BEGIN
   END IF;
 
   IF v_remaining <= 0 THEN
-    UPDATE entitlements
+    UPDATE public.entitlements
       SET plus_ai_calls_remaining = 0,
           plus_ai_calls_reset_at = v_reset,
           updated_at = v_now
@@ -77,7 +78,7 @@ BEGIN
   END IF;
 
   v_remaining := v_remaining - 1;
-  UPDATE entitlements
+  UPDATE public.entitlements
     SET plus_ai_calls_remaining = v_remaining,
         plus_ai_calls_reset_at = v_reset,
         updated_at = v_now
@@ -96,18 +97,19 @@ CREATE OR REPLACE FUNCTION public.refund_plus_ai_call(p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = ''
 AS $$
 DECLARE
-  REFUND_CAP constant int := 200;
+  -- 退還上限對齊月配額，避免退額把餘額灌過當月應有量
+  REFUND_CAP constant int := 100;
   v_profile uuid;
 BEGIN
-  SELECT id INTO v_profile FROM user_profiles WHERE auth_user_id = p_user_id;
+  SELECT id INTO v_profile FROM public.user_profiles WHERE auth_user_id = p_user_id;
   IF v_profile IS NULL THEN
     RETURN;
   END IF;
 
-  UPDATE entitlements
+  UPDATE public.entitlements
     SET plus_ai_calls_remaining = LEAST(REFUND_CAP, COALESCE(plus_ai_calls_remaining, 0) + 1),
         updated_at = now()
     WHERE user_profile_id = v_profile
