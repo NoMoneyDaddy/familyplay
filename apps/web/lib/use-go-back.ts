@@ -19,7 +19,9 @@ export function useGoBack(fallback = '/now') {
       typeof window !== 'undefined'
         ? (window.history.state as { idx?: number } | null)?.idx
         : undefined
+    // 站內有上一頁 → back()；否則 replace（非 push）導向 fallback：直接進來的頁面
+    // 不該再多堆一筆歷史，避免之後 back 又彈回來造成 ping-pong。
     if (typeof idx === 'number' && idx > 0) router.back()
-    else router.push(fallback)
+    else router.replace(fallback)
   }, [router, fallback])
 }
