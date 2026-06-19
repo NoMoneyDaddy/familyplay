@@ -8,7 +8,18 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_VERSION)
-      .then((cache) => cache.addAll(PRECACHE))
+      // 逐項快取而非 cache.addAll：addAll 具原子性，任一資源在部署當下抓取失敗（404／網路）
+      // 就會整個 install reject，導致「什麼都沒快取」、離線功能全失效。改為各自嘗試、
+      // 失敗只記 log 不中斷，確保能成功的資源仍被快取。
+      .then((cache) =>
+        Promise.allSettled(
+          PRECACHE.map((u) =>
+            cache.add(u).catch((err) => {
+              console.warn('SW precache skipped:', u, err)
+            }),
+          ),
+        ),
+      )
       .then(() => self.skipWaiting()),
   )
 })
