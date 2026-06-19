@@ -128,11 +128,18 @@ export async function POST(request: Request) {
 
     // ── Downgrade path ──
     if (isDeactivating) {
+      // 回到 free 時把所有方案相關欄位一併清空，避免殘留舊的 plus/supporter 日期與
+      // 訂閱 id，造成 UI 顯示「Plus 到期日／購買日」等矛盾資訊，或日後重訂閱時新舊資料衝突。
       const { error } = await supabase
         .from('entitlements')
         .update({
           plan: 'free',
           plus_ai_calls_remaining: 0,
+          plus_ai_calls_reset_at: null,
+          plus_started_at: null,
+          plus_ends_at: null,
+          supporter_purchased_at: null,
+          lemonsqueezy_subscription_id: null,
           updated_at: now.toISOString(),
         })
         .eq('user_profile_id', userProfileId)
@@ -175,11 +182,20 @@ export async function POST(request: Request) {
       }
     }
 
+    // 切換方案時清掉另一個方案的欄位，維持單一真實來源：
+    //   supporter → 清 plus_* 欄位；plus → 清 supporter_purchased_at。
     const updateData = {
       plan,
       lemonsqueezy_subscription_id: validated.data.attributes.subscription_id ?? null,
-      ...(plan === 'supporter' && { supporter_purchased_at: now.toISOString() }),
+      ...(plan === 'supporter' && {
+        supporter_purchased_at: now.toISOString(),
+        plus_started_at: null,
+        plus_ends_at: null,
+        plus_ai_calls_remaining: 0,
+        plus_ai_calls_reset_at: null,
+      }),
       ...(plan === 'plus' && {
+        supporter_purchased_at: null,
         plus_started_at: now.toISOString(),
         plus_ends_at: plusEndsAt.toISOString(),
         plus_ai_calls_remaining: 100,
