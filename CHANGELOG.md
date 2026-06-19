@@ -2,6 +2,11 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 付費整合 UI（LemonSqueezy web）
+- 訂閱管理改為可用：`GET /api/lemon/portal` 回傳 LemonSqueezy 客戶入口簽章 URL（更新付款／取消／恢復）；只讀 `entitlements.lemonsqueezy_subscription_id`、不寫方案，扣款由 webhook（service-role）回寫。
+- `/account/entitlements` 的「透過 LemonSqueezy 管理訂閱」由 disabled 改為導向客戶入口，含載入態與錯誤回報；附「更新付款方式、取消或恢復訂閱」說明，對齊 FAQ「隨時可取消」承諾。
+- 端點限流 10/min、外部 API 10 秒逾時、未登入/無訂閱清楚回 401/404；不需新增環境變數（沿用 `LEMONSQUEEZY_API_KEY`）。
+
 ### 導覽與版面
 - 活動詳情頁加返回鍵；全站次級頁（能力/推薦/狀態選擇/設定/付費）一致返回鍵（共用 `useGoBack`，站內 back／否則 fallback、防跳出站外與 ping-pong）。
 - 首頁 `/now` 加回品牌（波波吉祥物 + FamilyPlay 站名）；收緊版面間距減少「一進來被切掉」；底部導覽瘦身。

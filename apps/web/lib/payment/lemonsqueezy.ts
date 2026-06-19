@@ -103,3 +103,47 @@ export async function createLemonSqueezyCheckout(
 
   return checkoutUrl
 }
+
+/**
+ * Fetch the LemonSqueezy customer portal URL for an existing subscription.
+ * The portal is where the customer can update payment method, cancel, or
+ * resume — LemonSqueezy hosts it; we never handle card data ourselves.
+ * @param subscriptionId LemonSqueezy subscription id (stored at purchase via webhook)
+ * @returns Signed customer-portal URL (short-lived), or null if unavailable
+ */
+export async function getLemonSqueezyCustomerPortalUrl(
+  subscriptionId: string,
+): Promise<string | null> {
+  const apiKey = process.env.LEMONSQUEEZY_API_KEY
+  if (!apiKey) {
+    throw new Error('LemonSqueezy credentials not configured')
+  }
+
+  // 外部 API 設 10 秒上限，逾時轉成清楚錯誤，不掛住 serverless 連線。
+  let response: Response
+  try {
+    response = await fetch(`https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: 'application/vnd.api+json',
+      },
+      signal: AbortSignal.timeout(10000),
+    })
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'TimeoutError') {
+      throw new Error('LemonSqueezy API timeout')
+    }
+    throw e
+  }
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(`LemonSqueezy API error: ${JSON.stringify(error)}`)
+  }
+
+  const data = await response.json()
+  // 簽章的 portal URL 放在 attributes.urls.customer_portal；可能因方案狀態而缺漏。
+  const portalUrl: unknown = data.data?.attributes?.urls?.customer_portal
+  return typeof portalUrl === 'string' && portalUrl.length > 0 ? portalUrl : null
+}

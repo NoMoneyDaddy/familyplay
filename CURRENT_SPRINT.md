@@ -29,6 +29,10 @@
 - [x] 設定頁 BYO key UI（sessionStorage）+ `/now`「都看過了」接「AI 生一個」
 - [x] 託管/Plus 配額計次：`consume_plus_ai_call`／`refund_plus_ai_call` RPC（SECURITY DEFINER、伺服器端定額），AI 端點無 BYO key 時走託管金鑰並原子扣配額、失敗退還；卡片 Plus 免設定
 
+### 付費整合 UI（LemonSqueezy web）
+- [x] 升級結帳已串：`/pricing`＋`plan-comparison` CTA →「成為支持者」打 `/api/lemon/create-checkout` 導向結帳，回來讀 `/api/profile`／`/api/account/entitlements` 反映方案（entitlements 只由 service-role webhook 寫，前端不可自助升級；Plus 仍標「即將推出」直到核心交付確認）
+- [x] 訂閱管理可用：`GET /api/lemon/portal` 取 LemonSqueezy 客戶入口（更新付款／取消／恢復）；`/account/entitlements` 管理按鈕由 disabled 改為導向入口（含載入態/錯誤回報）
+
 ### 首次導覽與多人家庭
 - [x] `/now` 首次三步上手提示（一次性、localStorage、顯示即標記看過）
 - [x] 陪伴紀錄顯示「誰陪的」（多人家庭：你/暱稱/家人；單人不顯示）
@@ -50,8 +54,8 @@
 
 ## 下一步候選
 
-- 行動端（Expo）UI（`apps/mobile`）：把 Web 的「現在就陪」「里程碑」「紀錄」流程移植到 Expo Router
-- 付費整合 UI：LemonSqueezy（web，後端 `/api/lemon/*` 已存在）／RevenueCat（mobile）的升級頁與結帳串接
+- 行動端（Expo）UI（`apps/mobile`）：把 Web 的「現在就陪」「里程碑」「紀錄」流程移植到 Expo Router（沿用 `packages/core`／`packages/assessment`，金鑰用 Secure Storage）
+- 付費整合 UI（web）已串：升級結帳＋訂閱管理入口完成；剩下 Plus 上架決策（核心交付確認後把 `plan-comparison` 的 Plus `comingSoon` 拿掉、設好 `LEMONSQUEEZY_PLUS_MONTHLY_VARIANT_ID`）與行動端 RevenueCat
 - 交接摘要 AI 強化（目前 `/handoff` 為規則式唯讀；可選持久化到 `handoff_summaries`）
 - 多孩子 UI/流程優化、推送通知、離線、本地化
 
