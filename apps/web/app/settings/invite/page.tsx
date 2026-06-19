@@ -20,6 +20,7 @@ interface HouseholdMember {
   displayName: string
   role: 'owner' | 'caregiver' | 'viewer'
   nickname?: string
+  isSelf?: boolean
   joinedAt: string
 }
 
@@ -260,7 +261,10 @@ export default function InvitePage() {
                     <div className="flex items-center gap-3">
                       <Icon name="user" className="h-[20px] w-[20px] text-brand" />
                       <div>
-                        <p className="font-medium text-text">{member.displayName}</p>
+                        <p className="font-medium text-text">
+                          {member.displayName}
+                          {member.isSelf && <span className="text-muted">（你）</span>}
+                        </p>
                         <p className="text-xs text-muted">{ROLE_LABEL[member.role]}</p>
                       </div>
                     </div>
