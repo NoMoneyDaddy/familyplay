@@ -207,6 +207,21 @@ export default function HistoryPage() {
         <Icon name="chevronRight" className="h-[18px] w-[18px] shrink-0 text-faint" />
       </Link>
 
+      {/* 交接小卡：把孩子近況濃縮成一張可分享的卡，給接手的家人快速進入狀況 */}
+      <Link
+        href="/handoff"
+        className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3.5 shadow-clay-sm transition-colors hover:border-brand/50"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+          <Icon name="link" className="h-[20px] w-[20px]" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-text">交接小卡</span>
+          <span className="block text-xs text-muted">一眼看懂近況，分享給接手的家人</span>
+        </span>
+        <Icon name="chevronRight" className="h-[18px] w-[18px] shrink-0 text-faint" />
+      </Link>
+
       {error && (
         <p className="rounded-lg bg-danger-tint px-4 py-3 text-sm text-danger" role="alert">
           {error}
