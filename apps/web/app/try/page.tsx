@@ -64,7 +64,9 @@ interface Recommendation {
 
 export default function TryPage() {
   const [ageMonths, setAgeMonths] = useState<number | null>(null)
-  const [energy, setEnergy] = useState<string | null>(null)
+  // 精力預設「有點累」（疲憊是常態，給低負擔最安全；可改）。讓返訪者（年齡已記住）
+  // 一進來三項就齊、直接出方案；新訪者也只需選年齡。
+  const [energy, setEnergy] = useState<string | null>('low')
   const [context, setContext] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -286,7 +288,10 @@ export default function TryPage() {
 
           {/* 精力 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-semibold text-text">你現在的精力？</legend>
+            <legend className="text-sm font-semibold text-text">
+              你現在的精力？
+              <span className="ml-1.5 font-normal text-faint">已預選，可更改</span>
+            </legend>
             <div className="grid grid-cols-2 gap-3">
               {ENERGY_OPTIONS.map((o) => (
                 <button
