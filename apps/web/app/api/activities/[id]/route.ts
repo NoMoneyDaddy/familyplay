@@ -1,3 +1,4 @@
+import { CAPABILITY_KEYS } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -33,7 +34,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { data: activity, error } = await supabase
     .from('companion_activities')
     .select(
-      'id,title,opening_line,steps,follow_up_questions,ending_line,min_duration_minutes,max_duration_minutes,safety_notes',
+      'id,title,opening_line,steps,follow_up_questions,ending_line,min_duration_minutes,max_duration_minutes,safety_notes,developmental_focus,zpd_targets',
     )
     .eq('id', id)
     .eq('is_active', true)
@@ -42,6 +43,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (error || !activity) {
     return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
   }
+
+  // zpd_targets 是能力 key；映射成中文標籤（白名單外的 key 丟棄），讓家長看到「會練到什麼」。
+  const caps = CAPABILITY_KEYS as Record<string, string>
+  const targetSkills = ((activity.zpd_targets as string[] | null) || [])
+    .map((k) => caps[k])
+    .filter(Boolean)
 
   return NextResponse.json({
     id: activity.id,
@@ -53,5 +60,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     minDurationMinutes: activity.min_duration_minutes,
     maxDurationMinutes: activity.max_duration_minutes,
     safetyNotes: activity.safety_notes,
+    developmentalFocus: activity.developmental_focus || [],
+    targetSkills,
   })
 }
