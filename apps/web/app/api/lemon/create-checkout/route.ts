@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { createLemonSqueezyCheckout } from '@/lib/payment/lemonsqueezy'
 import { checkRateLimit } from '@/lib/ratelimit'
 
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
-    console.error('Checkout creation error:', error)
+    reportError(error, { route: '/api/lemon/create-checkout' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

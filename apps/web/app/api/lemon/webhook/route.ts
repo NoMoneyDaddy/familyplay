@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { verifyWebhookSignature } from '@/lib/payment/lemonsqueezy'
 
 // LemonSqueezy sends `meta.event_name`; we read defensively.
@@ -221,7 +222,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
     // Don't leak internal error details to the caller
-    console.error('Webhook: Unexpected error', error)
+    reportError(error, { route: '/api/lemon/webhook' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
