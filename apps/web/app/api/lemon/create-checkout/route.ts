@@ -46,8 +46,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
     }
 
-    // Validate request body
-    const body = await request.json()
+    // Validate request body（malformed JSON 屬客戶端錯誤 → 400，不上報）
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    }
     const { planId, returnUrl } = createCheckoutSchema.parse(body)
 
     // Get or create user profile
@@ -58,7 +63,7 @@ export async function POST(request: Request) {
       .single()
 
     if (!profile) {
-      const { data: newProfile } = await supabase
+      const { data: newProfile, error: profileErr } = await supabase
         .from('user_profiles')
         .insert({
           auth_user_id: user.id,
@@ -69,6 +74,7 @@ export async function POST(request: Request) {
         .single()
 
       if (!newProfile) {
+        reportError(profileErr, { route: '/api/lemon/create-checkout' })
         return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
       }
 

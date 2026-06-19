@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/nextjs'
 // 用在 API route 的「非預期 500」catch，避免生產錯誤只進 stdout、在監控看不到。
 // 預期內的客戶端錯誤（zod 400、找不到 404 等）不需回報，別污染告警。
 export function reportError(error: unknown, context?: Record<string, unknown>): void {
+  if (!error) return // 空值不上報，避免無意義的 Sentry 事件
   console.error(context?.route ?? 'error', error)
   try {
     Sentry.captureException(error, context ? { extra: context } : undefined)

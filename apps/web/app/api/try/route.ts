@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`)
 
     if (activitiesError) {
-      console.error('Failed to fetch activities (try)', activitiesError)
+      reportError(activitiesError, { route: '/api/try' })
       return Response.json({ error: '無法載入活動資料' }, { status: 500 })
     }
 

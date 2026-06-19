@@ -46,8 +46,14 @@ export async function POST(request: Request) {
     return Response.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
+  let body: unknown
   try {
-    const body = await request.json()
+    body = await request.json()
+  } catch {
+    return Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  try {
     const {
       childId,
       parentEnergy,
@@ -112,7 +118,7 @@ export async function POST(request: Request) {
 
     const { data: activities, error: activitiesError } = activitiesResult
     if (activitiesError) {
-      console.error('Failed to fetch activities', activitiesError)
+      reportError(activitiesError, { route: '/api/recommendations' })
       return Response.json({ error: '無法載入活動資料' }, { status: 500 })
     }
 

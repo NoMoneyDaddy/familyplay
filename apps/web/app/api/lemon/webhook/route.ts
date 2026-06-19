@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       if (dedupeError.code === '23505') {
         return NextResponse.json({ success: true, deduped: true })
       }
-      console.error('Webhook: dedupe insert failed', dedupeError)
+      reportError(dedupeError, { route: '/api/lemon/webhook' })
       return NextResponse.json({ error: 'Processing error' }, { status: 500 })
     }
 
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
         .eq('user_profile_id', userProfileId)
 
       if (error) {
-        console.error('Webhook: downgrade update failed', error)
+        reportError(error, { route: '/api/lemon/webhook' })
         await releaseDedupe()
         return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
       }
@@ -211,7 +211,7 @@ export async function POST(request: Request) {
       .eq('user_profile_id', userProfileId)
 
     if (error) {
-      console.error('Webhook: Database update failed', error)
+      reportError(error, { route: '/api/lemon/webhook' })
       await releaseDedupe()
       return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
     }
