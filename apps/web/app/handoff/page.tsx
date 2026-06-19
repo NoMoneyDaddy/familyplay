@@ -22,6 +22,7 @@ import { useGoBack } from '@/lib/use-go-back'
 // 給接手的家人（奶奶、另一半…）30 秒進入狀況。純唯讀、用既有 API 即時組，不寫資料庫、不送 AI。
 
 interface Log {
+  id: string
   activityTitle: string
   outcome: string
   createdAt: string
@@ -82,6 +83,14 @@ export default function HandoffPage() {
 
   const stage = stageLabel(child?.stageKey)
 
+  // 成功類提示 2.5 秒自動收起；卸載即清掉計時器避免對已卸載組件 setState。
+  // 「不支援」屬需要使用者看到並手動操作的提示，不自動消失。
+  useEffect(() => {
+    if (!shareNote || shareNote.includes('不支援')) return
+    const timer = setTimeout(() => setShareNote(null), 2500)
+    return () => clearTimeout(timer)
+  }, [shareNote])
+
   // 分享用的純文字版（不含真實生日等敏感資料；暱稱由家長自填、屬可分享範圍）
   const buildText = () => {
     const name = child?.nickname || '寶寶'
@@ -120,7 +129,6 @@ export default function HandoffPage() {
       try {
         await navigator.clipboard.writeText(text)
         setShareNote('已複製到剪貼簿，貼給家人就好 ☁️')
-        setTimeout(() => setShareNote(null), 2500)
         return
       } catch {
         // 落到最後的提示
@@ -184,12 +192,8 @@ export default function HandoffPage() {
                   <p className="text-sm text-faint">還沒有紀錄</p>
                 ) : (
                   <ul className="space-y-1">
-                    {recent.map((l, i) => (
-                      <li
-                        // biome-ignore lint/suspicious/noArrayIndexKey: 唯讀快照、無穩定 id 需求
-                        key={i}
-                        className="text-sm text-text"
-                      >
+                    {recent.map((l) => (
+                      <li key={l.id} className="text-sm text-text">
                         {l.activityTitle}
                         <span className="text-faint">
                           （{OUTCOME_LABEL[l.outcome] ?? l.outcome}
