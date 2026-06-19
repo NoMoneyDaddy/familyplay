@@ -68,6 +68,50 @@ export interface GeneratedActivity {
   endingLine: string
 }
 
+const asStringArray = (v: unknown, max: number): string[] =>
+  Array.isArray(v)
+    ? v
+        .filter((s): s is string => typeof s === 'string')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+        .slice(0, max)
+    : []
+
+/**
+ * 解析 AI 回傳的活動 JSON，並驗證/正規化成 GeneratedActivity。
+ *
+ * 即使開了原生 JSON mode，仍防禦性處理：去掉可能的 ```json markdown 圍欄、JSON.parse、
+ * 檢查必要欄位（title + 至少一個 step）。任何不合規一律回 null，呼叫端據此降回規則式。
+ */
+export function parseGeneratedActivity(content: string): GeneratedActivity | null {
+  const cleaned = content
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim()
+
+  let raw: unknown
+  try {
+    raw = JSON.parse(cleaned)
+  } catch {
+    return null
+  }
+  if (typeof raw !== 'object' || raw === null) return null
+  const o = raw as Record<string, unknown>
+
+  const title = typeof o.title === 'string' ? o.title.trim() : ''
+  const steps = asStringArray(o.steps, 8)
+  if (!title || steps.length === 0) return null
+
+  return {
+    title: title.slice(0, 40),
+    openingLine: typeof o.openingLine === 'string' ? o.openingLine.slice(0, 200) : '',
+    steps,
+    followUpQuestions: asStringArray(o.followUpQuestions, 5),
+    endingLine: typeof o.endingLine === 'string' ? o.endingLine.slice(0, 200) : '',
+  }
+}
+
 export function buildActivityPrompt(input: AIInput): {
   system: string
   user: string
