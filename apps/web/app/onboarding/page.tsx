@@ -14,8 +14,9 @@ export default function OnboardingPage() {
     if (child?.childId) {
       setSelectedChildId(child.childId)
     }
-    // 建完直接進「現在就陪」一鍵頁，首次就拿到一個方案（而非再面對一張選擇表單）
-    router.push('/now')
+    // 建完直接進「現在就陪」一鍵頁，首次就拿到一個方案（而非再面對一張選擇表單）。
+    // 用 replace：引導是一次性流程，按返回鍵不該回到 onboarding 表單。
+    router.replace('/now')
   }
 
   return (
