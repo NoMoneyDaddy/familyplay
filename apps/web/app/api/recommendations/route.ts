@@ -2,6 +2,7 @@ import { ALLOWED_STAGE_KEYS, getAgeMonths, getRecommendations, getStageKey } fro
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const requestSchema = z.object({
@@ -45,8 +46,14 @@ export async function POST(request: Request) {
     return Response.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
+  let body: unknown
   try {
-    const body = await request.json()
+    body = await request.json()
+  } catch {
+    return Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  try {
     const {
       childId,
       parentEnergy,
@@ -111,7 +118,7 @@ export async function POST(request: Request) {
 
     const { data: activities, error: activitiesError } = activitiesResult
     if (activitiesError) {
-      console.error('Failed to fetch activities', activitiesError)
+      reportError(activitiesError, { route: '/api/recommendations' })
       return Response.json({ error: '無法載入活動資料' }, { status: 500 })
     }
 
@@ -197,6 +204,7 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return Response.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    reportError(error, { route: '/api/recommendations' })
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

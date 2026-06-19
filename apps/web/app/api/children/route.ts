@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const schema = z.object({
@@ -39,8 +40,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
+  let body: unknown
   try {
-    const body = await request.json()
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  try {
     const { nickname, birthYearMonth } = schema.parse(body)
 
     const { data: userProfile } = await supabase
@@ -66,6 +73,7 @@ export async function POST(request: Request) {
 
     // 查詢失敗（RLS/網路/暫時性錯誤）時必須中止——否則會誤判「沒有家庭」而誤建重複家庭
     if (ownedError) {
+      reportError(ownedError, { route: '/api/children' })
       return NextResponse.json({ error: 'Failed to look up household' }, { status: 500 })
     }
 
@@ -79,6 +87,7 @@ export async function POST(request: Request) {
         .limit(1)
         .maybeSingle()
       if (membershipError) {
+        reportError(membershipError, { route: '/api/children' })
         return NextResponse.json({ error: 'Failed to look up membership' }, { status: 500 })
       }
       householdId = membership?.household_id
@@ -95,7 +104,7 @@ export async function POST(request: Request) {
         .single()
 
       if (createHouseholdError) {
-        console.error('Failed to create household:', createHouseholdError)
+        reportError(createHouseholdError, { route: '/api/children' })
       }
       householdId = newHousehold?.id
     }
@@ -127,7 +136,7 @@ export async function POST(request: Request) {
     // 避免白跑一次必失敗的 fallback、避免誤導日誌、也避免 RPC 內部 bug 被靜默吞掉。
     const isFuncMissing = rpcError?.code === 'PGRST202' || rpcError?.code === '42883'
     if (rpcError && !isFuncMissing) {
-      console.error('create_child_with_capability RPC failed:', rpcError)
+      reportError(rpcError, { route: '/api/children' })
       const status = rpcError.code === '42501' ? 403 : rpcError.code === '28000' ? 401 : 500
       return NextResponse.json({ error: 'Failed to create child' }, { status })
     }
@@ -149,6 +158,7 @@ export async function POST(request: Request) {
       .single()
 
     if (childError || !child) {
+      reportError(childError, { route: '/api/children' })
       return NextResponse.json({ error: 'Failed to create child' }, { status: 500 })
     }
 
@@ -159,7 +169,7 @@ export async function POST(request: Request) {
     })
 
     if (capError) {
-      console.error('Failed to create child capability profile:', capError)
+      reportError(capError, { route: '/api/children' })
       const { error: rollbackError } = await supabase
         .from('child_profiles')
         .delete()
@@ -175,6 +185,7 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    reportError(error, { route: '/api/children' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

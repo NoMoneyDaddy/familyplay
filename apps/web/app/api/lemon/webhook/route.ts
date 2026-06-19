@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { verifyWebhookSignature } from '@/lib/payment/lemonsqueezy'
 
 // LemonSqueezy sends `meta.event_name`; we read defensively.
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
       if (dedupeError.code === '23505') {
         return NextResponse.json({ success: true, deduped: true })
       }
-      console.error('Webhook: dedupe insert failed', dedupeError)
+      reportError(dedupeError, { route: '/api/lemon/webhook' })
       return NextResponse.json({ error: 'Processing error' }, { status: 500 })
     }
 
@@ -145,7 +146,7 @@ export async function POST(request: Request) {
         .eq('user_profile_id', userProfileId)
 
       if (error) {
-        console.error('Webhook: downgrade update failed', error)
+        reportError(error, { route: '/api/lemon/webhook' })
         await releaseDedupe()
         return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
       }
@@ -210,7 +211,7 @@ export async function POST(request: Request) {
       .eq('user_profile_id', userProfileId)
 
     if (error) {
-      console.error('Webhook: Database update failed', error)
+      reportError(error, { route: '/api/lemon/webhook' })
       await releaseDedupe()
       return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
     }
@@ -221,7 +222,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
     // Don't leak internal error details to the caller
-    console.error('Webhook: Unexpected error', error)
+    reportError(error, { route: '/api/lemon/webhook' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

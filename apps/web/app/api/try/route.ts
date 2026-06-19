@@ -1,6 +1,7 @@
 import { getRecommendations, getStageKey } from '@familyplay/core'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 // 「快速試用」：不需登入、不需建立孩子。當場給年齡 + 狀態，直接跑推薦引擎回傳建議。
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
       .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`)
 
     if (activitiesError) {
-      console.error('Failed to fetch activities (try)', activitiesError)
+      reportError(activitiesError, { route: '/api/try' })
       return Response.json({ error: '無法載入活動資料' }, { status: 500 })
     }
 
@@ -125,6 +126,7 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return Response.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    reportError(error, { route: '/api/try' })
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
