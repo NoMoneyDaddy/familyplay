@@ -1,4 +1,4 @@
-import { CAPABILITY_KEYS } from '@familyplay/core'
+import { CAPABILITY_LABELS } from '@familyplay/assessment'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -44,10 +44,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
   }
 
-  // zpd_targets 是能力 key；映射成中文標籤（白名單外的 key 丟棄），讓家長看到「會練到什麼」。
-  const caps = CAPABILITY_KEYS as Record<string, string>
+  // zpd_targets 存的是能力 key 的 camelCase 值（如 canRoll）；用 CAPABILITY_LABELS 映射成
+  // 中文標籤（如「翻身」），白名單外的 key 丟棄，讓家長看到「會練到什麼」。
   const targetSkills = ((activity.zpd_targets as string[] | null) || [])
-    .map((k) => caps[k])
+    .map((k) => CAPABILITY_LABELS[k])
     .filter(Boolean)
 
   return NextResponse.json({

@@ -14,6 +14,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.28.0",
     "@familyplay/ai": "workspace:*",
+    "@familyplay/assessment": "workspace:*",
     "@familyplay/core": "workspace:*",
     "@familyplay/db": "workspace:*",
     "@sentry/nextjs": "^10.0.0",

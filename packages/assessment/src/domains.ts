@@ -231,6 +231,12 @@ export const MILESTONES: MilestoneItem[] = [
 
 export const MILESTONE_MAP = new Map(MILESTONES.map((m) => [m.key, m]))
 
+// 能力 key（camelCase，與 CAPABILITY_KEYS 的值、DB 的 zpd_targets 一致）→ 中文標籤。
+// 給「會練到什麼能力」這類面向家長的顯示用；白名單外的 key 查不到回 undefined。
+export const CAPABILITY_LABELS: Record<string, string> = Object.fromEntries(
+  MILESTONES.map((m) => [m.key, m.label]),
+)
+
 export function getZpdTargets(achievedKeys: CapabilityKey[]): CapabilityKey[] {
   const achieved = new Set(achievedKeys)
   const zpd: CapabilityKey[] = []
