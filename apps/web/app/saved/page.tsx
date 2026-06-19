@@ -10,6 +10,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
+import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface SavedActivity {
@@ -48,7 +49,7 @@ export default function SavedPage() {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/saved')
+    fetchWithTimeout('/api/saved')
       .then((res) => (res.ok ? res.json() : { saved: [] }))
       .then((data) => {
         if (cancelled) return

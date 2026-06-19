@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
+import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
 interface Capability {
@@ -23,7 +24,7 @@ export default function CapabilitiesPage() {
     }
 
     setLoading(true)
-    fetch(`/api/capabilities?childId=${selectedChildId}`)
+    fetchWithTimeout(`/api/capabilities?childId=${selectedChildId}`)
       .then((res) => res.json())
       .then((data) => setCapabilities(data.capabilities || []))
       .catch(() => setCapabilities([]))
