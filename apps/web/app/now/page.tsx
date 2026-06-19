@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AIGenerateCard } from '@/app/components/ai-generate-card'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { FirstRunHint } from '@/app/components/first-run-hint'
 import { Mascot } from '@/app/components/mascot'
 import {
   ActivityMeta,
@@ -216,6 +217,7 @@ export default function NowPage() {
   return (
     <PageShell>
       <ChildSwitcher />
+      <FirstRunHint />
 
       {loading ? (
         <div
