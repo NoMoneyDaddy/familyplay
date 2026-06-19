@@ -62,6 +62,17 @@ function fallback(reason: string) {
 }
 
 export async function POST(request: Request) {
+  // 最外層保險：任何未預期的例外（DB 斷線、第三方套件丟錯…）也安靜降回規則式，
+  // 不讓端點崩成 500、不洩漏細節。
+  try {
+    return await handlePost(request)
+  } catch (err) {
+    reportError(err, { route: '/api/ai/activity' })
+    return fallback('internal_error')
+  }
+}
+
+async function handlePost(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !anonKey) {
@@ -125,9 +136,8 @@ export async function POST(request: Request) {
     .select('capabilities')
     .eq('child_id', input.childId)
     .maybeSingle()
-  const acquired = Object.keys(
-    (capProfile?.capabilities as Record<string, boolean> | null) || {},
-  ).filter((k) => (capProfile?.capabilities as Record<string, boolean>)[k] === true)
+  const capabilities = (capProfile?.capabilities as Record<string, boolean> | null) || {}
+  const acquired = Object.keys(capabilities).filter((k) => capabilities[k] === true)
   // 發展中能力 = ZPD（已會能力的下一步）；assessment 內部以 MILESTONE_MAP 過濾白名單外的鍵
   const developing = getZpdTargets(acquired as CapabilityKey[])
 
@@ -159,7 +169,7 @@ export async function POST(request: Request) {
   const managedModel = process.env.AI_MODEL
   const canUseManaged =
     entitlements?.plan === 'plus' &&
-    (entitlements.plus_ai_calls_remaining ?? 0) > 0 &&
+    (entitlements?.plus_ai_calls_remaining ?? 0) > 0 &&
     !!managedKey &&
     !!managedProvider &&
     !!managedModel
