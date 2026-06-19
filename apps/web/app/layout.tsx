@@ -8,6 +8,9 @@ import './globals.css'
 
 const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
 
+// 站台基底 URL：給 OG/Twitter/robots/sitemap 產生絕對網址用。
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://familyplay.zeabur.app'
+
 const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
@@ -24,6 +27,7 @@ const baloo2 = Baloo_2({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'FamilyPlay — 30 秒找到今天的陪伴方式',
   description: '給疲憊家長的親子陪伴導航。選你現在的狀態，立刻拿到可以開始的陪伴方案。',
   manifest: '/manifest.json',
@@ -42,10 +46,17 @@ export const metadata: Metadata = {
     shortcut: '/favicon-32.png',
   },
   openGraph: {
-    title: 'FamilyPlay',
+    title: 'FamilyPlay — 30 秒找到今天的陪伴方式',
     description: '給疲憊家長的親子陪伴導航',
     type: 'website',
     locale: 'zh_TW',
+    url: SITE_URL,
+    siteName: 'FamilyPlay',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'FamilyPlay — 30 秒找到今天的陪伴方式',
+    description: '給疲憊家長的親子陪伴導航',
   },
 }
 
@@ -60,6 +71,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-TW" className={`${notoSansTC.variable} ${baloo2.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
+        {/* 鍵盤使用者可一鍵跳過導覽到主內容（PageShell 的 main 帶 id="main"） */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-text focus:shadow-clay"
+        >
+          跳到主內容
+        </a>
         <ServiceWorkerRegister />
         {/* mobile-first 聚焦欄：手機滿版；平板/桌機置中並加環境陰影，框成「被設計過的 App」 */}
         <div className="relative mx-auto min-h-dvh w-full max-w-[480px] bg-bg shadow-none sm:shadow-[0_0_90px_-28px_rgba(74,49,28,0.3)]">
