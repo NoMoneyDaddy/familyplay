@@ -16,6 +16,8 @@
 - [x] `/api/capabilities` GET（已達成 map）+ PATCH（標記，白名單驗證）
 - [x] 原子 RPC `set_child_capability`（並發安全 + 缺檔自我修復）
 - [x] 標記後驅動推薦引擎 ZPD 評分
+- [x] 里程碑頁顯示「接下來正在發展中」（ZPD 下一步建議，連到 /now）
+- [x] 能力狀態型別硬化（`CapabilityProfile`/`CapabilityKey`，移除 unsafe cast）
 
 ### 活動詳情
 - [x] 顯示「會練到什麼能力/目標」
@@ -31,6 +33,7 @@
 - [x] `/now` 首次三步上手提示（一次性、localStorage、顯示即標記看過）
 - [x] 陪伴紀錄顯示「誰陪的」（多人家庭：你/暱稱/家人；單人不顯示）
 - [x] 修正家庭成員顯示 Unknown User（改用 `household_members.nickname`）
+- [x] 交接小卡 `/handoff`：近況濃縮（階段/最近陪玩/發展中里程碑）+ 可分享（唯讀、不寫 DB、不送 AI）
 
 ---
 
@@ -45,8 +48,8 @@
 
 ## 下一步候選
 
-- 交接摘要、里程碑下一步建議（AI）
 - 託管/Plus AI 配額計次（需 service-role 寫 entitlements）
+- 交接摘要 AI 強化（目前 `/handoff` 為規則式唯讀；可選持久化到 `handoff_summaries`）
 - 多孩子 UI/流程優化
 - 行動端（Expo）UI、付費整合 UI、推送通知、離線、本地化
 
