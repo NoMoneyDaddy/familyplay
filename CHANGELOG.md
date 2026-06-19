@@ -24,7 +24,7 @@
 - model 版本識別碼不寫死於 repo（由環境變數帶入）。
 - 設定頁 BYO key UI（sessionStorage、白名單驗證 provider、寫入失敗如實回報）。
 - `/now`「都看過了」接「請 AI 生一個」：依時段挑安撫/玩耍型、重入保護、未設金鑰引導去設定。
-- （託管/Plus 配額計次需 service-role，待後續。）
+- Plus 託管 AI 配額計次：`consume_plus_ai_call` / `refund_plus_ai_call` RPC（`SECURITY DEFINER`、空 `search_path`、伺服器端定額、月配額重置保留訂閱週年、`FOR UPDATE` 原子扣減）。`/api/ai/activity` 在 request 不帶 provider 時走託管金鑰並原子扣 1 配額、生成失敗以 service-role 退還；refund 只授權 `service_role`（不給 `authenticated`，避免自助刷額）。ollama 缺 base URL 一律擋下（防 loopback SSRF），所有 provider 要求非空 model。卡片查方案：Plus 免設定即可生成、`/api/profile` 區分「沒有方案＝free」與「查詢錯誤＝unknown」避免誤藏入口。
 
 ### 首次導覽與多人家庭
 - `/now` 首次三步上手提示（一次性、localStorage、顯示即標記看過，未點關閉也不重複）。
