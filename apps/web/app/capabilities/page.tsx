@@ -8,7 +8,7 @@ import {
 } from '@familyplay/assessment'
 import type { CapabilityKey } from '@familyplay/core'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { Callout, FOCUS_LABEL, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
@@ -68,14 +68,16 @@ export default function CapabilitiesPage() {
 
   const achievedCount = Object.values(achieved).filter(Boolean).length
 
-  // 「下一步」建議：依已會的里程碑推出正在發展中（ZPD）的下一顆，連到推薦引擎的 ZPD 評分一致。
-  // 只在有勾選且有後續里程碑時出現，給家長一個具體的努力方向。
-  const achievedKeys = Object.entries(achieved)
-    .filter(([, v]) => v)
-    .map(([k]) => k) as CapabilityKey[]
-  const nextItems = getZpdTargets(achievedKeys)
-    .map((k) => MILESTONE_MAP.get(k))
-    .filter((m): m is NonNullable<typeof m> => Boolean(m))
+  // 「下一步」建議：依已會的里程碑推出正在發展中（ZPD）的下一顆，與推薦引擎的 ZPD 評分一致。
+  // 只在有勾選且有後續里程碑時出現，給家長一個具體的努力方向。memo 化避免每次重渲染重算。
+  const nextItems = useMemo(() => {
+    const achievedKeys = Object.entries(achieved)
+      .filter(([, v]) => v)
+      .map(([k]) => k) as CapabilityKey[]
+    return getZpdTargets(achievedKeys)
+      .map((k) => MILESTONE_MAP.get(k))
+      .filter((m): m is NonNullable<typeof m> => Boolean(m))
+  }, [achieved])
 
   const toggle = async (key: string) => {
     if (!selectedChildId || pending.has(key)) return
