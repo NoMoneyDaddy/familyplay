@@ -43,7 +43,8 @@ BEGIN
   END IF;
 
   -- 必須是有效 Plus（未設定 ends_at 視為仍有效；有設定則須未過期）
-  IF v_ent.plan <> 'plus'
+  -- 用 IS DISTINCT FROM 做 null-safe 比較：plan 萬一為 NULL，<> 會評估成 NULL→被當 FALSE 而繞過。
+  IF v_ent.plan IS DISTINCT FROM 'plus'
      OR (v_ent.plus_ends_at IS NOT NULL AND v_ent.plus_ends_at < v_now) THEN
     RETURN jsonb_build_object('allowed', false, 'reason', 'not_plus');
   END IF;
@@ -51,10 +52,18 @@ BEGIN
   v_remaining := COALESCE(v_ent.plus_ai_calls_remaining, 0);
   v_reset := v_ent.plus_ai_calls_reset_at;
 
-  -- 月配額重置：首次或已過重置時點 → 補滿並設下個月初為新的重置時點
+  -- 月配額重置：首次或已過重置時點 → 補滿。保留使用者的「訂閱週年日」：
+  -- 首次用「現在 + 1 個月」設定週期起點，之後每次都以原週期往後推整數個月，
+  -- 不對齊到日曆月初（避免月中訂閱者首月只用幾天就被重置）。
   IF v_reset IS NULL OR v_reset < v_now THEN
     v_remaining := PLUS_MONTHLY_QUOTA;
-    v_reset := date_trunc('month', v_now) + interval '1 month';
+    IF v_reset IS NULL THEN
+      v_reset := v_now + interval '1 month';
+    ELSE
+      WHILE v_reset < v_now LOOP
+        v_reset := v_reset + interval '1 month';
+      END LOOP;
+    END IF;
   END IF;
 
   IF v_remaining <= 0 THEN
@@ -78,8 +87,12 @@ BEGIN
 END;
 $$;
 
--- 退還 1 次（生成失敗時呼叫）。只動本人列、且不超過上限（保守用 200 防呆，避免無限累加）。
-CREATE OR REPLACE FUNCTION public.refund_plus_ai_call()
+-- 退還 1 次（生成失敗時由後端以 service-role 呼叫）。
+-- 安全：退額會「增加」餘額，若開放給 authenticated，任何登入者可在瀏覽器直接連打
+-- supabase.rpc('refund_plus_ai_call') 把自己刷到上限 → 配額失效。因此本函式：
+--   1) 接 p_user_id 參數（由後端帶入要退額的對象），不靠 auth.uid()
+--   2) 不授權給 authenticated，只給 service_role（後端用 service-role key 呼叫）
+CREATE OR REPLACE FUNCTION public.refund_plus_ai_call(p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -89,7 +102,7 @@ DECLARE
   REFUND_CAP constant int := 200;
   v_profile uuid;
 BEGIN
-  SELECT id INTO v_profile FROM user_profiles WHERE auth_user_id = auth.uid();
+  SELECT id INTO v_profile FROM user_profiles WHERE auth_user_id = p_user_id;
   IF v_profile IS NULL THEN
     RETURN;
   END IF;
@@ -102,8 +115,9 @@ BEGIN
 END;
 $$;
 
--- 僅允許登入者執行；撤回 PUBLIC 預設執行權
+-- 撤回 PUBLIC 預設執行權。consume 開放登入者（只會扣、不能被濫用刷額）；
+-- refund 只給 service_role（後端 service-role key），不給 authenticated。
 REVOKE ALL ON FUNCTION public.consume_plus_ai_call() FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.refund_plus_ai_call() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.refund_plus_ai_call(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.consume_plus_ai_call() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.refund_plus_ai_call() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.refund_plus_ai_call(uuid) TO service_role;

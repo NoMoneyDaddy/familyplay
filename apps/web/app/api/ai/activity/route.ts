@@ -12,6 +12,7 @@ import {
 import { getZpdTargets } from '@familyplay/assessment'
 import { type CapabilityKey, getAgeMonths, getStageKey } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -96,9 +97,18 @@ async function handlePost(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // 託管配額退還（生成失敗時呼叫）；退還失敗只上報、不影響回應
+  // 託管配額退還（生成失敗時呼叫）。退額會「增加」餘額，故 RPC 不開放 authenticated、
+  // 只能由後端用 service-role key 呼叫並指定對象（避免使用者自行刷額）。退還失敗只上報、不影響回應。
   const refundManaged = async () => {
-    const { error } = await supabase.rpc('refund_plus_ai_call')
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!serviceKey) {
+      reportError(new Error('SUPABASE_SERVICE_ROLE_KEY missing'), {
+        route: '/api/ai/activity#refund',
+      })
+      return
+    }
+    const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
+    const { error } = await admin.rpc('refund_plus_ai_call', { p_user_id: user.id })
     if (error) reportError(error, { route: '/api/ai/activity#refund' })
   }
 
@@ -136,7 +146,8 @@ async function handlePost(request: Request) {
     }
     providerName = mp as AIProviderName
     apiKey = mk
-    model = process.env.AI_MANAGED_MODEL || ''
+    // 未設 AI_MANAGED_MODEL 時退回該 provider 的預設模型，避免空字串導致生成失敗
+    model = process.env.AI_MANAGED_MODEL || envModelFor(providerName)
   } else if (input.provider) {
     // BYO：ollama 走伺服器端 env URL（不收 client baseUrl，避免 SSRF）；其餘必須帶 apiKey
     if (input.provider !== 'ollama' && !input.apiKey) return fallback('no_key')
