@@ -67,6 +67,7 @@ export async function GET(request: Request) {
       .select(
         `
         id,
+        user_profile_id,
         role,
         nickname,
         joined_at,
@@ -83,14 +84,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 })
     }
 
-    const transformedMembers = (members || []).map((member) => ({
-      id: member.id,
+    // 顯示名稱來源：household_members.nickname（同戶可讀）優先；display_name 受 RLS
+    // 限制只讀得到自己，僅作本人後備。都沒有時用「家人」而非「Unknown User」。
+    const transformedMembers = (members || []).map((member) => {
+      const isSelf = member.user_profile_id === userProfile.id
       // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
-      displayName: (member.user_profiles as any)?.display_name || 'Unknown User',
-      role: member.role,
-      nickname: member.nickname || null,
-      joinedAt: member.joined_at,
-    }))
+      const displayName = member.nickname || (member.user_profiles as any)?.display_name || '家人'
+      return {
+        id: member.id,
+        displayName,
+        role: member.role,
+        nickname: member.nickname || null,
+        isSelf,
+        joinedAt: member.joined_at,
+      }
+    })
 
     return NextResponse.json(transformedMembers)
   } catch (error) {
