@@ -28,6 +28,12 @@ interface Recommendation {
   developmentalFocus?: string[]
 }
 
+// 真實活動才有詳情頁（DB UUID）；引擎合成的安全回退方案 id 非 UUID，無對應頁面。
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function isRealActivity(id: string): boolean {
+  return UUID_RE.test(id)
+}
+
 function RecommendationsPageInner() {
   const searchParams = useSearchParams()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
@@ -225,14 +231,21 @@ function RecommendationsPageInner() {
                   </ul>
                 )}
 
-                <LinkButton
-                  href={`/activity/${rec.id}?childId=${childId}`}
-                  variant={isTop ? 'primary' : 'secondary'}
-                  size="lg"
-                  icon="book"
-                >
-                  開始這個活動
-                </LinkButton>
+                {/* 安全回退方案 id 非真實活動 UUID、無詳情頁；不渲染會 404 的連結。 */}
+                {isRealActivity(rec.id) ? (
+                  <LinkButton
+                    href={`/activity/${rec.id}?childId=${childId}`}
+                    variant={isTop ? 'primary' : 'secondary'}
+                    size="lg"
+                    icon="book"
+                  >
+                    開始這個活動
+                  </LinkButton>
+                ) : (
+                  <p className="rounded-xl bg-brand-tint/60 px-4 py-3 text-center text-sm text-text">
+                    這個就很適合現在——坐到孩子旁邊，直接開始吧。
+                  </p>
+                )}
               </Card>
             )
           })}
