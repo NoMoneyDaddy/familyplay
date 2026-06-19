@@ -18,6 +18,9 @@ import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
+// BYO（自帶金鑰）provider 白名單。
+// 註：此端點目前只做「免費版自帶金鑰」；Plus 託管金鑰＋配額計次需要 service-role 寫
+// entitlements（anon client 受 RLS 擋，且涉及付費資安），留待後續 PR。
 const PROVIDERS = ['gemini', 'groq', 'openai', 'ollama'] as const
 
 const bodySchema = z.object({
@@ -33,10 +36,9 @@ const bodySchema = z.object({
   availableResources: z
     .array(z.string().refine((v) => (ALLOWED_RESOURCE_KEYS as string[]).includes(v), '無效'))
     .default([]),
-  // BYO key（免費版自帶）：provider + 金鑰只在本次請求記憶體用、用完即丟，不寫 log/DB
+  // 金鑰只在本次請求記憶體用、用完即丟，不寫 log/DB（CLAUDE.md AI 安全規則 #3）
   provider: z.enum(PROVIDERS).optional(),
   apiKey: z.string().min(1).max(500).optional(),
-  baseUrl: z.string().url().max(300).optional(),
   model: z.string().max(120).optional(),
 })
 
@@ -62,7 +64,7 @@ function fallback(reason: string) {
 }
 
 export async function POST(request: Request) {
-  // 最外層保險：任何未預期的例外（DB 斷線、第三方套件丟錯…）也安靜降回規則式，
+  // 最外層保險：任何未預期例外（DB 斷線、套件丟錯…）也 reportError 後安靜降回，
   // 不讓端點崩成 500、不洩漏細節。
   try {
     return await handlePost(request)
@@ -92,8 +94,9 @@ async function handlePost(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // 限流：每用戶每分鐘 10 次 AI 請求（CLAUDE.md AI 安全規則 #4）
-  const rl = await checkRateLimit(`ai:${user.id}`, 10)
+  // 限流：每用戶每分鐘 10 次 AI 請求（CLAUDE.md AI 安全規則 #4）。
+  // AI 端點成本/濫用敏感 → fail-closed（限流服務異常時擋下，而非放行）。
+  const rl = await checkRateLimit(`ai:${user.id}`, 10, false)
   if (!rl.success) {
     return NextResponse.json({ ok: false, reason: 'rate_limited' }, { status: 429 })
   }
@@ -110,13 +113,22 @@ async function handlePost(request: Request) {
   }
   const input = parsed.data
 
+  // BYO：ollama 走伺服器端 env URL（不收 client baseUrl，避免 SSRF）；其餘必須帶 apiKey
+  if (!input.provider) return fallback('no_provider')
+  if (input.provider !== 'ollama' && !input.apiKey) return fallback('no_key')
+
   // ── 取孩子的階段 + 發展中能力（ZPD），組成不含個資的 AIInput ──
   const { data: child, error: childError } = await supabase
     .from('child_profiles')
     .select('id,birth_year_month')
     .eq('id', input.childId)
-    .single()
-  if (childError || !child?.birth_year_month) {
+    .maybeSingle()
+  if (childError) {
+    // 真正的查詢/RLS 故障 → 上報並安靜降回（別偽裝成 404）
+    reportError(childError, { route: '/api/ai/activity#child' })
+    return fallback('db_error')
+  }
+  if (!child?.birth_year_month) {
     return NextResponse.json({ error: '找不到孩子或年齡資料不完整' }, { status: 404 })
   }
 
@@ -131,11 +143,12 @@ async function handlePost(request: Request) {
   }
   const stageKey = getStageKey(ageMonths)
 
-  const { data: capProfile } = await supabase
+  const { data: capProfile, error: capError } = await supabase
     .from('child_capability_profiles')
     .select('capabilities')
     .eq('child_id', input.childId)
     .maybeSingle()
+  if (capError) reportError(capError, { route: '/api/ai/activity#capabilities' })
   const capabilities = (capProfile?.capabilities as Record<string, boolean> | null) || {}
   const acquired = Object.keys(capabilities).filter((k) => capabilities[k] === true)
   // 發展中能力 = ZPD（已會能力的下一步）；assessment 內部以 MILESTONE_MAP 過濾白名單外的鍵
@@ -150,52 +163,12 @@ async function handlePost(request: Request) {
     availableResources: input.availableResources as AIInput['availableResources'],
   }
 
-  // ── 分層：Plus 用託管 key（扣次數）；其餘走 BYO key ──
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single()
-  const { data: entitlements } = profile
-    ? await supabase
-        .from('entitlements')
-        .select('plan,plus_ai_calls_remaining')
-        .eq('user_profile_id', profile.id)
-        .single()
-    : { data: null }
-
-  const managedKey = process.env.AI_API_KEY
-  const managedProvider = process.env.AI_PROVIDER as AIProviderName | undefined
-  const managedModel = process.env.AI_MODEL
-  const canUseManaged =
-    entitlements?.plan === 'plus' &&
-    (entitlements?.plus_ai_calls_remaining ?? 0) > 0 &&
-    !!managedKey &&
-    !!managedProvider &&
-    !!managedModel
-
-  let providerName: AIProviderName
-  let providerOpts: { apiKey?: string; baseUrl?: string; model?: string }
-  if (canUseManaged && managedProvider) {
-    providerName = managedProvider
-    providerOpts = {
-      apiKey: managedKey,
-      model: managedModel,
-      baseUrl: process.env.AI_OLLAMA_URL,
-    }
-  } else {
-    // BYO：ollama 可免 key（本地），其餘必須帶 apiKey
-    if (!input.provider) return fallback('no_provider')
-    if (input.provider !== 'ollama' && !input.apiKey) return fallback('no_key')
-    providerName = input.provider
-    providerOpts = {
-      apiKey: input.apiKey,
-      baseUrl: input.baseUrl,
-      model: input.model || envModelFor(input.provider),
-    }
-  }
-
-  const provider = getProvider(providerName, providerOpts)
+  const provider = getProvider(input.provider, {
+    apiKey: input.apiKey,
+    // ollama base URL 只能來自伺服器設定，不接受客戶端輸入（防 SSRF）
+    baseUrl: input.provider === 'ollama' ? process.env.AI_OLLAMA_URL : undefined,
+    model: input.model || envModelFor(input.provider),
+  })
   if (!provider) return fallback('no_provider')
 
   const result = await generateSafe(provider, aiInput, buildActivityPrompt)
@@ -206,16 +179,6 @@ async function handlePost(request: Request) {
 
   const activity = parseGeneratedActivity(result.content)
   if (!activity) return fallback('parse_failed')
-
-  // 託管成功才扣 Plus 次數（best-effort；失敗不影響本次回應）
-  if (canUseManaged && profile) {
-    const next = Math.max(0, (entitlements?.plus_ai_calls_remaining ?? 1) - 1)
-    const { error: decErr } = await supabase
-      .from('entitlements')
-      .update({ plus_ai_calls_remaining: next })
-      .eq('user_profile_id', profile.id)
-    if (decErr) reportError(decErr, { route: '/api/ai/activity#decrement' })
-  }
 
   return NextResponse.json({ ok: true, source: 'ai', activity })
 }

@@ -70,7 +70,11 @@ export interface GeneratedActivity {
 
 const asStringArray = (v: unknown, max: number): string[] =>
   Array.isArray(v)
-    ? v.filter((s): s is string => typeof s === 'string' && s.length > 0).slice(0, max)
+    ? v
+        .filter((s): s is string => typeof s === 'string')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+        .slice(0, max)
     : []
 
 /**
