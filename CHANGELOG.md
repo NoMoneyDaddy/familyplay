@@ -34,7 +34,7 @@
 
 ### 發展里程碑（續）
 - 里程碑頁顯示「接下來正在發展中」（依已勾選用 `getZpdTargets` 推出 ZPD 下一步，連到 `/now`）。
-- 能力狀態型別硬化：`achieved`/`toggle`/`pending` 收斂為 `CapabilityProfile`/`CapabilityKey`，從白名單推導避免 unsafe cast。
+- 能力狀態型別硬化：`achieved`、`toggle`、`pending` 等狀態與函式套用 `CapabilityProfile`／`CapabilityKey` 強型別，從白名單推導以避免不安全的型別斷言（unsafe cast）。
 
 ### 待手動套用 migration
 - `supabase/migrations/20260619100000_set_child_capability_rpc.sql`
