@@ -1,3 +1,4 @@
+import { isUnder3 } from '@familyplay/core'
 import type { AIInput } from './types'
 
 // 由白名單驗證過的 AIInput 組出 AI 提示。
@@ -72,9 +73,8 @@ export function buildActivityPrompt(input: AIInput): {
   user: string
   maxTokens: number
 } {
-  const under3 = ['newborn', 'early_infant', 'sitting_baby', 'crawler', 'early_walker'].includes(
-    input.stageKey,
-  )
+  // 用 core 的單一安全來源判斷 0–3 歲高風險階段，避免與規則式引擎的分類漂移
+  const under3 = isUnder3(input.stageKey)
 
   const system = [
     '你是「FamilyPlay」的親子陪伴設計師，專門為疲憊的家長設計「現在就能做」的親子陪伴小活動。',

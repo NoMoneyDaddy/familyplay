@@ -44,7 +44,7 @@ describe('gemini provider generate', () => {
         }),
       })),
     )
-    const provider = mustProvider('gemini', { apiKey: 'k' })
+    const provider = mustProvider('gemini', { apiKey: 'k', model: 'test-model' })
     const res = await provider.generate({ system: 's', user: 'u', maxTokens: 100 })
     expect(res.success).toBe(true)
     expect(res.content).toContain('嗨')
@@ -56,7 +56,7 @@ describe('gemini provider generate', () => {
       'fetch',
       vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })),
     )
-    const provider = mustProvider('gemini', { apiKey: 'bad' })
+    const provider = mustProvider('gemini', { apiKey: 'bad', model: 'test-model' })
     const res = await provider.generate({ system: 's', user: 'u', maxTokens: 100 })
     expect(res.success).toBe(false)
     expect(res.error).toBe('invalid_key')
@@ -67,9 +67,36 @@ describe('gemini provider generate', () => {
       'fetch',
       vi.fn(async () => ({ ok: false, status: 429, json: async () => ({}) })),
     )
-    const provider = mustProvider('gemini', { apiKey: 'k' })
+    const provider = mustProvider('gemini', { apiKey: 'k', model: 'test-model' })
     const res = await provider.generate({ system: 's', user: 'u', maxTokens: 100 })
     expect(res.error).toBe('quota_exceeded')
+  })
+
+  it('網路丟例外不會 throw，回 all_providers_failed', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('network down')
+      }),
+    )
+    const provider = mustProvider('gemini', { apiKey: 'k', model: 'test-model' })
+    const res = await provider.generate({ system: 's', user: 'u', maxTokens: 100 })
+    expect(res.success).toBe(false)
+    expect(res.error).toBe('all_providers_failed')
+  })
+
+  it('逾時（AbortError）映射成 timeout', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        const e = new Error('aborted')
+        e.name = 'AbortError'
+        throw e
+      }),
+    )
+    const provider = mustProvider('gemini', { apiKey: 'k', model: 'test-model' })
+    const res = await provider.generate({ system: 's', user: 'u', maxTokens: 100 })
+    expect(res.error).toBe('timeout')
   })
 })
 
@@ -86,7 +113,7 @@ describe('groq provider generate (OpenAI 相容)', () => {
         }),
       })),
     )
-    const provider = mustProvider('groq', { apiKey: 'k' })
+    const provider = mustProvider('groq', { apiKey: 'k', model: 'test-model' })
     const res = await provider.generate({ system: 's', user: 'u', maxTokens: 100 })
     expect(res.content).toBe('哈囉')
     expect(res.tokensUsed).toBe(7)
