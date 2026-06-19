@@ -6,7 +6,11 @@ import {
   MILESTONE_MAP,
   MILESTONES,
 } from '@familyplay/assessment'
-import { ALLOWED_CAPABILITY_KEYS } from '@familyplay/core'
+import {
+  ALLOWED_CAPABILITY_KEYS,
+  type CapabilityKey,
+  type CapabilityProfile,
+} from '@familyplay/core'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
@@ -36,8 +40,8 @@ const TOTAL = MILESTONES.length
 export default function CapabilitiesPage() {
   const { selectedChildId, hasHydrated } = useChildStore()
   const goBack = useGoBack('/history')
-  // 已達成能力 map（camelCase key → true）
-  const [achieved, setAchieved] = useState<Record<string, boolean>>({})
+  // 已達成能力 map（白名單 CapabilityKey → true）
+  const [achieved, setAchieved] = useState<CapabilityProfile>({})
   const [loading, setLoading] = useState(true)
   // 正在送出的 key（避免重複點擊；逐顆顯示 pending）
   const [pending, setPending] = useState<Set<string>>(new Set())
@@ -78,7 +82,7 @@ export default function CapabilitiesPage() {
       .filter((m): m is NonNullable<typeof m> => Boolean(m))
   }, [achieved])
 
-  const toggle = async (key: string) => {
+  const toggle = async (key: CapabilityKey) => {
     if (!selectedChildId || pending.has(key)) return
     const next = !achieved[key]
     setError(null)
