@@ -74,9 +74,12 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   )
 
   useEffect(() => {
+    // fetchWithTimeout 對 4xx/5xx 不 throw；非 2xx（404/401/500）會回 { error: ... }，
+    // 直接 setActivity 會讓 !activity 的錯誤畫面失效、後續 activity.steps 崩潰。
+    // 故先檢查 res.ok，失敗一律當讀取失敗（null）→ 顯示錯誤畫面與返回鍵。
     fetchWithTimeout(`/api/activities/${id}`)
-      .then((res) => res.json())
-      .then((data) => setActivity(data))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setActivity(data?.id ? data : null))
       .catch(() => setActivity(null))
       .finally(() => setActivityLoading(false))
   }, [id])

@@ -2,9 +2,17 @@ import { CAPABILITY_LABELS } from '@familyplay/assessment'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { reportError } from '@/lib/observability'
+
+// 活動 id 是 UUID；非 UUID（空字串、合成 fallback id 等）一律當「找不到」處理，
+// 既符合「所有輸入先驗證」的規範，也避免把畸形 id 丟給 uuid 欄位查詢觸發 DB 錯誤。
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  if (!id || !UUID_RE.test(id)) {
+    return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -38,9 +46,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     )
     .eq('id', id)
     .eq('is_active', true)
-    .single()
+    .maybeSingle()
 
-  if (error || !activity) {
+  // 用 maybeSingle 區分「查詢失敗」與「查無資料」：error 代表真的後端/RLS 故障，
+  // 上報 Sentry 並回 500（別偽裝成 404 把告警吃掉）；查無資料才回 404。
+  if (error) {
+    reportError(error, { route: '/api/activities/[id]' })
+    return NextResponse.json({ error: 'Failed to load activity' }, { status: 500 })
+  }
+  if (!activity) {
     return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
   }
 
