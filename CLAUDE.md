@@ -155,28 +155,35 @@ perf: 性能優化
 - 歷史檢索 + 分頁
 
 #### 文件
-- README.md / docs/README.md
-- docs/SETUP.md / docs/ARCHITECTURE.md
-- docs/API.md / docs/FEATURES.md
-- CHANGELOG.md
-- CLAUDE.md 更新
+- `README.md` / `docs/README.md`
+- `docs/ARCHITECTURE.md` / `docs/DEPLOYMENT.md`
+- `CHANGELOG.md` / `CURRENT_SPRINT.md`
+- `CLAUDE.md`（本檔）
 
-### 待 UI 實現 🚧
-- Web UI（表單、流程）
+### Web UI（陸續上線）✅
+- 「現在就陪」一鍵流程 `/now`（品牌、離線回放、一鍵記錄）
+- 狀態選擇 → 推薦 → 活動詳情（返回、會練到什麼能力）
+- 全站一致返回導覽（`useGoBack`）
+- 發展里程碑評估 `/capabilities`（標記 → 驅動 ZPD 推薦）
+- 陪伴紀錄 / 收藏 / 孩子管理 / 設定 / 付費頁
+- AI 客製活動生成「後端」（`/api/ai/activity`，免費版 BYO key）
+
+### 待實現 🚧
+- AI 生成「前端」串接（設定頁 BYO key + /now「都看過了」出口）
+- 託管/Plus AI 配額計次（需 service-role）
 - Mobile UI（Expo）
 - 付費整合 UI
-- AI 生成 UI
+- 首次導覽教學
 - 推送通知
-- 離線模式
 - 本地化
 
 ---
 
 ## MVP 狀態
 
-**✅ API 核心功能完成 | UI 待實現**
+**✅ API 核心完成 | Web UI 主要流程上線中 | Mobile/付費 UI 待實現**
 
-準備 Beta 測試，API 層 100% 可用。
+Web 端已可實際操作（一鍵陪伴、里程碑評估、AI 生成後端）。詳見 `CURRENT_SPRINT.md`。
 
 ---
 

@@ -1,5 +1,32 @@
 # FamilyPlay Changelog
 
+## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
+
+### 導覽與版面
+- 活動詳情頁加返回鍵；全站次級頁（能力/推薦/狀態選擇/設定/付費）一致返回鍵（共用 `useGoBack`，站內 back／否則 fallback、防跳出站外與 ping-pong）。
+- 首頁 `/now` 加回品牌（波波吉祥物 + FamilyPlay 站名）；收緊版面間距減少「一進來被切掉」；底部導覽瘦身。
+- 推薦卡片把引擎內部評分術語轉成家長看得懂的白話（`friendlyReasons`）。
+
+### 發展里程碑評估
+- 重建 `/capabilities` 為「發展里程碑」：依五大領域（粗大/精細/語言/社交認知/情緒）列里程碑、可點選標記「會了/還沒」、樂觀更新、逐顆 pending。
+- `/api/capabilities`：GET 回傳已達成能力 map；新增 `PATCH` 標記（白名單驗證）。
+- 原子 RPC `set_child_capability`（JSONB 合併/刪除）消除並發覆蓋 + 缺檔自我修復；API 帶 graceful fallback。
+- 修正舊版顯示英文 key 且 achieved 永遠對不上的 bug。
+- 標記後真正驅動推薦引擎的 ZPD 評分。
+
+### 活動詳情
+- 顯示「會練到什麼能力/目標」（developmental_focus + zpd_targets→中文）。
+- `/api/activities/[id]` UUID 驗證、`maybeSingle` 區分 DB 錯誤與 404、Sentry 上報。
+
+### AI 客製活動生成（基礎 + 免費版 BYO key）
+- `packages/ai`：實作 Gemini / Groq / OpenAI / Ollama provider（逾時、錯誤映射、原生 JSON mode），活動生成 prompt（繁中、適齡、0–3 歲窒息警語、禁醫療/連結、無個資），`parseGeneratedActivity`。
+- `POST /api/ai/activity`：BYO 金鑰（用完即丟、不寫 log/DB）、限流 10/min fail-closed、伺服器端推 stageKey + ZPD（不送個資）、全程 Safety Filter、任何失敗安靜降回規則式。
+- model 版本識別碼不寫死於 repo（由環境變數帶入）。
+- （託管/Plus 配額計次需 service-role，待後續。）
+
+### 待手動套用 migration
+- `supabase/migrations/20260619100000_set_child_capability_rpc.sql`
+
 ## [0.1.0] - 2026-06-16 (MVP Release)
 
 ### Sprints 1-4: Core Infrastructure Complete
