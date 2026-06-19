@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Baloo_2, Noto_Sans_TC } from 'next/font/google'
 import Script from 'next/script'
 import { BottomNav } from './components/bottom-nav'
+import { InstallPrompt } from './components/install-prompt'
 import { ServiceWorkerRegister } from './components/sw-register'
 import './globals.css'
 
@@ -65,6 +66,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           {/* 常駐底部導覽：只在主要功能頁顯示，框出一致的「App」骨架 */}
           <BottomNav />
+          {/* 安裝引導：能安裝時才浮出，引導加到主畫面（秒開＋離線） */}
+          <InstallPrompt />
         </div>
         {/* 輕度廣告：僅在設定 AdSense client 時載入腳本（未設定則完全不載入） */}
         {adsenseClient && (
