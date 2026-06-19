@@ -31,10 +31,12 @@ export default function SelectScreen() {
 
       try {
         const supabase = createMobileClient()
+        // child_profiles 無 user_id 欄位；以 RLS（household 成員）過濾即可，
+        // 與 Web 的 /api/children/list 一致。原本 .eq('user_id', …) 會因欄位不存在而報錯。
         const { data, error: fetchError } = await supabase
           .from('child_profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
+          .select('id,nickname,birth_year_month')
+          .order('created_at', { ascending: false })
 
         if (fetchError) {
           setError(fetchError.message)

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import * as SecureStore from 'expo-secure-store'
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
@@ -10,8 +10,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
   )
 }
 
-export function createMobileClient() {
-  return createClient(supabaseUrl as string, supabaseAnonKey as string, {
+// 單例：多個 createClient 實例會各自持有獨立的 auth 狀態（且會跳「Multiple GoTrueClient
+// instances」警告），導致某畫面登入後，其他畫面與 _layout 的 onAuthStateChange 收不到事件、
+// session 不同步。全 App 共用同一個 client，登入/登出才會一致傳播。
+let client: SupabaseClient | null = null
+
+export function createMobileClient(): SupabaseClient {
+  if (client) return client
+  client = createClient(supabaseUrl as string, supabaseAnonKey as string, {
     auth: {
       storage: SecureStoreAdapter,
       autoRefreshToken: true,
@@ -19,6 +25,7 @@ export function createMobileClient() {
       detectSessionInUrl: false,
     },
   })
+  return client
 }
 
 const SecureStoreAdapter = {

@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { createMobileClient } from '@/lib/supabase/mobile'
 
 interface ProfileData {
   displayName: string
@@ -22,13 +23,22 @@ export default function ProfileScreen() {
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch('/api/profile')
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
+        // 原生沒有相對路徑的 origin，fetch('/api/profile') 會失敗；直接查 Supabase（RLS 限本人）。
+        if (!session) {
+          setError('Failed to load profile')
+          return
         }
+        const supabase = createMobileClient()
+        const { data, error: fetchError } = await supabase
+          .from('user_profiles')
+          .select('display_name, avatar_url')
+          .eq('auth_user_id', session.user.id)
+          .single()
 
-        const data = (await response.json()) as ProfileData
-        setProfile(data)
+        if (fetchError || !data) {
+          throw fetchError ?? new Error('No profile')
+        }
+        setProfile({ displayName: data.display_name, avatarUrl: data.avatar_url })
       } catch (err: unknown) {
         console.error('Failed to fetch profile:', err)
         setError('Failed to load profile')
@@ -38,7 +48,7 @@ export default function ProfileScreen() {
     }
 
     fetchProfile()
-  }, [])
+  }, [session])
 
   if (isLoading) {
     return (
