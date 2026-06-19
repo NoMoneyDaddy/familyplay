@@ -55,5 +55,5 @@ pnpm install
 pnpm biome check .
 pnpm turbo type-check
 pnpm turbo test
-git push origin main   # → Zeabur 自動部署
+git push origin <feature-branch>   # 開 PR → CI 綠燈 → 合併 main 即 Zeabur 部署
 ```
