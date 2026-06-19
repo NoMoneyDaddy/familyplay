@@ -11,6 +11,7 @@ import {
   ActivityMeta,
   Button,
   Card,
+  friendlyReasons,
   Icon,
   LinkButton,
   PageHeader,
@@ -181,6 +182,7 @@ function RecommendationsPageInner() {
         <ol className="space-y-4">
           {recommendations.map((rec, idx) => {
             const isTop = idx === 0
+            const reasons = friendlyReasons(rec.reasons)
             return (
               <Card
                 as="li"
@@ -219,12 +221,12 @@ function RecommendationsPageInner() {
                   className="mb-4"
                 />
 
-                {/* 只在最適合的卡列出理由，其餘保持安靜——一個主答案，不是並排比較 */}
-                {isTop && rec.reasons.length > 0 && (
+                {/* 只在最適合的卡列出理由，其餘保持安靜——一個主答案，不是並排比較。
+                    用 friendlyReasons 過濾掉引擎內部術語，只留家長看得懂的話。 */}
+                {isTop && reasons.length > 0 && (
                   <ul className="mb-4 space-y-1.5 text-xs text-muted">
-                    {rec.reasons.map((reason, i) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: Recommendation reasons are static and ordered
-                      <li key={i} className="flex items-start gap-1.5">
+                    {reasons.map((reason) => (
+                      <li key={reason} className="flex items-start gap-1.5">
                         <Icon
                           name="check"
                           className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success"

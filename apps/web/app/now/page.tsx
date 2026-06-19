@@ -4,7 +4,16 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
-import { ActivityMeta, Button, Card, Icon, LinkButton, PageShell } from '@/app/components/ui'
+import { Mascot } from '@/app/components/mascot'
+import {
+  ActivityMeta,
+  Button,
+  Card,
+  friendlyReasons,
+  Icon,
+  LinkButton,
+  PageShell,
+} from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { useChildStore } from '@/lib/stores/useChildStore'
 
@@ -172,6 +181,9 @@ export default function NowPage() {
     load([], 'initial')
   }
 
+  // 白話化的推薦理由（過濾引擎術語）；算一次供卡片重用
+  const reasons = friendlyReasons(rec?.reasons)
+
   // ── 結束畫面：記錄後 ──
   if (logged) {
     return (
@@ -231,10 +243,16 @@ export default function NowPage() {
           </LinkButton>
         </Card>
       ) : rec ? (
-        <div className="space-y-5">
-          <div className="text-center">
-            <p className="text-sm font-medium text-brand-strong">現在就陪</p>
-            <p className="text-xs text-muted">幫你選好了，直接開始就行</p>
+        <div className="space-y-4">
+          {/* 首頁品牌：波波 + FamilyPlay 站名，讓主畫面有「家」的識別（先前 /now 沒有任何品牌） */}
+          <div className="flex flex-col items-center gap-1 text-center">
+            <div className="flex items-center gap-2">
+              <Mascot className="h-7 w-7" />
+              <span className="font-display text-lg font-bold tracking-tight text-text">
+                FamilyPlay
+              </span>
+            </div>
+            <p className="text-xs text-muted">現在就陪 · 幫你選好了，直接開始就行</p>
           </div>
 
           {stale && (
@@ -254,11 +272,10 @@ export default function NowPage() {
               maxDurationMinutes={rec.maxDurationMinutes}
               stimulationLevel={rec.stimulationLevel}
             />
-            {rec.reasons.length > 0 && (
+            {reasons.length > 0 && (
               <ul className="space-y-1.5 text-xs text-muted">
-                {rec.reasons.slice(0, 2).map((reason, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: reasons are static and ordered
-                  <li key={i} className="flex items-start gap-1.5">
+                {reasons.slice(0, 2).map((reason) => (
+                  <li key={reason} className="flex items-start gap-1.5">
                     <Icon name="check" className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success" />
                     <span>{reason}</span>
                   </li>

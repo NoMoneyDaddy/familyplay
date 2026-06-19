@@ -274,6 +274,19 @@ export const FOCUS_LABEL: Record<string, string> = {
   emotional: '情緒',
 }
 
+/** 引擎產出的內部評分 reason（如「發展中能力加分」）對家長沒意義，甚至像亂碼。
+ *  這裡把「對家長有用」的那一兩條轉成白話，其餘（優先度調整、降分、安全回退）直接丟掉，
+ *  讓卡片只留下「為什麼這個適合我的孩子」這種看得懂的話。 */
+const REASON_FRIENDLY: Record<string, string> = {
+  發展中能力加分: '正好練到他正在發展的能力',
+}
+export function friendlyReasons(reasons: string[] | undefined): string[] {
+  if (!Array.isArray(reasons)) return []
+  // 去重：多個內部評分可能對應同一句白話，避免列表出現重複（也避免 React 重複 key）
+  const mapped = reasons.map((r) => REASON_FRIENDLY[r]).filter((r): r is string => Boolean(r))
+  return Array.from(new Set(mapped))
+}
+
 /** 活動屬性列：發展領域分類 + 時長 + 刺激強度，做成可快速掃讀的小標籤
  *  （仿競品卡片的資訊密度——分類用品牌色凸顯，時長/強度用中性色輔助）。 */
 export function ActivityMeta({
@@ -347,7 +360,7 @@ export function PageShell({
     <main
       id="main"
       tabIndex={-1}
-      className={`relative min-h-dvh overflow-hidden px-5 pt-7 ${withNav ? 'pb-28' : 'pb-10'} ${className}`}
+      className={`relative min-h-dvh overflow-hidden px-5 pt-6 ${withNav ? 'pb-24' : 'pb-10'} ${className}`}
     >
       {/* 黏土調性氛圍：兩顆柔和暖色飄移球，給頁面一點溫度與深度（不可互動、可降動態） */}
       <div

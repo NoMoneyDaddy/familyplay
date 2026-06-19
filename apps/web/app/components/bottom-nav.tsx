@@ -60,18 +60,18 @@ export function BottomNav() {
               <Link
                 href={tab.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+                className={`flex flex-col items-center gap-0.5 py-1.5 text-[11px] font-medium transition-colors ${
                   active ? 'text-brand' : 'text-faint hover:text-muted'
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-2xl transition ${
+                  className={`flex h-7 w-7 items-center justify-center rounded-xl transition ${
                     active ? 'bg-brand-tint shadow-clay-sm' : 'bg-transparent'
                   }`}
                 >
                   <Icon
                     name={tab.icon}
-                    className="h-[22px] w-[22px]"
+                    className="h-[20px] w-[20px]"
                     strokeWidth={active ? 2 : 1.75}
                   />
                 </span>
