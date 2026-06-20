@@ -1,3 +1,4 @@
+import { ChildError, fetchChildren } from '@familyplay/data'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -34,32 +35,15 @@ export async function GET() {
   }
 
   try {
-    // 直接查 child_profiles，交給 RLS 依「成員身分」(household_id IN my_household_ids())
-    // 過濾——這樣受邀的次要成員（caregiver/viewer）也能看到共用的孩子。
-    // 先前以 households.owner_id 過濾只回傳「自己擁有」的家庭，會把次要成員排除，
-    // 導致邀請加入後看不到任何孩子（共同查看功能失效）。
-    // 加上限避免異常多列一次回傳（正常一個家庭孩子數遠小於此）。
-    const { data: children, error } = await supabase
-      .from('child_profiles')
-      .select('id,nickname,birth_year_month,stage_key,created_at')
-      .order('created_at', { ascending: false })
-      .limit(100)
-
-    if (error) {
+    // 收斂到 @familyplay/data 的 fetchChildren（與行動端共用）：直接查 child_profiles，
+    // 交給 RLS 依「成員身分」過濾——受邀的次要成員（caregiver/viewer）也看得到共用的孩子。
+    const children = await fetchChildren(supabase)
+    return NextResponse.json({ children })
+  } catch (error) {
+    if (error instanceof ChildError) {
       reportError(error, { route: '/api/children/list', userId: user.id })
       return NextResponse.json({ error: 'Failed to fetch children' }, { status: 500 })
     }
-
-    return NextResponse.json({
-      children: (children || []).map((child) => ({
-        id: child.id,
-        nickname: child.nickname,
-        birthYearMonth: child.birth_year_month,
-        stageKey: child.stage_key,
-        createdAt: child.created_at,
-      })),
-    })
-  } catch (error) {
     reportError(error, { route: '/api/children/list', userId: user.id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

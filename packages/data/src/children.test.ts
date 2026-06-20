@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ChildError, createChild } from './children'
+import { ChildError, type ChildRow, createChild, fetchChildren, mapChildRow } from './children'
 
 type Result = { data: unknown; error: unknown }
 const ok = (data: unknown): Result => ({ data, error: null })
@@ -191,5 +191,62 @@ describe('createChild', () => {
     await createChild(supabase, args)
     expect(captured.householdInsert?.owner_id).toBe('profile-1')
     expect(captured.rpc?.params.p_household_id).toBe('hh-new')
+  })
+})
+
+const childRow: ChildRow = {
+  id: 'c1',
+  nickname: '波波',
+  birth_year_month: '2024-01',
+  stage_key: 'toddler_player',
+  created_at: '2026-06-20T00:00:00Z',
+}
+
+describe('mapChildRow', () => {
+  it('映射欄位為 camelCase', () => {
+    expect(mapChildRow(childRow)).toEqual({
+      id: 'c1',
+      nickname: '波波',
+      birthYearMonth: '2024-01',
+      stageKey: 'toddler_player',
+      createdAt: '2026-06-20T00:00:00Z',
+    })
+  })
+})
+
+function makeListSupabase(data: unknown, error: unknown = null) {
+  return {
+    from: () => ({
+      select: () => ({ order: () => ({ limit: async () => ({ data, error }) }) }),
+    }),
+    // biome-ignore lint/suspicious/noExplicitAny: 測試用最小化 mock
+  } as any
+}
+
+describe('fetchChildren', () => {
+  it('回傳映射後的孩子清單', async () => {
+    const children = await fetchChildren(makeListSupabase([childRow]))
+    expect(children).toEqual([
+      {
+        id: 'c1',
+        nickname: '波波',
+        birthYearMonth: '2024-01',
+        stageKey: 'toddler_player',
+        createdAt: '2026-06-20T00:00:00Z',
+      },
+    ])
+  })
+
+  it('null data → 空陣列', async () => {
+    expect(await fetchChildren(makeListSupabase(null))).toEqual([])
+  })
+
+  it('查詢失敗 → ChildError(fetch_failed)', async () => {
+    await expect(fetchChildren(makeListSupabase(null, { message: 'boom' }))).rejects.toMatchObject({
+      code: 'fetch_failed',
+    })
+    await expect(fetchChildren(makeListSupabase(null, { message: 'boom' }))).rejects.toBeInstanceOf(
+      ChildError,
+    )
   })
 })

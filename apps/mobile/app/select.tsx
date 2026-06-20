@@ -1,3 +1,4 @@
+import { type ChildSummary, fetchChildren } from '@familyplay/data'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -8,17 +9,11 @@ import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { brandGradient, clayCard, colors } from '@/lib/theme'
 
-interface ChildProfile {
-  id: string
-  nickname: string
-  birth_year_month: string
-}
-
 export default function SelectScreen() {
   const router = useRouter()
   const { session } = useAuthStore()
 
-  const [children, setChildren] = useState<ChildProfile[]>([])
+  const [children, setChildren] = useState<ChildSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -30,20 +25,9 @@ export default function SelectScreen() {
       }
 
       try {
+        // 收斂到 @familyplay/data 的 fetchChildren（與 Web 共用）：RLS 依 household 成員過濾。
         const supabase = createMobileClient()
-        // child_profiles 無 user_id 欄位；以 RLS（household 成員）過濾即可，
-        // 與 Web 的 /api/children/list 一致。原本 .eq('user_id', …) 會因欄位不存在而報錯。
-        const { data, error: fetchError } = await supabase
-          .from('child_profiles')
-          .select('id,nickname,birth_year_month')
-          .order('created_at', { ascending: false })
-
-        if (fetchError) {
-          setError(fetchError.message)
-          return
-        }
-
-        setChildren(data || [])
+        setChildren(await fetchChildren(supabase))
       } catch (err) {
         setError(err instanceof Error ? err.message : '載入失敗')
       } finally {
@@ -136,10 +120,10 @@ export default function SelectScreen() {
                 style={{ backgroundColor: colors.card, ...clayCard }}
               >
                 <Text className="text-2xl font-bold" style={{ color: colors.text }}>
-                  {child.nickname}
+                  {child.nickname || '寶寶'}
                 </Text>
                 <Text className="mt-1 text-sm" style={{ color: colors.muted }}>
-                  出生年月：{child.birth_year_month}
+                  出生年月：{child.birthYearMonth}
                 </Text>
               </Pressable>
             ))}
