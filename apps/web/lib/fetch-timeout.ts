@@ -8,8 +8,11 @@ export async function fetchWithTimeout(
 ): Promise<Response> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), ms)
+  // 呼叫端可帶自己的 signal（如「換一批」取消上一個請求）；與逾時 signal 合併，
+  // 任一觸發即 abort——避免外部 signal 蓋掉逾時保護，反之亦然。
+  const signal = init.signal ? AbortSignal.any([init.signal, controller.signal]) : controller.signal
   try {
-    return await fetch(input, { ...init, signal: init.signal ?? controller.signal })
+    return await fetch(input, { ...init, signal })
   } finally {
     clearTimeout(timer)
   }

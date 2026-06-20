@@ -18,7 +18,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
-import { fetchWithTimeout } from '@/lib/fetch-timeout'
+import { fetchWithTimeout, isAbortError } from '@/lib/fetch-timeout'
 import { useGoBack } from '@/lib/use-go-back'
 
 interface Recommendation {
@@ -52,6 +52,8 @@ function RecommendationsPageInner() {
   const seenIds = useRef<Set<string>>(new Set())
   // 請求序號：防止快速連點「換一批」時，較舊的回應亂序覆蓋較新的結果/seenIds（競態）。
   const reqSeq = useRef(0)
+  // 進行中的請求：開新請求前 abort 舊的，省下伺服器白算的推薦、也讓被超車的請求即時結束。
+  const inFlight = useRef<AbortController | null>(null)
 
   const childId = searchParams.get('childId') || ''
   const parentEnergy = searchParams.get('parentEnergy') || ''
@@ -66,6 +68,10 @@ function RecommendationsPageInner() {
       }
       // 標記本次請求序號；await 之後若已被更新的請求超車（reqSeq 變大），就放棄寫入狀態。
       const myReq = ++reqSeq.current
+      // 取消上一個還在飛的請求，再為本次建立新的 controller。
+      inFlight.current?.abort()
+      const controller = new AbortController()
+      inFlight.current = controller
       if (mode === 'shuffle') setShuffling(true)
       else setLoading(true)
       setError(null)
@@ -82,6 +88,7 @@ function RecommendationsPageInner() {
             maxDurationMinutes: 20,
             excludeIds,
           }),
+          signal: controller.signal,
         })
         const data = await res.json()
         // 被更新的請求超車 → 這份是過期結果，丟棄不寫狀態/seenIds，避免亂序覆蓋
@@ -101,6 +108,8 @@ function RecommendationsPageInner() {
         for (const r of next) seenIds.current.add(r.id)
         setRecommendations(next)
       } catch (err) {
+        // 被新請求超車而主動 abort 的：靜默忽略，不是錯誤也不該洗 log
+        if (isAbortError(err) && myReq !== reqSeq.current) return
         // 不把技術錯誤（如 502 回非 JSON 時的 "Unexpected token <…"）直接顯示給家長
         console.error('Failed to fetch recommendations:', err)
         if (myReq === reqSeq.current && mode === 'initial') {
