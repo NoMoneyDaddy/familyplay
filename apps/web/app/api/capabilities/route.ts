@@ -1,27 +1,14 @@
 import { ALLOWED_CAPABILITY_KEYS } from '@familyplay/core'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getRequestId } from '@/lib/request-id'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // 能力 key 為 camelCase 值（canRoll…）。白名單避免寫入/回傳任意鍵污染 JSONB。
 const ALLOWED = new Set<string>(ALLOWED_CAPABILITY_KEYS)
-
-function getSupabase(
-  url: string,
-  anonKey: string,
-  cookieStore: Awaited<ReturnType<typeof cookies>>,
-) {
-  return createServerClient(url, anonKey, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: () => {},
-    },
-  })
-}
 
 // 只保留白名單內、值為 true 的能力，過濾殘留舊鍵
 function pickAchieved(raw: Record<string, boolean> | null | undefined): Record<string, boolean> {
@@ -42,14 +29,10 @@ const patchSchema = z.object({
 // GET /api/capabilities?childId=...
 // 回傳該孩子「已達成能力」camelCase→true 對照表，給里程碑評估頁標記目前狀態。
 export async function GET(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) {
+  const supabase = await getApiSupabase()
+  if (!supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = getSupabase(url, anonKey, cookieStore)
 
   const {
     data: { user },
@@ -92,14 +75,10 @@ export async function GET(request: Request) {
 // 家長標記孩子「會了 / 還沒」某個里程碑能力 → 寫入 child_capability_profiles.capabilities。
 // 推薦引擎的 ZPD 評分依此真正生效（先前能力檔永遠空、ZPD 形同沒作用）。
 export async function PATCH(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) {
+  const supabase = await getApiSupabase()
+  if (!supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = getSupabase(url, anonKey, cookieStore)
 
   const {
     data: { user },
@@ -155,7 +134,7 @@ export async function PATCH(request: Request) {
 // RPC 尚未部署時的退路：讀-改-寫（含缺檔自我修復）。並發覆蓋風險僅在過渡期存在，
 // migration 套用後即走原子 RPC 路徑。
 async function legacyUpdate(
-  supabase: ReturnType<typeof getSupabase>,
+  supabase: SupabaseClient,
   childId: string,
   capabilityKey: string,
   achieved: boolean,

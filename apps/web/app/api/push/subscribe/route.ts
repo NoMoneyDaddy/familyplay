@@ -1,8 +1,7 @@
-import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // 儲存（或更新）登入者這台裝置的 Web Push 訂閱。
 // 驗證身分後用 service role 以 endpoint upsert，乾淨處理同裝置換帳號的情況。
@@ -14,16 +13,11 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !anonKey || !serviceKey) {
+  const supabase = await getApiSupabase()
+  if (!url || !serviceKey || !supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
 
   const {
     data: { user },

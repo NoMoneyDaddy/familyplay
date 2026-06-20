@@ -1,11 +1,10 @@
 import { LogError, logCompanion } from '@familyplay/data'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getRequestId } from '@/lib/request-id'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 const logSchema = z.object({
   childId: z.string().uuid(),
@@ -16,26 +15,16 @@ const logSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!url || !anonKey) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
   // userId 先宣告在 try 外：讓 auth/限流階段的非預期錯誤也能在 catch 帶上（可能尚未取得）。
   let userId: string | undefined
   const requestId = getRequestId(request)
   // 整個處理包進 try：連 cookies()/getUser()/checkRateLimit() 的非預期錯誤（Supabase/Redis
   // 故障）也走 catch 上報，不再靜默 500（風險 A）。
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(url, anonKey, {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: () => {},
-      },
-    })
+    const supabase = await getApiSupabase()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+    }
 
     const {
       data: { user },

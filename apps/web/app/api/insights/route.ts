@@ -1,9 +1,8 @@
 import { fetchStreak, fetchWeeklyInsights, type WeeklyInsights } from '@familyplay/data'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 /**
  * GET /api/insights?childId=...
@@ -13,16 +12,10 @@ import { reportError } from '@/lib/observability'
 const querySchema = z.object({ childId: z.string().uuid() })
 
 export async function GET(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) {
+  const supabase = await getApiSupabase()
+  if (!supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
 
   const {
     data: { user },
