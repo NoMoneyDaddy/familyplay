@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const querySchema = z.object({
@@ -83,7 +84,7 @@ export async function GET(request: Request) {
     const { data: logs, error } = logsResult
 
     if (error) {
-      console.error('Failed to fetch logs', error)
+      reportError(error, { route: '/api/logs', userId: user.id, childId: validatedChildId })
       return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 })
     }
 
@@ -133,6 +134,7 @@ export async function GET(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    reportError(error, { route: '/api/logs', userId: user.id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

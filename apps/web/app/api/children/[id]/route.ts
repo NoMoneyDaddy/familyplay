@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 
 const updateSchema = z.object({
   nickname: z.string().min(1).optional(),
@@ -117,7 +118,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       .single()
 
     if (error) {
-      console.error('Failed to update child profile', error)
+      reportError(error, { route: 'PUT /api/children/[id]', userId: user.id, childId: id })
       return NextResponse.json({ error: 'Failed to update child profile' }, { status: 500 })
     }
 
@@ -131,6 +132,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    // 無效 JSON 屬客戶端錯誤（400），不上報 Sentry 以免噪音（與 /api/logs/[id] 一致）
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    }
+    reportError(error, { route: 'PUT /api/children/[id]', userId: user.id, childId: id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -182,13 +188,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { error } = await supabase.from('child_profiles').delete().eq('id', id)
 
     if (error) {
-      console.error('Failed to delete child profile', error)
+      reportError(error, { route: 'DELETE /api/children/[id]', userId: user.id, childId: id })
       return NextResponse.json({ error: 'Failed to delete child profile' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Failed to delete child profile', error)
+    reportError(error, { route: 'DELETE /api/children/[id]', userId: user.id, childId: id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
