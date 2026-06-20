@@ -54,7 +54,8 @@ export const metadata: Metadata = {
     siteName: 'FamilyPlay',
   },
   twitter: {
-    card: 'summary',
+    // 大圖卡：搭配 app/opengraph-image 的品牌圖，分享連結時顯示完整視覺（不含孩子資料）
+    card: 'summary_large_image',
     title: 'FamilyPlay — 30 秒找到今天的陪伴方式',
     description: '給疲憊家長的親子陪伴導航',
   },
