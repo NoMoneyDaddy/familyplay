@@ -14,6 +14,7 @@ export const runtime = 'nodejs'
 
 // RevenueCat 統一收費 webhook（行動端 IAP + Web Billing 共用）。
 // entitlements 只由此（service-role）寫，前端不可自助升級。
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const webhookSchema = z.object({
   event: z.object({
     type: z.string(),
@@ -92,6 +93,13 @@ export async function POST(request: Request) {
       const userProfileId = event.app_user_id
       if (!userProfileId) {
         return NextResponse.json({ error: 'Missing app_user_id' }, { status: 400 })
+      }
+      // 防呆：購買前未 logIn 時 app_user_id 會是 RevenueCat 匿名 id（$RCAnonymousID:…），
+      // 非 UUID → 對不上 user_profiles，硬寫會 FK 失敗 → 500 → RevenueCat 無限重試。
+      // 這類事件無法對應，直接 ack（已記錄、不重試），避免重試風暴。
+      if (!UUID_RE.test(userProfileId)) {
+        completed = true
+        return NextResponse.json({ success: true, skipped: 'non_uuid_app_user_id' })
       }
 
       const now = new Date()
