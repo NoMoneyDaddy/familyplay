@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildActivityPrompt, parseGeneratedActivity } from './prompt'
+import {
+  buildActivityPrompt,
+  buildHandoffPrompt,
+  parseGeneratedActivity,
+  sanitizeHandoffSummary,
+} from './prompt'
 import type { AIInput } from './types'
 
 const base: AIInput = {
@@ -40,6 +45,56 @@ describe('buildActivityPrompt', () => {
     const p = buildActivityPrompt(base)
     const blob = `${p.system}\n${p.user}`
     expect(blob).not.toMatch(/暱稱|生日|姓名/)
+  })
+})
+
+describe('buildHandoffPrompt', () => {
+  it('輸出 system/user/maxTokens 且為純文字短評（非 JSON）', () => {
+    const p = buildHandoffPrompt(base)
+    expect(p.system).toContain('繁體中文')
+    expect(p.system).toContain('交接小卡')
+    expect(p.system).not.toContain('JSON')
+    expect(p.maxTokens).toBeGreaterThan(0)
+  })
+
+  it('禁止醫療診斷與外部連結', () => {
+    const p = buildHandoffPrompt(base)
+    expect(p.system).toContain('醫療')
+    expect(p.system).toContain('連結')
+  })
+
+  it('帶入發展中能力；無能力時給通用語', () => {
+    expect(buildHandoffPrompt(base).user).toContain('canRoll')
+    expect(buildHandoffPrompt({ ...base, capabilityKeys: [] }).user).toContain('沒有特別標記')
+  })
+
+  it('不含任何個資欄位（暱稱/生日/姓名）', () => {
+    const p = buildHandoffPrompt(base)
+    expect(`${p.system}\n${p.user}`).not.toMatch(/暱稱|生日|姓名/)
+  })
+})
+
+describe('sanitizeHandoffSummary', () => {
+  it('去 markdown 圍欄、壓成單段', () => {
+    expect(sanitizeHandoffSummary('```\n寶寶最近\n很愛探索\n```')).toBe('寶寶最近 很愛探索')
+  })
+
+  it('全空白回 null', () => {
+    expect(sanitizeHandoffSummary('   \n  ')).toBeNull()
+  })
+
+  it('過長截斷在句號處', () => {
+    const long = `${'啊'.repeat(120)}。${'喔'.repeat(120)}`
+    const out = sanitizeHandoffSummary(long)
+    expect(out).not.toBeNull()
+    expect((out as string).length).toBeLessThanOrEqual(200)
+    expect((out as string).endsWith('。')).toBe(true)
+  })
+
+  it('短文原樣保留', () => {
+    expect(sanitizeHandoffSummary('現在很愛抓握，多陪他玩抓抓遊戲。')).toBe(
+      '現在很愛抓握，多陪他玩抓抓遊戲。',
+    )
   })
 })
 

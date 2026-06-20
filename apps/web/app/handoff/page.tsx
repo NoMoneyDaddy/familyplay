@@ -13,6 +13,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
+import { readAIKey } from '@/lib/ai-key'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { stageLabel } from '@/lib/stage-labels'
 import { useChildStore } from '@/lib/stores/useChildStore'
@@ -46,6 +47,9 @@ export default function HandoffPage() {
   const [loadError, setLoadError] = useState(false)
   const [shareNote, setShareNote] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  // AI 潤色出來的溫暖短評（Plus 託管或 BYO key）；失敗則保持 null、續用規則式小卡。
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
   // 重試用：bump 即重新抓
   const [reloadTick, setReloadTick] = useState(0)
 
@@ -116,6 +120,8 @@ export default function HandoffPage() {
   const buildText = () => {
     const name = child?.nickname || '寶寶'
     const lines = [`${name}的陪伴交接小卡`, '']
+    // AI 潤色短評（若有）放最前面，當作給家人的暖場白
+    if (aiSummary) lines.push(aiSummary, '')
     if (stage) lines.push(`📍 現在階段：${stage}`, '')
     if (recent.length > 0) {
       lines.push('🧸 最近陪玩：')
@@ -158,6 +164,39 @@ export default function HandoffPage() {
       }
     }
     setShareNote('這個瀏覽器不支援自動分享，請長按上方內容手動複製。')
+  }
+
+  // AI 潤色：把規則式現況交給 AI 寫成 2–3 句溫暖短評。只送 childId（後端據此取階段＋
+  // 發展中能力組白名單輸入，不送暱稱/生日/紀錄原文）。有 BYO 金鑰就帶上，否則走 Plus 託管。
+  // 失敗安靜處理：保留規則式小卡，只給溫和訊息。
+  const handleAiPolish = async () => {
+    if (!selectedChildId || aiLoading) return
+    const key = readAIKey()
+    setAiLoading(true)
+    try {
+      const res = await fetchWithTimeout(
+        '/api/ai/handoff',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            childId: selectedChildId,
+            ...(key ? { provider: key.provider, apiKey: key.apiKey } : {}),
+          }),
+        },
+        20000,
+      )
+      const data = await res.json()
+      if (data.ok && typeof data.summary === 'string') {
+        setAiSummary(data.summary)
+      } else {
+        setShareNote('這次沒潤色成功，可能是金鑰或額度問題，稍後再試。')
+      }
+    } catch {
+      setShareNote('網路不太穩，等一下再試一次。')
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   // 儲存這張小卡：把即時組好的摘要存進 handoff_summaries，之後家庭成員可回看。
@@ -227,6 +266,16 @@ export default function HandoffPage() {
           <Card className="space-y-4">
             <h2 className="text-lg font-bold text-text">{child?.nickname || '寶寶'}的小卡</h2>
 
+            {aiSummary && (
+              <div className="rounded-xl bg-brand-tint px-3.5 py-3">
+                <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-brand-strong">
+                  <Icon name="sparkle" className="h-[14px] w-[14px]" />
+                  AI 暖場白
+                </p>
+                <p className="text-sm leading-relaxed text-text">{aiSummary}</p>
+              </div>
+            )}
+
             {stage && (
               <div className="flex items-start gap-2.5">
                 <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand">
@@ -284,6 +333,17 @@ export default function HandoffPage() {
               {shareNote}
             </p>
           )}
+
+          <Button
+            variant="secondary"
+            size="md"
+            icon="sparkle"
+            loading={aiLoading}
+            className="w-full"
+            onClick={handleAiPolish}
+          >
+            {aiSummary ? '重新用 AI 潤色' : '用 AI 潤色（Plus／自帶金鑰）'}
+          </Button>
 
           <Button size="lg" icon="link" className="w-full" onClick={handleShare}>
             分享給家人

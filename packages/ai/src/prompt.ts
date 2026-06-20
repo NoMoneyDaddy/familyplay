@@ -112,6 +112,64 @@ export function parseGeneratedActivity(content: string): GeneratedActivity | nul
   }
 }
 
+/**
+ * 把 AI 回傳的交接短評正規化：去掉 markdown 圍欄、壓成單一段落、限長。
+ * 任何空白/全被清掉 → 回 null，呼叫端據此降回規則式摘要。
+ * 安全：內容已先過 Safety Filter（checkSafety）；此處只做形狀整理。
+ */
+export function sanitizeHandoffSummary(content: string): string | null {
+  const cleaned = content
+    .trim()
+    .replace(/^```(?:\w+)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!cleaned) return null
+  // 交接短評刻意短：限 200 字，過長截斷在最後一個句號處（避免半句）。
+  if (cleaned.length <= 200) return cleaned
+  const capped = cleaned.slice(0, 200)
+  const lastStop = Math.max(capped.lastIndexOf('。'), capped.lastIndexOf('！'))
+  return lastStop >= 80 ? capped.slice(0, lastStop + 1) : capped
+}
+
+/**
+ * 交接小卡的「AI 溫暖短評」提示。
+ *
+ * 安全（CLAUDE.md）：輸入沿用與活動生成「完全相同」的白名單欄位（只用到 stageKey 與
+ * capabilityKeys，皆已驗證），不新增任何資料面——絕不含暱稱/生日/紀錄原文。
+ * 輸出為純文字（非 JSON）：給接手家人看的 2–3 句溫暖現況短評，禁醫療診斷與外部連結。
+ */
+export function buildHandoffPrompt(input: AIInput): {
+  system: string
+  user: string
+  maxTokens: number
+} {
+  const system = [
+    '你是「FamilyPlay」的親子陪伴夥伴，正在幫家長寫一張「交接小卡」的開場短評，',
+    '讓接手照顧的家人（另一半、長輩、保母）30 秒內溫暖地進入狀況。',
+    '規則：',
+    '1. 一律用繁體中文，語氣溫暖、體貼、像家人之間的提醒。',
+    '2. 只寫 2–3 句、最多 120 字的「現況短評」，不要條列、不要標題。',
+    '3. 不要提供任何醫療、診斷、發展遲緩評估或治療建議；不要用「應該/必須」施壓。',
+    '4. 不要包含任何網址、連結或外部資源。',
+    '5. 不要編造具體事件或孩子的名字，只根據下面提供的「發展階段」與「正在發展的能力」來寫。',
+    '6. 只輸出短評本身，不要加引號、說明文字或 markdown。',
+  ].join('\n')
+
+  const developing =
+    input.capabilityKeys.length > 0
+      ? `孩子正在發展中的能力：${input.capabilityKeys.join('、')}。`
+      : '目前沒有特別標記的發展能力。'
+
+  const user = [
+    `孩子的發展階段：${STAGE_DESC[input.stageKey] ?? input.stageKey}。`,
+    developing,
+    '請寫一段溫暖的交接現況短評，讓接手的家人安心、知道現在可以多陪孩子練什麼。',
+  ].join('\n')
+
+  return { system, user, maxTokens: 240 }
+}
+
 export function buildActivityPrompt(input: AIInput): {
   system: string
   user: string

@@ -96,8 +96,10 @@
 
 - 行動端（Expo）UI（`apps/mobile`）：把 Web 的「現在就陪」「里程碑」「紀錄」流程移植到 Expo Router（沿用 `packages/core`／`packages/assessment`，金鑰用 Secure Storage）
 - 付費整合 UI（web）已串：升級結帳＋訂閱管理入口完成；剩下 Plus 上架決策（核心交付確認後把 `plan-comparison` 的 Plus `comingSoon` 拿掉、設好 RevenueCat 商品/權益）與行動端 RevenueCat 串接
-- 交接摘要 AI 強化（持久化已完成；剩 AI 潤色半部——把規則式濃縮交給 AI 寫成溫暖短評，
-  須走 Safety Filter + 白名單、不送孩子個資）
+- [x] 交接摘要 AI 強化（AI2 完成）：`/api/ai/handoff` + `buildHandoffPrompt`/
+  `sanitizeHandoffSummary`，把規則式現況交給 AI 寫成 2–3 句溫暖短評；輸入沿用與活動生成
+  完全相同的白名單（只送 stageKey + 發展中能力，零新增資料面），走 Safety Filter、
+  BYO/Plus 託管配額，失敗安靜降回規則式小卡；交接頁加「AI 潤色」按鈕、短評自動帶入分享/儲存
 - 商業化解鎖（風險 C，需經營決策）：交付 Plus 真實價值後拿掉 `plan-comparison` 的
   `comingSoon`、開放結帳；`sponsor_cards` 廣告渲染讓 Supporter「去廣告」賣點成立
 - 多孩子 UI/流程優化、推送通知、離線、本地化
