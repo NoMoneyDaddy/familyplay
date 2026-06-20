@@ -108,6 +108,13 @@
   Plus 另需 `NEXT_PUBLIC_PLUS_CHECKOUT_ENABLED='true'` 才開。移除硬寫 `comingSoon`、
   誠實標記已交付的 Plus 功能（AI 生成/100 次/交接潤色）。RevenueCat 未設好＝全程休眠。
 
+### Email 再觸達上線 checklist（基礎已備、休眠中）
+- [x] 寄送器 `lib/email/resend`（未設 `RESEND_API_KEY` 即休眠）+ 模板 `lib/email/templates`
+  （每週回顧，**無孩子個資**、純聚合數字）+ 單元測試。
+- [ ] 待你決策後開通：① 註冊 Resend、驗證寄件網域、設 `RESEND_API_KEY`/`EMAIL_FROM`；
+  ② **收件人同意模型**（新增 `notification_prefs`/opt-out 欄位的 migration——避免未經同意群發）；
+  ③ 排程 cron 打 `/api/email/weekly-recap`（待 ② 後建，CRON_SECRET 鑑權、只寄給 opt-in 用戶）。
+
 ### Plus 上線 checklist（待 RevenueCat 後台就緒＋定價確認）
 1. RevenueCat 後台建立 Plus 商品與 `plus` entitlement、Web Billing offering。
 2. 設環境變數：`NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY`、`NEXT_PUBLIC_REVENUECAT_PLUS_PACKAGE`、
