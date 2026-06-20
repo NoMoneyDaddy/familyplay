@@ -26,6 +26,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/web/package.json         ./apps/web/
 COPY packages/core/package.json    ./packages/core/
 COPY packages/ai/package.json      ./packages/ai/
+COPY packages/data/package.json    ./packages/data/
 COPY packages/db/package.json      ./packages/db/
 COPY packages/assessment/package.json    ./packages/assessment/
 COPY packages/capabilities/package.json  ./packages/capabilities/
