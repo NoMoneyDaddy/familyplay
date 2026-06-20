@@ -74,6 +74,8 @@ export default function NowPage() {
   const [shuffling, setShuffling] = useState(false)
   const [logging, setLogging] = useState(false)
   const [logged, setLogged] = useState<null | 'completed' | 'tried'>(null)
+  // 記錄後的連續陪伴天數，用於結束畫面的火苗回饋（習慣養成的成就感）；抓不到就不顯示
+  const [streak, setStreak] = useState<number | null>(null)
   const [exhausted, setExhausted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [stale, setStale] = useState(false) // 離線/失敗時顯示的是上次快取的方案
@@ -172,12 +174,23 @@ export default function NowPage() {
       setLogging(false)
       setLogged(outcome)
     }
+    // 記錄後抓連續天數，給結束畫面火苗回饋（次要：失敗就只顯示原本文案，不擋流程）
+    try {
+      const res = await fetchWithTimeout(`/api/insights?childId=${selectedChildId}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (typeof data.streak === 'number' && data.streak > 0) setStreak(data.streak)
+      }
+    } catch {
+      // 無 streak 就維持原本的結束畫面
+    }
   }
 
   const restart = () => {
     seenIds.current = new Set()
     setExhausted(false)
     setLogged(null)
+    setStreak(null)
     setStale(false)
     setRec(null)
     load([], 'initial')
@@ -201,6 +214,15 @@ export default function NowPage() {
               {logged === 'completed' ? '陪伴完成，每一次都算數。' : '試過了也很好，下次再來。'}
             </p>
           </div>
+          {/* 連續陪伴天數：把抽象努力變成看得見的火苗，強化「明天也想再來」 */}
+          {streak && streak >= 1 ? (
+            <div className="mx-auto flex items-center gap-2 rounded-full bg-brand-tint px-4 py-2">
+              <span className="text-xl" aria-hidden>
+                🔥
+              </span>
+              <span className="text-sm font-semibold text-brand-strong">連續陪伴 {streak} 天</span>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Button size="lg" icon="sparkle" onClick={restart} className="w-full">
               再陪一個
