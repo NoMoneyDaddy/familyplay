@@ -72,6 +72,15 @@ describe('parseNaturalLog — reaction', () => {
   it('沒有訊號 → null', () => {
     expect(parseNaturalLog('今天有記錄', candidates).reaction).toBeNull()
   })
+
+  it('「玩到不要不要的」（口語＝超起勁）不誤標 leaving', () => {
+    // 修掉單獨「不要」過度匹配的回歸測試
+    expect(parseNaturalLog('玩積木玩到不要不要的', candidates).reaction).not.toBe('leaving')
+  })
+
+  it('「不要玩了」→ leaving', () => {
+    expect(parseNaturalLog('沒幾下就不要玩了', candidates).reaction).toBe('leaving')
+  })
 })
 
 describe('parseNaturalLog — 綜合與邊界', () => {

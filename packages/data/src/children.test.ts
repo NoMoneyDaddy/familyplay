@@ -71,13 +71,14 @@ function makeSupabase(opts: {
         }
       }
       if (table === 'household_members') {
+        const result = async () =>
+          opts.membership ? ok({ household_id: opts.membership }) : ok(null)
         return {
           select: () => ({
             eq: () => ({
-              limit: () => ({
-                maybeSingle: async () =>
-                  opts.membership ? ok({ household_id: opts.membership }) : ok(null),
-              }),
+              // 支援 .eq().order().limit().maybeSingle() 與 .eq().limit().maybeSingle() 兩種鏈
+              order: () => ({ limit: () => ({ maybeSingle: result }) }),
+              limit: () => ({ maybeSingle: result }),
             }),
           }),
         }

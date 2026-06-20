@@ -54,6 +54,9 @@ async function resolveHouseholdId(
     .from('household_members')
     .select('household_id')
     .eq('user_profile_id', userProfileId)
+    // 與 owner 分支一致加 order：屬多個共享家庭時，limit(1) 無 order 取哪筆是未定義的，
+    // 會讓「往哪個家庭新增孩子」每次不穩定。固定取最早加入的。
+    .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle()
   if (membershipError) throw new ChildError('household_failed', '無法查詢家庭成員', membershipError)

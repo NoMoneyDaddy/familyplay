@@ -52,6 +52,12 @@ describe('fetchActiveSponsorCards', () => {
     expect(cards).toHaveLength(2)
   })
 
+  it('非 http(s) 的 cta_url（javascript:）→ 過濾為 null', async () => {
+    const evil = { ...row, id: 'e', allowed_placements: [], cta_url: 'javascript:alert(1)' }
+    const [card] = await fetchActiveSponsorCards(makeSupabase([evil]), 'x')
+    expect(card.ctaUrl).toBeNull()
+  })
+
   it('null data → 空陣列', async () => {
     expect(await fetchActiveSponsorCards(makeSupabase(null), 'x')).toEqual([])
   })

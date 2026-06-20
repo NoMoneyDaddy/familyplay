@@ -41,7 +41,11 @@ export function saveCachedRec(childId: string, rec: Recommendation): void {
 export function readCachedRec(childId: string): Recommendation | null {
   try {
     const raw = localStorage.getItem(cacheKey(childId))
-    return raw ? (JSON.parse(raw) as Recommendation) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<Recommendation>
+    // 最小驗證：舊版快取結構漂移時別回殘缺物件（否則渲染 reasons.map 會 throw 白屏）。
+    if (!parsed || typeof parsed.id !== 'string' || !Array.isArray(parsed.reasons)) return null
+    return parsed as Recommendation
   } catch {
     return null
   }

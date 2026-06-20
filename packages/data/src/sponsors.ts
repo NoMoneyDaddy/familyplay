@@ -23,6 +23,15 @@ export interface SponsorRow {
   allowed_placements: string[] | null
 }
 
+// 縱深防禦：只允許 http(s) 外連。贊助卡寫入雖限 service-role/admin，仍擋掉
+// javascript:/data: 等 scheme，避免內容管線或帳號遭竄改時點擊即執行。
+function safeHttpUrl(raw: string | null): string | null {
+  if (!raw) return null
+  // 先去頭尾空白（擋「 javascript:…」這類前綴空白繞過），只允許 http(s) scheme。
+  const trimmed = raw.trim()
+  return /^https?:\/\//i.test(trimmed) ? trimmed : null
+}
+
 /** DB 列 → SponsorCard。抽出以便單元測試。 */
 export function mapSponsorRow(row: SponsorRow): SponsorCard {
   return {
@@ -30,7 +39,7 @@ export function mapSponsorRow(row: SponsorRow): SponsorCard {
     title: row.title,
     body: row.body,
     ctaText: row.cta_text,
-    ctaUrl: row.cta_url,
+    ctaUrl: safeHttpUrl(row.cta_url),
   }
 }
 
