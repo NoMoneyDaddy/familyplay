@@ -26,7 +26,7 @@ const reportError = vi.hoisted(() => vi.fn())
 vi.mock('next/headers', () => ({ cookies: async () => ({ getAll: () => [] }) }))
 vi.mock('@/lib/observability', () => ({ reportError }))
 vi.mock('@/lib/ratelimit', () => ({ checkRateLimit: async () => ({ success: s.rl }) }))
-vi.mock('@familyplay/assessment', () => ({ getZpdTargets: () => [] }))
+vi.mock('@familyplay/assessment', () => ({ getZpdTargets: () => [], CAPABILITY_LABELS: {} }))
 
 vi.mock('@supabase/ssr', () => ({
   createServerClient: () => ({

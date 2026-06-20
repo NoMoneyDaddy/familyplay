@@ -9,7 +9,7 @@ import {
   getProvider,
   parseGeneratedActivity,
 } from '@familyplay/ai'
-import { getZpdTargets } from '@familyplay/assessment'
+import { CAPABILITY_LABELS, getZpdTargets } from '@familyplay/assessment'
 import { type CapabilityKey, getAgeMonths, getStageKey } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
@@ -251,5 +251,7 @@ async function handlePost(request: Request) {
     return fallback('parse_failed')
   }
 
-  return NextResponse.json({ ok: true, source: 'ai', activity })
+  // 回傳這次針對的「發展中能力」中文標籤，讓前端能說明「這會練到什麼」（AI5）。
+  const targetedSkills = developing.map((k) => CAPABILITY_LABELS[k]).filter(Boolean)
+  return NextResponse.json({ ok: true, source: 'ai', activity, targetedSkills })
 }
