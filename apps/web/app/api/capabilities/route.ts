@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 // 能力 key 為 camelCase 值（canRoll…）。白名單避免寫入/回傳任意鍵污染 JSONB。
 const ALLOWED = new Set<string>(ALLOWED_CAPABILITY_KEYS)
@@ -57,6 +58,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const rl = await checkRateLimit(`capabilities-read:${user.id}`, 60)
+  if (!rl.success) {
+    return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
+  }
+
   const parsed = getSchema.safeParse({
     childId: new URL(request.url).searchParams.get('childId'),
   })
@@ -99,6 +105,11 @@ export async function PATCH(request: Request) {
   } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const rl = await checkRateLimit(`capabilities-write:${user.id}`, 30)
+  if (!rl.success) {
+    return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
   let body: unknown

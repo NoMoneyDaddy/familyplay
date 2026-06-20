@@ -1,5 +1,6 @@
 import { getAgeMonths, getStageKey } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -14,8 +15,7 @@ const updateSchema = z.object({
 })
 
 async function validateChildOwnership(
-  // biome-ignore lint/suspicious/noExplicitAny: Supabase client type is complex
-  supabase: any,
+  supabase: SupabaseClient,
   childId: string,
   userProfileId: string,
 ): Promise<boolean> {
@@ -36,8 +36,7 @@ async function validateChildOwnership(
 
   if (!memberships || memberships.length === 0) return false
 
-  // biome-ignore lint/suspicious/noExplicitAny: Supabase response type
-  const householdIds = memberships.map((m: any) => m.household_id)
+  const householdIds = (memberships as { household_id: string }[]).map((m) => m.household_id)
 
   const { data: child } = await supabase
     .from('child_profiles')

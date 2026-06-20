@@ -88,8 +88,13 @@ export async function GET(request: Request) {
     // 限制只讀得到自己，僅作本人後備。都沒有時用「家人」而非「Unknown User」。
     const transformedMembers = (members || []).map((member) => {
       const isSelf = member.user_profile_id === userProfile.id
-      // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
-      const displayName = member.nickname || (member.user_profiles as any)?.display_name || '家人'
+      // Supabase nested relation 可能回物件或陣列；取 display_name 作後備（取代 as any）
+      const up = member.user_profiles as
+        | { display_name?: string | null }
+        | { display_name?: string | null }[]
+        | null
+      const displayName =
+        member.nickname || (Array.isArray(up) ? up[0] : up)?.display_name || '家人'
       return {
         id: member.id,
         displayName,

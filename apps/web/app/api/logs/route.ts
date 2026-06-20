@@ -9,6 +9,13 @@ const querySchema = z.object({
   childId: z.string().uuid(),
 })
 
+// Supabase nested relation 可能回物件或陣列；安全取出 title（取代 as any）。
+type ActivityRel = { title?: string | null } | { title?: string | null }[] | null | undefined
+function pickTitle(rel: ActivityRel): string | null {
+  const obj = Array.isArray(rel) ? rel[0] : rel
+  return obj?.title ?? null
+}
+
 /**
  * Retrieves companion logs for a specified child, marked with edit permissions for the requesting user.
  *
@@ -101,8 +108,13 @@ export async function GET(request: Request) {
         .eq('household_id', householdId)
       memberCount = members?.length ?? 0
       for (const m of members ?? []) {
-        // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
-        const name = m.nickname || (m.user_profiles as any)?.display_name || null
+        // Supabase nested relation 可能回物件或陣列；取 display_name 作本人後備（取代 as any）
+        const up = m.user_profiles as
+          | { display_name?: string | null }
+          | { display_name?: string | null }[]
+          | null
+        const displayName = (Array.isArray(up) ? up[0] : up)?.display_name
+        const name = m.nickname || displayName || null
         if (name) memberNames.set(m.user_profile_id, name)
       }
     }
@@ -113,8 +125,7 @@ export async function GET(request: Request) {
         const byMe = myProfileId != null && log.caregiver_id === myProfileId
         return {
           id: log.id,
-          // biome-ignore lint/suspicious/noExplicitAny: Supabase relation type inference
-          activityTitle: (log.companion_activities as any)?.title || 'Unknown Activity',
+          activityTitle: pickTitle(log.companion_activities) || 'Unknown Activity',
           outcome: log.outcome,
           childReaction: log.child_reaction,
           createdAt: log.created_at,
