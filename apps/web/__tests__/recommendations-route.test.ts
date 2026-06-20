@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // API route handler 整合測試：mock 掉外部相依（cookies / supabase / 限流 / 編排 / 上報），
 // 驗證授權、限流、無效輸入、成功路徑，以及 RecommendError code → HTTP 狀態的對應。
@@ -62,6 +62,11 @@ beforeEach(() => {
   h.reportError.mockClear()
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost')
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'anon-key')
+})
+
+// 還原 stub 的環境變數，避免污染其他測試檔
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 describe('POST /api/recommendations', () => {

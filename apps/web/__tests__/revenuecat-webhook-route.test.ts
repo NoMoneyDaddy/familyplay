@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // RevenueCat webhook route handler 整合測試（白皮書風險 B）：驗證簽章、等冪 claim、
 // 失敗釋放 dedupe、方案啟用/撤銷的 entitlements 寫入、各種 ack 取捨。
@@ -84,6 +84,11 @@ beforeEach(() => {
   vi.stubEnv('REVENUECAT_WEBHOOK_AUTH', AUTH)
   vi.stubEnv('REVENUECAT_SUPPORTER_ENTITLEMENT', 'supporter')
   vi.stubEnv('REVENUECAT_PLUS_ENTITLEMENT', 'plus')
+})
+
+// 還原 stub 的環境變數，避免污染其他測試檔（共享行程/多執行緒時）
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 describe('POST /api/revenuecat/webhook', () => {
