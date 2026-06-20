@@ -15,6 +15,7 @@ import {
 } from '@/app/components/ui'
 import { readAIKey } from '@/lib/ai-key'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
+import { lineShareUrl } from '@/lib/share'
 import { stageLabel } from '@/lib/stage-labels'
 import { useChildStore } from '@/lib/stores/useChildStore'
 import { useGoBack } from '@/lib/use-go-back'
@@ -347,6 +348,17 @@ export default function HandoffPage() {
 
           <Button size="lg" icon="link" className="w-full" onClick={handleShare}>
             分享給家人
+          </Button>
+
+          {/* 台灣家庭多用 LINE：一鍵帶預填文字開 LINE 分享，家庭擴張低成本獲客 */}
+          <Button
+            variant="secondary"
+            size="md"
+            icon="family"
+            className="w-full"
+            onClick={() => window.open(lineShareUrl(buildText()), '_blank', 'noopener,noreferrer')}
+          >
+            分享到 LINE
           </Button>
 
           <Button
