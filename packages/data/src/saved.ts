@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { type ProfileResolveKind, resolveProfileId } from './profile'
 
 // 收藏（save for later）：綁 user_profile，RLS 僅本人可讀寫，UNIQUE(user_profile_id, activity_id)。
 // 跨平台共用：Web 與行動端各自帶 session 的 client。
@@ -72,26 +73,16 @@ export async function fetchSavedIds(supabase: SupabaseClient): Promise<Set<strin
   )
 }
 
-async function resolveProfileId(supabase: SupabaseClient): Promise<string> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new SavedError('尚未登入')
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single()
-  if (error || !data) throw new SavedError('找不到使用者資料')
-  return data.id as string
-}
+// 行為保留：未登入 → '尚未登入'；查詢失敗或查無 → '找不到使用者資料'（與原本一致）。
+const savedProfileError = (kind: ProfileResolveKind) =>
+  new SavedError(kind === 'unauthorized' ? '尚未登入' : '找不到使用者資料')
 
 /** 收藏一個活動（重複收藏視為成功，靠 UNIQUE 去重）。 */
 export async function saveActivity(
   supabase: SupabaseClient,
   args: { activityId: string },
 ): Promise<void> {
-  const profileId = await resolveProfileId(supabase)
+  const profileId = await resolveProfileId(supabase, savedProfileError)
   const { error } = await supabase
     .from('saved_activities')
     .upsert(
@@ -106,7 +97,7 @@ export async function unsaveActivity(
   supabase: SupabaseClient,
   args: { activityId: string },
 ): Promise<void> {
-  const profileId = await resolveProfileId(supabase)
+  const profileId = await resolveProfileId(supabase, savedProfileError)
   const { error } = await supabase
     .from('saved_activities')
     .delete()
