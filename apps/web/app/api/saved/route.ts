@@ -1,3 +1,4 @@
+import { fetchSaved, SavedError } from '@familyplay/data'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -28,7 +29,8 @@ async function resolveProfileId(
   return data?.id as string | undefined
 }
 
-// 列出收藏（含活動內容），新到舊。
+// 列出收藏（含活動內容），新到舊。映射收斂到 @familyplay/data（fetchSaved/mapSavedRow），
+// 與行動端共用、消除前端 pickActivity 的重複關聯處理。
 export async function GET() {
   const supabase = getSupabase(await cookies())
   if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
@@ -39,16 +41,15 @@ export async function GET() {
   } = await supabase.auth.getUser()
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data, error } = await supabase
-    .from('saved_activities')
-    .select(
-      'activity_id, created_at, companion_activities(id, title, min_duration_minutes, max_duration_minutes, stimulation_level, developmental_focus)',
-    )
-    .order('created_at', { ascending: false })
-    .limit(200)
-
-  if (error) return NextResponse.json({ error: 'Failed to load saved' }, { status: 500 })
-  return NextResponse.json({ saved: data ?? [] })
+  try {
+    const saved = await fetchSaved(supabase)
+    return NextResponse.json({ saved })
+  } catch (error) {
+    if (error instanceof SavedError) {
+      return NextResponse.json({ error: 'Failed to load saved' }, { status: 500 })
+    }
+    throw error
+  }
 }
 
 // 收藏一個活動（重複收藏視為成功，靠 UNIQUE 去重）。
