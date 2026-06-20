@@ -1,5 +1,6 @@
 'use client'
 
+import { allRecommendationsSeen } from '@familyplay/data'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
@@ -86,7 +87,7 @@ function RecommendationsPageInner() {
         }
         const next: Recommendation[] = data.recommendations || []
         // 換一批換不到新的（只剩看過的或安全兜底）→ 標記已看完，不覆蓋現有清單
-        const allSeen = mode === 'shuffle' && next.every((r) => seenIds.current.has(r.id))
+        const allSeen = mode === 'shuffle' && allRecommendationsSeen(next, seenIds.current)
         if (allSeen) {
           setExhausted(true)
           return

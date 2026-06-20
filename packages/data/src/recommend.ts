@@ -261,3 +261,16 @@ export async function fetchRecommendations(
     developmentalFocus: focusById.get(r.id) || [],
   }))
 }
+
+/**
+ * 「換一批」是否已換完。引擎保證至少回一個安全兜底（fallback 不被 excludeIds 排除），
+ * 故 result 永不為空、不能用長度判斷；改判這批新結果是否「全都已看過」（都在 seen 內）。
+ * Web 與行動端共用，避免兩端各自實作出不一致或漏判（fallback 重複換不完）的 bug。
+ *
+ * @param results 這次推薦回來的活動（只需 id）
+ * @param seen 先前已看過的活動 id（換一批時即 excludeIds）；初次載入為空 → 回 false
+ */
+export function allRecommendationsSeen(results: { id: string }[], seen: Iterable<string>): boolean {
+  const seenSet = seen instanceof Set ? seen : new Set(seen)
+  return results.length > 0 && results.every((r) => seenSet.has(r.id))
+}
