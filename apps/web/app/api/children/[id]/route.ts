@@ -188,6 +188,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error('Failed to delete child profile', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
