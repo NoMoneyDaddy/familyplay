@@ -84,21 +84,36 @@ export default function RecommendationsScreen() {
           </Pressable>
         </View>
 
-        {/* 里程碑入口：標記孩子會了什麼 → 推薦更貼近發展（ZPD） */}
+        {/* 里程碑＋歷史入口 */}
         {childId ? (
-          <Pressable
-            onPress={() => router.push(`/milestones?childId=${childId}`)}
-            accessibilityRole="button"
-            className="mb-5 flex-row items-center justify-between rounded-2xl px-4 py-3 active:opacity-80"
-            style={{ backgroundColor: colors.brandTint }}
-          >
-            <Text className="text-sm font-semibold" style={{ color: colors.brandStrong }}>
-              📊 標記發展里程碑，讓推薦更準
-            </Text>
-            <Text className="text-sm" style={{ color: colors.brandStrong }}>
-              ›
-            </Text>
-          </Pressable>
+          <View className="mb-5 gap-2">
+            <Pressable
+              onPress={() => router.push(`/milestones?childId=${childId}`)}
+              accessibilityRole="button"
+              className="flex-row items-center justify-between rounded-2xl px-4 py-3 active:opacity-80"
+              style={{ backgroundColor: colors.brandTint }}
+            >
+              <Text className="text-sm font-semibold" style={{ color: colors.brandStrong }}>
+                📊 標記發展里程碑，讓推薦更準
+              </Text>
+              <Text className="text-sm" style={{ color: colors.brandStrong }}>
+                ›
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push(`/history?childId=${childId}`)}
+              accessibilityRole="button"
+              className="flex-row items-center justify-between rounded-2xl px-4 py-3 active:opacity-80"
+              style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}
+            >
+              <Text className="text-sm font-medium" style={{ color: colors.text }}>
+                🕑 看陪伴紀錄
+              </Text>
+              <Text className="text-sm" style={{ color: colors.muted }}>
+                ›
+              </Text>
+            </Pressable>
+          </View>
         ) : null}
 
         {/* 家長狀態 */}

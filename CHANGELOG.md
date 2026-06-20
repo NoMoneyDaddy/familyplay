@@ -8,6 +8,9 @@
 - 修好 Playwright e2e 跑不起來的設定 bug：config 從 repo 根移到 `apps/web`（`@playwright/test` 所在處、`turbo test:e2e` 執行處），原本根 config 找不到依賴、且 `turbo test:e2e` 在 `apps/web` 無 config 會誤抓 vitest 檔。
 - 更新過時 smoke（`/` 現導向 `/try`）＋擴充 e2e：法務頁、`/pricing` 三方案、`/offline`、`/try` 表單互動/a11y。手機斷點實跑 chromium 8 案全綠。
 
+### 行動端（Expo）陪伴歷史頁
+- 新增 `lib/history.ts` + `/history` 畫面：列近 50 筆陪伴紀錄（活動標題、反應、結果、日期），完成「推薦→做了→記錄→回顧」可視閉環。關聯標題物件/陣列兩種形狀 + 空狀態，`mapLogRow` 加單元測試。推薦畫面加入口。
+
 ### 行動端（Expo）帳號/方案頁品質修正
 - 修好登出失效：`profile` 原本導向不存在的 `/auth/logout`，改為 `signOut()` + 導回登入（與 `select` 一致）。
 - `profile`／`pricing` 由英文 + 冷灰/藍配色改為繁體中文 + 暖色主題 token（遵守 `lib/theme.ts`「不散用冷灰 hex」）；方案頁誠實標示 App 內購（RevenueCat）即將推出、可先用網頁版訂閱。
