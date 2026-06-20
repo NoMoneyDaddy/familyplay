@@ -1,5 +1,6 @@
 'use client'
 
+import type { WeeklyInsights } from '@familyplay/data'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
@@ -69,6 +70,8 @@ interface Draft {
 export default function HistoryPage() {
   const { selectedChildId, hasHydrated } = useChildStore()
   const [logs, setLogs] = useState<Log[]>([])
+  const [streak, setStreak] = useState(0)
+  const [weekly, setWeekly] = useState<WeeklyInsights | null>(null)
   const [loading, setLoading] = useState(true)
 
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -89,6 +92,17 @@ export default function HistoryPage() {
       .then((data) => setLogs(data.logs || []))
       .catch(() => setLogs([]))
       .finally(() => setLoading(false))
+
+    // 連續天數與本週洞察（情感回饋，次要資訊，失敗靜默回退）
+    setStreak(0)
+    setWeekly(null)
+    fetchWithTimeout(`/api/insights?childId=${selectedChildId}`)
+      .then((res) => (res.ok ? res.json() : { streak: 0, weekly: null }))
+      .then((data) => {
+        setStreak(data.streak || 0)
+        setWeekly(data.weekly || null)
+      })
+      .catch(() => {})
   }, [selectedChildId])
 
   // 進入編輯時把焦點移到第一個欄位，鍵盤/讀屏使用者才知道表單已展開、不會迷失在原處。
@@ -206,6 +220,49 @@ export default function HistoryPage() {
         </span>
         <Icon name="chevronRight" className="h-[18px] w-[18px] shrink-0 text-faint" />
       </Link>
+
+      {/* 連續陪伴天數：強化習慣養成的成就感 */}
+      {selectedChildId && streak > 0 && (
+        <div className="flex items-center gap-3 rounded-2xl bg-brand-tint p-4 shadow-clay-sm">
+          <span className="text-3xl" aria-hidden>
+            🔥
+          </span>
+          <div>
+            <p className="text-lg font-bold text-brand-strong">連續陪伴 {streak} 天</p>
+            <p className="text-xs text-brand-strong">每天一點點，就是最好的陪伴</p>
+          </div>
+        </div>
+      )}
+
+      {/* 本週洞察：給家長一個「你做得很好」的情感回饋 */}
+      {selectedChildId && weekly && weekly.sessions > 0 && (
+        <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-clay-sm">
+          <p className="mb-3 text-sm font-semibold text-text">本週陪伴</p>
+          <div className="flex justify-between">
+            <div className="text-center">
+              <p className="font-display text-2xl font-bold text-brand">{weekly.sessions}</p>
+              <p className="text-xs text-muted">次陪伴</p>
+            </div>
+            <div className="text-center">
+              <p className="font-display text-2xl font-bold text-brand">{weekly.activeDays}</p>
+              <p className="text-xs text-muted">天有陪</p>
+            </div>
+            {weekly.positiveReactionRate != null && (
+              <div className="text-center">
+                <p className="font-display text-2xl font-bold text-brand">
+                  {Math.round(weekly.positiveReactionRate * 100)}%
+                </p>
+                <p className="text-xs text-muted">玩得開心</p>
+              </div>
+            )}
+          </div>
+          {weekly.topActivityTitle && (
+            <p className="mt-3 text-sm text-muted">
+              最常玩：<span className="text-text">{weekly.topActivityTitle}</span>
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 交接小卡：把孩子近況濃縮成一張可分享的卡，給接手的家人快速進入狀況 */}
       <Link

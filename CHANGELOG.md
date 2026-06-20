@@ -2,6 +2,10 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### Web 端 streak / 本週洞察對齊
+- 新增 `GET /api/insights?childId=`（cookie 驗證 + `@familyplay/data` 的 `fetchStreak`／`fetchWeeklyInsights`，各自失敗回退、不擋整體）。
+- `/history` 顯示「🔥 連續陪伴 N 天」與「本週陪伴」卡（次數／天數／玩得開心%／最常玩），與行動端一致，雙平台都有情感回饋閉環。
+
 ### 本週陪伴洞察（weekly insights，情感回饋）
 - 新增 `packages/data/src/insights.ts`：`computeWeeklyInsights`（純聚合：次數／天數／最常玩／正向反應率）＋`fetchWeeklyInsights`（近 7 個本地日，Asia/Taipei）；6 個單元測試。
 - 行動端陪伴紀錄頁新增「本週陪伴」卡（次數／天數／玩得開心%／最常玩），給疲憊家長「你做得很好」的回饋，驅動留存。次要資訊，載入失敗不擋歷史。
