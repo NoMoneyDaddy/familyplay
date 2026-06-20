@@ -12,6 +12,8 @@ interface GeneratedActivity {
   steps: string[]
   followUpQuestions: string[]
   endingLine: string
+  // 這次針對的「發展中能力」中文標籤（由後端 ZPD 推出），用於說明「會練到什麼」
+  targetedSkills?: string[]
 }
 
 // 睡前時段給安撫型、其餘給一般玩耍——對應 AIInput.companionType 白名單
@@ -96,7 +98,11 @@ export function AIGenerateCard({ childId }: { childId: string }) {
       )
       const data = await res.json()
       if (data.ok && data.activity) {
-        setActivity(data.activity as GeneratedActivity)
+        // targetedSkills 為 activity 的同層欄位，合併進來供卡片顯示「會練到什麼」
+        setActivity({
+          ...(data.activity as GeneratedActivity),
+          targetedSkills: Array.isArray(data.targetedSkills) ? data.targetedSkills : undefined,
+        })
       } else {
         // ok:false（金鑰無效/額度用盡/安全擋下/解析失敗…）一律給同一句溫和訊息
         setError('這次沒生成成功，可能是金鑰或額度問題，稍後再試或換個服務。')
@@ -144,6 +150,21 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           <p className="rounded-xl bg-bg px-3 py-2.5 text-sm italic text-muted">
             {activity.endingLine}
           </p>
+        )}
+        {activity.targetedSkills && activity.targetedSkills.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold text-muted">會練到</p>
+            <div className="flex flex-wrap gap-1.5">
+              {activity.targetedSkills.map((skill) => (
+                <span
+                  key={skill}
+                  className="rounded-full bg-success-tint px-2.5 py-1 text-xs font-medium text-success"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
         )}
         <p className="text-xs text-faint">AI 生成、未經編審；請依現場狀況斟酌安全。</p>
         {/* 再生失敗時也要顯示訊息，避免靜默無回饋 */}
