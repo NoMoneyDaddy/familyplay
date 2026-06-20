@@ -1,4 +1,5 @@
 import { getRecommendations, getStageKey } from '@familyplay/core'
+import { type ActivityRow, mapActivityRow } from '@familyplay/data'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     const { data: activities, error: activitiesError } = await supabase
       .from('companion_activities')
       .select(
-        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
+        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
       )
       .eq('is_active', true)
       .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
@@ -74,24 +75,8 @@ export async function POST(request: Request) {
     )
 
     const recs = getRecommendations(
-      (activities || []).map((a) => ({
-        id: a.id,
-        title: a.title,
-        minAgeMonths: a.min_age_months,
-        maxAgeMonths: a.max_age_months,
-        requiredCapabilities: a.required_capabilities || [],
-        optionalCapabilities: a.optional_capabilities || [],
-        zpdTargets: a.zpd_targets || [],
-        stimulationLevel: a.stimulation_level,
-        requiredResources: a.required_resources || [],
-        spaceRequirement: a.space_requirement || 'anywhere',
-        minDurationMinutes: a.min_duration_minutes,
-        maxDurationMinutes: a.max_duration_minutes,
-        isBedtimeSafe: a.is_bedtime_safe,
-        isSickDaySafe: a.is_sick_day_safe,
-        isFallback: a.is_fallback,
-        isActive: a.is_active,
-      })),
+      // snake_case→camelCase 映射與 /api/recommendations 共用同一份（@familyplay/data），避免漂移
+      ((activities || []) as ActivityRow[]).map(mapActivityRow),
       {
         child: {
           id: 'guest',
