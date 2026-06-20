@@ -1,10 +1,9 @@
 import { fetchActiveSponsorCards, SponsorError } from '@familyplay/data'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { getRequestId } from '@/lib/request-id'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // 贊助小卡（house ads）：免費用戶可見的輕量贊助內容；付費去廣告由前端依方案隱藏。
 // 公開讀取（RLS anyone_read_active_ads 已限定啟用/時間窗），匿名亦可，故不強制登入。
@@ -13,14 +12,8 @@ const PLACEMENTS = ['recommendations', 'history', 'now', 'saved'] as const
 const placementSchema = z.enum(PLACEMENTS).default('recommendations')
 
 export async function GET(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) return NextResponse.json({ cards: [] })
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
+  const supabase = await getApiSupabase()
+  if (!supabase) return NextResponse.json({ cards: [] })
 
   const parsed = placementSchema.safeParse(
     new URL(request.url).searchParams.get('placement') ?? undefined,

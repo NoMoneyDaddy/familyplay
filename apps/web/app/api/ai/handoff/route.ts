@@ -8,14 +8,13 @@ import {
 } from '@familyplay/ai'
 import { getZpdTargets } from '@familyplay/assessment'
 import { type CapabilityKey, getAgeMonths, getStageKey } from '@familyplay/core'
-import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getRequestId } from '@/lib/request-id'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // 交接小卡「AI 溫暖短評」（白皮書 AI2 潤色半部）。
 // 與 /api/ai/activity 共用同一套 AI 安全管線：白名單輸入 → provider → Safety Filter →
@@ -60,16 +59,10 @@ export async function POST(request: Request) {
 }
 
 async function handlePost(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) {
+  const supabase = await getApiSupabase()
+  if (!supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
 
   const {
     data: { user },
@@ -81,8 +74,9 @@ async function handlePost(request: Request) {
 
   // 託管配額退還（生成失敗時）。只能由後端 service-role 指定對象呼叫（防自助刷額）。
   const refundManaged = async () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceKey) {
+    if (!url || !serviceKey) {
       reportError(new Error('SUPABASE_SERVICE_ROLE_KEY missing'), {
         route: '/api/ai/handoff#refund',
       })

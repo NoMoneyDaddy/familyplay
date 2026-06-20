@@ -1,11 +1,10 @@
 import { fetchHandoffs, HandoffError, saveHandoff } from '@familyplay/data'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getRequestId } from '@/lib/request-id'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // 交接小卡持久化：POST 儲存一張、GET 列出某孩子近期已儲存。
 // summary_text 內容由前端即時組（不含生日等敏感資料）；household/caregiver 由 DB 推出。
@@ -15,17 +14,8 @@ const saveSchema = z.object({
   logsReferenced: z.array(z.string().uuid()).max(50).default([]),
 })
 
-function getSupabase(cookieStore: Awaited<ReturnType<typeof cookies>>) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) return null
-  return createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
-}
-
 export async function POST(request: Request) {
-  const supabase = getSupabase(await cookies())
+  const supabase = await getApiSupabase()
   if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   const requestId = getRequestId(request)
 
@@ -60,7 +50,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const supabase = getSupabase(await cookies())
+  const supabase = await getApiSupabase()
   if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   const requestId = getRequestId(request)
 

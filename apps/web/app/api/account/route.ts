@@ -1,24 +1,18 @@
-import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // 刪除帳號：刪除登入者的 auth 使用者，並經 FK CASCADE 清除其所有資料
 // （user_profiles → 擁有的家庭 → 孩子/紀錄/邀請/成員/entitlements…）。
 // 需要 service role（一般使用者無法刪自己的 auth.users）。
 export async function DELETE() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const supabase = await getApiSupabase()
 
-  if (!url || !anonKey || !serviceKey) {
+  if (!url || !serviceKey || !supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
 
   const {
     data: { user },

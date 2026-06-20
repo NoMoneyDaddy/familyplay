@@ -1,8 +1,7 @@
 import { CAPABILITY_LABELS } from '@familyplay/assessment'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { reportError } from '@/lib/observability'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // 活動 id 是 UUID；非 UUID（空字串、合成 fallback id 等）一律當「找不到」處理，
 // 既符合「所有輸入先驗證」的規範，也避免把畸形 id 丟給 uuid 欄位查詢觸發 DB 錯誤。
@@ -13,20 +12,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!id || !UUID_RE.test(id)) {
     return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
   }
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!url || !anonKey) {
+  const supabase = await getApiSupabase()
+  if (!supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: () => {},
-    },
-  })
 
   const {
     data: { user },

@@ -1,10 +1,9 @@
 import { fetchRecommendations, RecommendError } from '@familyplay/data'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getRequestId } from '@/lib/request-id'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 const requestSchema = z.object({
   childId: z.string().uuid(),
@@ -29,21 +28,11 @@ const ERROR_STATUS: Record<string, number> = {
 }
 
 export async function POST(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const requestId = getRequestId(request)
-
-  if (!url || !anonKey) {
+  const supabase = await getApiSupabase()
+  if (!supabase) {
     return Response.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: () => {},
-    },
-  })
 
   const {
     data: { user },

@@ -11,14 +11,13 @@ import {
 } from '@familyplay/ai'
 import { CAPABILITY_LABELS, getZpdTargets } from '@familyplay/assessment'
 import { type CapabilityKey, getAgeMonths, getStageKey } from '@familyplay/core'
-import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { getRequestId } from '@/lib/request-id'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 // AI 生成 provider 白名單（BYO 自帶金鑰與 Plus 託管金鑰都從此白名單取用）。
 // 兩種模式：
@@ -79,16 +78,10 @@ export async function POST(request: Request) {
 }
 
 async function handlePost(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) {
+  const supabase = await getApiSupabase()
+  if (!supabase) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
 
   const {
     data: { user },
@@ -101,8 +94,9 @@ async function handlePost(request: Request) {
   // 託管配額退還（生成失敗時呼叫）。退額會「增加」餘額，故 RPC 不開放 authenticated、
   // 只能由後端用 service-role key 呼叫並指定對象（避免使用者自行刷額）。退還失敗只上報、不影響回應。
   const refundManaged = async () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceKey) {
+    if (!url || !serviceKey) {
       reportError(new Error('SUPABASE_SERVICE_ROLE_KEY missing'), {
         route: '/api/ai/activity#refund',
       })

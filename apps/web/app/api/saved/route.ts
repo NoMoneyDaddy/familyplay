@@ -1,26 +1,14 @@
 import { fetchSaved, SavedError } from '@familyplay/data'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { getApiSupabase } from '@/lib/supabase/api'
 
 const bodySchema = z.object({ activityId: z.string().uuid() })
 
 // 個人收藏（save for later）：綁 user_profile，RLS 僅本人可讀寫。
-function getSupabase(cookieStore: Awaited<ReturnType<typeof cookies>>) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anonKey) return null
-  return createServerClient(url, anonKey, {
-    cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} },
-  })
-}
-
-async function resolveProfileId(
-  supabase: ReturnType<typeof createServerClient>,
-  authUserId: string,
-) {
+async function resolveProfileId(supabase: SupabaseClient, authUserId: string) {
   const { data } = await supabase
     .from('user_profiles')
     .select('id')
@@ -32,7 +20,7 @@ async function resolveProfileId(
 // 列出收藏（含活動內容），新到舊。映射收斂到 @familyplay/data（fetchSaved/mapSavedRow），
 // 與行動端共用、消除前端 pickActivity 的重複關聯處理。
 export async function GET() {
-  const supabase = getSupabase(await cookies())
+  const supabase = await getApiSupabase()
   if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
 
   const {
@@ -54,7 +42,7 @@ export async function GET() {
 
 // 收藏一個活動（重複收藏視為成功，靠 UNIQUE 去重）。
 export async function POST(request: Request) {
-  const supabase = getSupabase(await cookies())
+  const supabase = await getApiSupabase()
   if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
 
   const {
@@ -88,7 +76,7 @@ export async function POST(request: Request) {
 
 // 取消收藏。RLS 已限制只能刪自己的，仍顯式比對 activity_id。
 export async function DELETE(request: Request) {
-  const supabase = getSupabase(await cookies())
+  const supabase = await getApiSupabase()
   if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
 
   const {
