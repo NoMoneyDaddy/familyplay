@@ -45,6 +45,7 @@ export default function HandoffPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [shareNote, setShareNote] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   // 重試用：bump 即重新抓
   const [reloadTick, setReloadTick] = useState(0)
 
@@ -159,6 +160,28 @@ export default function HandoffPage() {
     setShareNote('這個瀏覽器不支援自動分享，請長按上方內容手動複製。')
   }
 
+  // 儲存這張小卡：把即時組好的摘要存進 handoff_summaries，之後家庭成員可回看。
+  const handleSave = async () => {
+    if (!selectedChildId || saving) return
+    setSaving(true)
+    try {
+      const res = await fetchWithTimeout('/api/handoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          childId: selectedChildId,
+          summaryText: buildText(),
+          logsReferenced: recent.map((l) => l.id),
+        }),
+      })
+      setShareNote(res.ok ? '已儲存這張小卡 ☁️' : '儲存沒成功，稍後再試一次。')
+    } catch {
+      setShareNote('網路不太穩，儲存沒成功，稍後再試。')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <PageShell>
       <ChildSwitcher />
@@ -266,8 +289,19 @@ export default function HandoffPage() {
             分享給家人
           </Button>
 
+          <Button
+            variant="secondary"
+            size="md"
+            icon="check"
+            loading={saving}
+            className="w-full"
+            onClick={handleSave}
+          >
+            儲存這張小卡
+          </Button>
+
           <p className="text-center text-xs text-faint">
-            內容即時整理，不含生日等敏感資料；只在你按分享時才送出。
+            內容即時整理，不含生日等敏感資料；只在你按分享或儲存時才送出。
           </p>
         </div>
       )}
