@@ -2,6 +2,10 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### RevenueCat 行動端 App 內購（前端）
+- 新增 `lib/purchases.ts`：`react-native-purchases` 封裝（configure／logIn／getOfferings／purchasePackage），**金鑰未設定即休眠**（no-op、不顯示購買鈕、不崩潰）。`appUserID` 綁定 `user_profiles.id`，與 webhook 對應。
+- `pricing` 畫面：RevenueCat 已設定 → 顯示 store offering 方案並可購買（購買後 webhook 回寫權益）；否則顯示靜態後備。`.env.example` 補 `EXPO_PUBLIC_REVENUECAT_*`。
+
 ### RevenueCat 統一收費（後端 webhook，行動端＋Web Billing 共用）
 - 新增 `POST /api/revenuecat/webhook`：驗 Authorization（後台固定值、timingSafeEqual）→ idempotency（`processed_webhooks` provider=revenuecat，失敗釋放）→ 依 entitlement_ids（後備 product_id）對應方案 → service-role upsert `entitlements`（前端不可自助升級）。EXPIRATION 撤銷回 free；CANCELLATION 不提早撤銷。
 - 純邏輯（`classifyEvent`/`planFromEvent`/`verifyRevenueCatAuth`/`resolveExpiry`）抽出 + 10 個單元測試。schema 既有 `revenuecat_customer_id` 與 processed_webhooks，免 migration。`.env.example` 補 RevenueCat webhook 變數。
