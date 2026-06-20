@@ -252,6 +252,9 @@ async function handlePost(request: Request) {
   }
 
   // 回傳這次針對的「發展中能力」中文標籤，讓前端能說明「這會練到什麼」（AI5）。
-  const targetedSkills = developing.map((k) => CAPABILITY_LABELS[k]).filter(Boolean)
+  // 去重：不同能力 key 可能對應同一標籤，避免前端重複標籤與 React duplicate key。
+  const targetedSkills = Array.from(
+    new Set(developing.map((k) => CAPABILITY_LABELS[k]).filter(Boolean)),
+  )
   return NextResponse.json({ ok: true, source: 'ai', activity, targetedSkills })
 }
