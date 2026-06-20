@@ -1,4 +1,4 @@
-import { ALLOWED_STAGE_KEYS, getAgeMonths, getRecommendations, getStageKey } from '@familyplay/core'
+import { fetchRecommendations, RecommendError } from '@familyplay/data'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
@@ -15,6 +15,17 @@ const requestSchema = z.object({
   // 「換一批」：硬排除已看過的活動，回傳真正不同的一組（上限避免超長 payload）。
   excludeIds: z.array(z.string().uuid()).max(120).default([]),
 })
+
+// RecommendError code → HTTP 狀態（child_not_found 維持原本英文訊息與 404）。
+const ERROR_STATUS: Record<string, number> = {
+  child_not_found: 404,
+  age_incomplete: 400,
+  age_invalid: 400,
+  age_future: 400,
+  activities_failed: 500,
+  logs_failed: 500,
+  capabilities_failed: 500,
+}
 
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -54,155 +65,21 @@ export async function POST(request: Request) {
   }
 
   try {
-    const {
-      childId,
-      parentEnergy,
-      context,
-      availableSpace,
-      availableResources,
-      maxDurationMinutes,
-      excludeIds,
-    } = requestSchema.parse(body)
-
-    // Fetch child
-    const { data: child, error: childError } = await supabase
-      .from('child_profiles')
-      .select('id,birth_year_month,stage_key')
-      .eq('id', childId)
-      .single()
-
-    if (childError || !child) {
-      return Response.json({ error: 'Child not found' }, { status: 404 })
-    }
-
-    // birth_year_month is required to compute age safety — don't guess
-    if (!child.birth_year_month) {
-      return Response.json({ error: '孩子的年齡資料不完整，請先補上出生年月' }, { status: 400 })
-    }
-
-    let ageMonths: number
-    try {
-      ageMonths = getAgeMonths(child.birth_year_month)
-    } catch {
-      return Response.json({ error: '孩子的出生年月格式不正確' }, { status: 400 })
-    }
-    if (ageMonths < 0) {
-      return Response.json({ error: '孩子的出生年月不能在未來' }, { status: 400 })
-    }
-
-    // 這三個查詢只依賴已取得的 childId / ageMonths，彼此獨立 → 併行，省兩趟 round-trip。
-    // recentLogs 加上限：近 7 天紀錄理論上可能很多，但降權只需「出現過的活動集合」，
-    // 500 筆已遠超實際需求，避免狂記錄的家長把整段歷史一次拉回。
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    const [activitiesResult, recentLogsResult, capProfileResult] = await Promise.all([
-      supabase
-        .from('companion_activities')
-        .select(
-          'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
-        )
-        .eq('is_active', true)
-        .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
-        .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`),
-      supabase
-        .from('companion_logs')
-        .select('activity_id')
-        .eq('child_id', childId)
-        .gt('created_at', sevenDaysAgo)
-        .limit(500),
-      supabase
-        .from('child_capability_profiles')
-        .select('capabilities')
-        .eq('child_id', childId)
-        .single(),
-    ])
-
-    const { data: activities, error: activitiesError } = activitiesResult
-    if (activitiesError) {
-      reportError(activitiesError, { route: '/api/recommendations' })
-      return Response.json({ error: '無法載入活動資料' }, { status: 500 })
-    }
-
-    const recentActivityIds = new Set(
-      recentLogsResult.data?.map((l) => l.activity_id).filter(Boolean) || [],
-    )
-
-    const capProfile = capProfileResult.data
-    const acquiredCapabilities = new Set(
-      Object.keys(capProfile?.capabilities || {}).filter(
-        (key) => capProfile?.capabilities[key] === true,
-      ),
-    )
-
-    // Validate the cached stage_key against the whitelist; recompute if invalid
-    const stageKey = ALLOWED_STAGE_KEYS.includes(child.stage_key as never)
-      ? (child.stage_key as (typeof ALLOWED_STAGE_KEYS)[number])
-      : getStageKey(ageMonths)
-
-    // 「換一批」：把已看過的活動從候選中硬移除，確保回傳的是真正不同的一組
-    // （僅靠歷史降權不保證會換掉高分活動）。fallback 不排除，避免完全沒結果時無安全兜底。
-    const excludeSet = new Set(excludeIds)
-    const candidates =
-      excludeSet.size > 0
-        ? activities.filter((a) => a.is_fallback || !excludeSet.has(a.id))
-        : activities
-
-    // 發展領域不參與評分（引擎不需要），但要回傳給前端做分類標籤，故另存 id→focus 對照
-    const focusById = new Map<string, string[]>(
-      candidates.map((a) => [a.id, a.developmental_focus || []]),
-    )
-
-    // Get recommendations
-    const recs = getRecommendations(
-      candidates.map((a) => ({
-        id: a.id,
-        title: a.title,
-        minAgeMonths: a.min_age_months,
-        maxAgeMonths: a.max_age_months,
-        requiredCapabilities: a.required_capabilities || [],
-        optionalCapabilities: a.optional_capabilities || [],
-        zpdTargets: a.zpd_targets || [],
-        stimulationLevel: a.stimulation_level,
-        requiredResources: a.required_resources || [],
-        spaceRequirement: a.space_requirement || 'anywhere',
-        minDurationMinutes: a.min_duration_minutes,
-        maxDurationMinutes: a.max_duration_minutes,
-        isBedtimeSafe: a.is_bedtime_safe,
-        isSickDaySafe: a.is_sick_day_safe,
-        isFallback: a.is_fallback,
-        isActive: a.is_active,
-      })),
-      {
-        child: {
-          id: childId,
-          stageKey,
-          ageMonths,
-          acquiredCapabilities,
-        },
-        parentEnergy,
-        context,
-        availableSpace,
-        availableResources: new Set(availableResources),
-        recentActivityIds,
-        maxDurationMinutes,
-      },
-      3,
-    )
-
-    return Response.json({
-      recommendations: recs.map((r) => ({
-        id: r.id,
-        title: r.title,
-        score: r.score,
-        reasons: r.reasons,
-        minDurationMinutes: r.minDurationMinutes,
-        maxDurationMinutes: r.maxDurationMinutes,
-        stimulationLevel: r.stimulationLevel,
-        developmentalFocus: focusById.get(r.id) || [],
-      })),
-    })
+    const args = requestSchema.parse(body)
+    // 編排（查詢 + 七步引擎 + Step 8）共用 @familyplay/data，與行動端同一份。
+    const recommendations = await fetchRecommendations(supabase, args)
+    return Response.json({ recommendations })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
+    }
+    if (error instanceof RecommendError) {
+      // 「找不到孩子」維持原本英文訊息以相容既有前端；其餘用引擎給的中文訊息。
+      const message = error.code === 'child_not_found' ? 'Child not found' : error.message
+      if (error.code === 'activities_failed') {
+        reportError(error, { route: '/api/recommendations' })
+      }
+      return Response.json({ error: message }, { status: ERROR_STATUS[error.code] ?? 500 })
     }
     reportError(error, { route: '/api/recommendations' })
     return Response.json({ error: 'Internal server error' }, { status: 500 })

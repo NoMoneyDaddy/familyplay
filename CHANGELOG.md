@@ -2,6 +2,77 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 連續陪伴天數（streak，習慣養成）
+- 新增 `packages/data/src/streak.ts`：`computeStreak`（純日期邏輯，今天未陪以昨天為錨、不中斷）＋`toLocalDate`（Asia/Taipei）＋`fetchStreak`（近 120 天窗）；8 個單元測試。
+- 行動端陪伴紀錄頁顯示「🔥 連續陪伴 N 天」徽章，強化 App 核心使命（幫家長持續陪伴）。
+
+### 審查修正
+- `plan-comparison` 結帳狀態復位統一移到 `finally`，避免早退分支殘留 loading（CodeRabbit）。
+- `.env.example` 修正 `NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY` 過時註解（已無 LemonSqueezy 回退）。
+
+### 收費統一改 RevenueCat、移除 LemonSqueezy
+- 移除未實裝的 LemonSqueezy：刪 `/api/lemon/*`（create-checkout／webhook／portal）與 `lib/payment/lemonsqueezy.ts`；CSP（next.config）、服務條款／隱私政策、`.env.example`、文件改為 RevenueCat。
+- 網頁 Web Billing：新增 `lib/payment/revenuecat-web.ts`（`@revenuecat/purchases-js`）；`plan-comparison` 升級 CTA 改走 RevenueCat（appUserId = `user_profiles.id`，`/api/profile` 新增回傳 `userProfileId`）。`/account/entitlements` 管理改為平台說明（App Store／Play／RevenueCat）。
+- CSP 放行 RevenueCat／Stripe（Web Billing 底層）所需 script／connect／frame 來源。
+
+### RevenueCat 行動端「恢復購買」（上架合規）
+- `lib/purchases.ts` 新增 `restorePurchases()`；`pricing` 頁加「恢復購買」按鈕（App Store／Google Play 政策要求訂閱頁須提供，換機/重裝找回訂閱）。購買/恢復前先以 `user_profiles.id` 識別（webhook 對應）。
+
+### RevenueCat 行動端 App 內購（前端）
+- 新增 `lib/purchases.ts`：`react-native-purchases` 封裝（configure／logIn／getOfferings／purchasePackage），**金鑰未設定即休眠**（no-op、不顯示購買鈕、不崩潰）。`appUserID` 綁定 `user_profiles.id`，與 webhook 對應。
+- `pricing` 畫面：RevenueCat 已設定 → 顯示 store offering 方案並可購買（購買後 webhook 回寫權益）；否則顯示靜態後備。`.env.example` 補 `EXPO_PUBLIC_REVENUECAT_*`。
+
+### RevenueCat 統一收費（後端 webhook，行動端＋Web Billing 共用）
+- 新增 `POST /api/revenuecat/webhook`：驗 Authorization（後台固定值、timingSafeEqual）→ idempotency（`processed_webhooks` provider=revenuecat，失敗釋放）→ 依 entitlement_ids（後備 product_id）對應方案 → service-role upsert `entitlements`（前端不可自助升級）。EXPIRATION 撤銷回 free；CANCELLATION 不提早撤銷。
+- 純邏輯（`classifyEvent`/`planFromEvent`/`verifyRevenueCatAuth`/`resolveExpiry`）抽出 + 10 個單元測試。schema 既有 `revenuecat_customer_id` 與 processed_webhooks，免 migration。`.env.example` 補 RevenueCat webhook 變數。
+- 非破壞式：LemonSqueezy 保留，待 RevenueCat 於正式帳號驗證後再決定切換/移除。
+
+### 抽 `packages/data` 去重 Web/行動端資料存取
+- 新增 `@familyplay/data`：純編排函式（簽名 `(supabase, args)`）——`fetchRecommendations`（七步＋Step 8）、`logCompanion`、`fetchAchievedCapabilities`/`setChildCapability`、`fetchHistory`。RLS 由呼叫端 client 帶 session 生效，此層不持金鑰。
+- Web `/api/recommendations`、`/api/log` 與行動端四個畫面改為共用此層；刪除行動端 `lib/{recommend,log,capabilities,history}.ts`（含測試一併移入 `packages/data`）。`RecommendError` 帶 `code`，Web 據此對應 HTTP 狀態。
+- 消除「查詢編排在 web route 與 mobile lib 各寫一次」的重複；17 個單元測試隨之集中於 `packages/data`。
+
+### 推薦引擎反應自適應（Step 8）＋ Playwright 修復
+- 競品研究（Puffling／Tovi）：減少選擇＋從反應自適應是留存關鍵。引擎新增 Step 8（加分層、不改 7 步順序）：用 `companion_logs` 近 60 天孩子反應微調排序——喜歡的加分、明確不喜歡的（≥2 次負向且 0 正向）強力降分「換別的」；加法計分、淨值上限 ±3（影響 ±6 分）。向後相容（無 `reactionStats` 即略過）。
+- `buildReactionStats` 正負反應分類抽到 core（Web/行動端單一真實來源），Web `/api/recommendations` 與行動端 `lib/recommend.ts` 都帶入；6 個新單元測試。
+- 修好 Playwright e2e 跑不起來的設定 bug：config 從 repo 根移到 `apps/web`（`@playwright/test` 所在處、`turbo test:e2e` 執行處），原本根 config 找不到依賴、且 `turbo test:e2e` 在 `apps/web` 無 config 會誤抓 vitest 檔。
+- 更新過時 smoke（`/` 現導向 `/try`）＋擴充 e2e：法務頁、`/pricing` 三方案、`/offline`、`/try` 表單互動/a11y。手機斷點實跑 chromium 8 案全綠。
+
+### 行動端（Expo）陪伴歷史頁
+- 新增 `lib/history.ts` + `/history` 畫面：列近 50 筆陪伴紀錄（活動標題、反應、結果、日期），完成「推薦→做了→記錄→回顧」可視閉環。關聯標題物件/陣列兩種形狀 + 空狀態，`mapLogRow` 加單元測試。推薦畫面加入口。
+
+### 推薦理由白話化（含 Step 8 個人化）
+- 行動端推薦卡原本直接顯示引擎內部評分 reason（「優先度調整」等噪音）→ 改用白名單轉白話（與 Web 一致），只留對家長有意義的句子。
+- Web/行動端都把正向反應自適應理由「孩子之前很喜歡」轉成「他之前玩這個玩得很開心」，讓 Step 8 的個人化被看見。
+
+### 行動端（Expo）進入點依登入狀態導向
+- 重寫 `app/index.tsx`：移除 Sprint-1 假示範卡；還原 session 時顯示載入，已登入導向 `/select`，未登入顯示品牌歡迎 + 登入 CTA（與 Web `/` 導向行為一致、暖色主題）。
+
+### 行動端（Expo）帳號/方案頁品質修正
+- 修好登出失效：`profile` 原本導向不存在的 `/auth/logout`，改為 `signOut()` + 導回登入（與 `select` 一致）。
+- `profile`／`pricing` 由英文 + 冷灰/藍配色改為繁體中文 + 暖色主題 token（遵守 `lib/theme.ts`「不散用冷灰 hex」）；方案頁誠實標示 App 內購（RevenueCat）即將推出、可先用網頁版訂閱。
+
+### 行動端（Expo）發展里程碑評估
+- 新增 `lib/capabilities.ts`：讀／標記孩子能力（與 Web `/api/capabilities` 同流程，RLS；標記走原子 RPC `set_child_capability`，未部署時退回讀-改-寫）；`pickAchieved` 白名單過濾＋單元測試。
+- 新增 `/milestones` 畫面：分五大領域標記「會了/還沒」（樂觀更新、逐顆 pending、已標記計數），並用 `getZpdTargets` 顯示「接下來正在發展中」。標記後驅動推薦引擎 ZPD 與 Step 8。
+- 推薦畫面加里程碑入口；`@familyplay/assessment` 納入行動端依賴。
+
+### 行動端（Expo）記錄一筆陪伴（閉環）
+- 新增 `lib/log.ts`：行動端寫 `companion_logs`（與 Web `/api/log` 同流程，RLS 生效）；`household_id`／`caregiver_id` 由 DB 推出、不信任前端，避免跨戶誤記。
+- 推薦卡新增 `ActivityLogControl`「做了這個」→ 選孩子反應（😊開心/🙂投入/😐普通/😣想離開/😌平靜）→ 寫一筆 → 餵推薦引擎「近 7 天降權」與未來歷史頁。
+- `logCompanion` 加 vitest（驗證 household/caregiver 由 DB 推出、未登入/查無/insert 失敗都丟 `LogError`）。
+
+### 行動端（Expo）核心推薦流程
+- 新增 `apps/mobile/lib/recommend.ts`：在端上編排推薦（與 Web `/api/recommendations` 同流程），用行動端 Supabase client（帶 session → RLS 自動生效）查 child/活動/近 7 天紀錄/能力檔，呼叫 `@familyplay/core` 七步引擎；不經 Web API（cookie 驗證讀不到 mobile bearer）。
+- 新增 `/recommendations` 畫面：選家長狀態＋情境 → 30 秒拿到 3 個方案（時長、刺激度、發展領域標籤、白話理由）＋「換一批」（硬排除已看過）。
+- 修好 `select.tsx` 失效路由（`/(app)/recommendations` → `/recommendations`）；首頁「快給我一個」由死按鈕改為進入 `/select` 流程。
+- 純函式（`mapActivityRow`/`acquiredFrom`）抽出並加單元測試（vitest）。
+
+### 付費整合 UI（LemonSqueezy web）
+- 訂閱管理改為可用：`GET /api/lemon/portal` 回傳 LemonSqueezy 客戶入口簽章 URL（更新付款／取消／恢復）；只讀 `entitlements.lemonsqueezy_subscription_id`、不寫方案，扣款由 webhook（service-role）回寫。
+- `/account/entitlements` 的「透過 LemonSqueezy 管理訂閱」由 disabled 改為導向客戶入口，含載入態與錯誤回報；附「更新付款方式、取消或恢復訂閱」說明，對齊 FAQ「隨時可取消」承諾。
+- 端點限流 10/min、外部 API 10 秒逾時、未登入/無訂閱清楚回 401/404；不需新增環境變數（沿用 `LEMONSQUEEZY_API_KEY`）。
+
 ### 導覽與版面
 - 活動詳情頁加返回鍵；全站次級頁（能力/推薦/狀態選擇/設定/付費）一致返回鍵（共用 `useGoBack`，站內 back／否則 fallback、防跳出站外與 ping-pong）。
 - 首頁 `/now` 加回品牌（波波吉祥物 + FamilyPlay 站名）；收緊版面間距減少「一進來被切掉」；底部導覽瘦身。

@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { PlanComparison } from '@/app/components/plan-comparison'
 import {
-  Button,
   Callout,
   Card,
   ErrorAlert,
@@ -173,11 +172,15 @@ export default function EntitlementsPage() {
         )}
       </Card>
 
-      {/* 訂閱管理（付費方案）：直接在本頁操作，不必再跳到別頁 */}
+      {/* 訂閱管理（付費方案）：RevenueCat。行動端由 App Store／Google Play 管理；
+          網頁 Web Billing 的取消／付款更新由 RevenueCat 寄送的訂閱信內連結處理。 */}
       {entitlements.plan !== 'free' && (
-        <Button variant="secondary" size="lg" disabled>
-          透過 LemonSqueezy 管理訂閱
-        </Button>
+        <Callout tone="info" title="管理訂閱">
+          <p>
+            行動端訂閱請至 App Store / Google Play 的「訂閱」管理；網頁訂閱可透過 RevenueCat
+            寄送的訂閱確認信中的連結更新付款方式或取消。
+          </p>
+        </Callout>
       )}
 
       {/* 說明 */}

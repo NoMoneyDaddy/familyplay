@@ -55,7 +55,10 @@ export default function TermsPage() {
         <Section title="4. 付費與訂閱">
           <ul className="list-disc space-y-1 pl-5">
             <li>本服務大部分功能免費，並提供選擇性的付費方案。</li>
-            <li>付費訂閱透過第三方金流（LemonSqueezy）處理，並依其結帳流程進行。</li>
+            <li>
+              付費訂閱透過第三方金流（RevenueCat，行動端經 App Store／Google Play，網頁經 RevenueCat
+              Web Billing）處理，並依其結帳流程進行。
+            </li>
             <li>
               訂閱可隨時取消，並於當期結束後停止續扣；標示「即將推出」的功能在正式上線前不會收費。
             </li>

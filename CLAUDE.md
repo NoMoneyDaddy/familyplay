@@ -27,6 +27,7 @@ DB migration 只能手動：複製 `supabase/migrations/` 的 SQL 到 Supabase D
 apps/web/              Next.js 15 + App Router，output: standalone（Zeabur Docker 部署）
 apps/mobile/           Expo 52 + Expo Router（iOS + Android）
 packages/core/         推薦引擎，純 TS，無外部依賴
+packages/data/         跨平台資料存取層：純編排函式 (supabase, args)，Web/行動端共用（RLS 由 client 帶 session 生效，不持金鑰）
 packages/ai/           多 AI Provider
 packages/assessment/   發展評估系統
 packages/capabilities/ 能力標籤常數
@@ -79,6 +80,11 @@ export const STAGE_KEYS = {
 5. 情境過濾 — 家長狀態、場景、資源、時間
 6. 優先排序 — 零花費 > 低收拾 > 短準備時間
 7. 歷史降權 — 近 7 天出現過的活動降 30% 分數
+
+> Step 8（加分層，**不改動上面 7 步順序**）：反應自適應個人化。用 `companion_logs`
+> 近 60 天孩子反應（喜歡/不喜歡）對候選微調分數——學會孩子喜歡什麼、避開玩不下去的。
+> 加法計分（與 ZPD/優先排序同點數系統，符號安全），只在提供 `reactionStats` 時啟用，
+> 否則行為與原本完全相同（向後相容）。
 
 ---
 
@@ -172,7 +178,7 @@ perf: 性能優化
 
 ### 待實現 🚧
 - Mobile UI（Expo，`apps/mobile`）
-- 付費整合 UI（LemonSqueezy web / RevenueCat mobile；後端 `/api/lemon/*` 已存在）
+- 付費整合 UI（統一 RevenueCat：行動端 IAP + Web Billing；webhook `/api/revenuecat/webhook`）
 - 推送通知、本地化、離線強化
 
 ---

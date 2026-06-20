@@ -1,113 +1,163 @@
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
+import { clayCard, colors } from '@/lib/theme'
 
 interface ProfileData {
   displayName: string
   avatarUrl: string | null
 }
 
+const PLAN_LABELS: Record<string, string> = {
+  free: '免費',
+  supporter: '支持者',
+  plus: 'Plus',
+}
+
+/** 帳號頁：顯示基本資料、目前方案、訂閱入口、登出。繁中 + 暖色主題（與全 App 一致）。 */
 export default function ProfileScreen() {
   const router = useRouter()
   const { session } = useAuthStore()
   const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [plan, setPlan] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setIsLoading(true)
         setError(null)
-
-        // 原生沒有相對路徑的 origin，fetch('/api/profile') 會失敗；直接查 Supabase（RLS 限本人）。
+        // 原生沒有相對路徑 origin，fetch('/api/profile') 會失敗；直接查 Supabase（RLS 限本人）。
         if (!session) {
-          setError('Failed to load profile')
+          setError('無法載入帳號資料')
           return
         }
         const supabase = createMobileClient()
         const { data, error: fetchError } = await supabase
           .from('user_profiles')
-          .select('display_name, avatar_url')
+          .select('id, display_name, avatar_url')
           .eq('auth_user_id', session.user.id)
           .single()
-
-        if (fetchError || !data) {
-          throw fetchError ?? new Error('No profile')
-        }
+        if (fetchError || !data) throw fetchError ?? new Error('No profile')
         setProfile({ displayName: data.display_name, avatarUrl: data.avatar_url })
-      } catch (err: unknown) {
+        // 目前方案（RLS own_entitlement_read 允許本人讀）；查不到視為 free。
+        const { data: ent } = await supabase
+          .from('entitlements')
+          .select('plan')
+          .eq('user_profile_id', data.id)
+          .maybeSingle()
+        setPlan(ent?.plan ?? 'free')
+      } catch (err) {
         console.error('Failed to fetch profile:', err)
-        setError('Failed to load profile')
+        setError('無法載入帳號資料')
       } finally {
         setIsLoading(false)
       }
     }
-
     fetchProfile()
   }, [session])
 
-  if (isLoading) {
-    return (
-      <SafeAreaView className="flex-1 bg-slate-50 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </SafeAreaView>
-    )
+  const handleLogout = async () => {
+    if (loggingOut) return
+    setLoggingOut(true)
+    try {
+      await createMobileClient().auth.signOut()
+      router.replace('/auth/login')
+    } catch (err) {
+      console.error('Logout error:', err)
+      setLoggingOut(false)
+    }
   }
 
-  if (error || !profile) {
+  if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50">
-        <ScrollView className="flex-1" contentContainerClassName="px-6 py-8">
-          <View className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <Text className="text-red-900 font-semibold mb-4">
-              {error || 'Failed to load profile'}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="bg-gray-200 rounded-lg py-3 px-4"
-          >
-            <Text className="text-gray-900 text-center font-semibold">Go Back</Text>
-          </TouchableOpacity>
-        </ScrollView>
+      <SafeAreaView
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bg }}
+      >
+        <ActivityIndicator color={colors.brand} />
       </SafeAreaView>
     )
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
-      <ScrollView className="flex-1" contentContainerClassName="px-6 py-8">
-        {/* Header */}
-        <View className="mb-8">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">
-            {profile.displayName || 'Profile'}
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }}>
+        <View className="mb-6 flex-row items-center justify-between">
+          <Text className="text-3xl font-bold" style={{ color: colors.text }}>
+            帳號
           </Text>
-          <Text className="text-gray-600">Manage your account</Text>
+          <Pressable onPress={() => router.back()} className="active:opacity-70">
+            <Text className="text-sm" style={{ color: colors.muted }}>
+              返回
+            </Text>
+          </Pressable>
         </View>
 
-        {/* Account Info */}
-        <View className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">Account</Text>
-          <View className="space-y-2">
-            <Text className="text-gray-600">Email: {session?.user?.email || 'Not available'}</Text>
-            <Text className="text-gray-600">
-              User ID: {session?.user?.id?.substring(0, 8) || 'Not available'}...
+        {error ? (
+          <View className="mb-4 rounded-xl p-4" style={{ backgroundColor: colors.dangerTint }}>
+            <Text className="text-sm" style={{ color: colors.danger }}>
+              {error}
             </Text>
           </View>
+        ) : null}
+
+        <View
+          className="mb-4 rounded-2xl p-6"
+          style={{ backgroundColor: colors.card, ...clayCard }}
+        >
+          <Text className="text-xl font-bold" style={{ color: colors.text }}>
+            {profile?.displayName || '家長'}
+          </Text>
+          <Text className="mt-2 text-sm" style={{ color: colors.muted }}>
+            {session?.user?.email || '—'}
+          </Text>
+          {plan ? (
+            <View className="mt-4 flex-row items-center justify-between border-t border-border pt-4">
+              <Text className="text-sm" style={{ color: colors.muted }}>
+                目前方案
+              </Text>
+              <Text className="text-sm font-bold" style={{ color: colors.brand }}>
+                {PLAN_LABELS[plan] ?? plan}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity
-          onPress={() => router.push('/auth/logout')}
-          className="bg-red-600 active:bg-red-700 rounded-lg py-3 px-4"
+        <Pressable
+          onPress={() => router.push('/pricing')}
+          accessibilityRole="button"
+          className="mb-3 flex-row items-center justify-between rounded-2xl p-5 active:opacity-80"
+          style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}
         >
-          <Text className="text-white text-center font-semibold">Log Out</Text>
-        </TouchableOpacity>
+          <Text className="text-base font-medium" style={{ color: colors.text }}>
+            訂閱方案
+          </Text>
+          <Text className="text-base" style={{ color: colors.muted }}>
+            ›
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={handleLogout}
+          disabled={loggingOut}
+          accessibilityRole="button"
+          className="mt-4 items-center rounded-2xl py-4 active:opacity-80"
+          style={{ borderWidth: 1, borderColor: colors.border, opacity: loggingOut ? 0.6 : 1 }}
+        >
+          {loggingOut ? (
+            <ActivityIndicator color={colors.danger} />
+          ) : (
+            <Text className="font-semibold" style={{ color: colors.danger }}>
+              登出
+            </Text>
+          )}
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   )

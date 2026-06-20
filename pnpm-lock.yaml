@@ -30,9 +30,15 @@ importers:
       '@expo/vector-icons':
         specifier: ^15.1.1
         version: 15.1.1(expo-font@56.0.7)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.2.3))(react@19.2.3)
+      '@familyplay/assessment':
+        specifier: workspace:*
+        version: link:../../packages/assessment
       '@familyplay/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@familyplay/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@react-navigation/native':
         specifier: ^7.0.0
         version: 7.3.3(react-native@0.85.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.2.3))(react@19.2.3)
@@ -136,9 +142,15 @@ importers:
       '@familyplay/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@familyplay/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@familyplay/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@revenuecat/purchases-js':
+        specifier: ^1.43.0
+        version: 1.43.0
       '@sentry/nextjs':
         specifier: ^10.0.0
         version: 10.58.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.2.9(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(webpack@5.107.2(lightningcss@1.32.0))
@@ -259,6 +271,28 @@ importers:
         version: 6.0.3
 
   packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^25.9.3
+        version: 25.9.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^7.0.0
+        version: 7.3.5(@types/node@25.9.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(vite@7.3.5(@types/node@25.9.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  packages/data:
+    dependencies:
+      '@familyplay/core':
+        specifier: workspace:*
+        version: link:../core
+      '@supabase/supabase-js':
+        specifier: ^2.46.0
+        version: 2.108.2
     devDependencies:
       '@types/node':
         specifier: ^25.9.3
@@ -2147,6 +2181,9 @@ packages:
 
   '@react-navigation/routers@7.6.0':
     resolution: {integrity: sha512-lblhDXfS75jLc7G2K7BZGM+7cjqQXk13X/MA4fq/12r62zM+fBhhreLzYflSitrDDXFRJpSvJXy0ziiGU04Xow==}
+
+  '@revenuecat/purchases-js@1.43.0':
+    resolution: {integrity: sha512-r8IA+/0r+FvyiJkWbEP6ZTFQSLDdZMKTr3z/Gm+HyJTARPuKbSFuDW1XU6Qx7AjtldM3GEtqd5wrifYnY8w9gg==}
 
   '@revenuecat/purchases-typescript-internal@14.3.0':
     resolution: {integrity: sha512-P3IhlWvH4wJAM9ypv8HamdIBMQfnLdU9PbjURw+s7NxHOL8LmPGhKuyv+gBINpka27mt1CAsDoOhNHjkexJhkg==}
@@ -7433,9 +7470,7 @@ snapshots:
       metro-runtime: 0.84.4
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-colors@0.85.3': {}
 
@@ -7474,6 +7509,8 @@ snapshots:
   '@react-navigation/routers@7.6.0':
     dependencies:
       nanoid: 3.3.12
+
+  '@revenuecat/purchases-js@1.43.0': {}
 
   '@revenuecat/purchases-typescript-internal@14.3.0': {}
 

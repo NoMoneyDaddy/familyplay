@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+// 放在 apps/web（@playwright/test 所在處），turbo test:e2e 從這裡執行才找得到設定與依賴。
 export default defineConfig({
-  testDir: './apps/web/tests/e2e',
+  testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -41,7 +42,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm --filter @familyplay/web dev',
+    command: 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

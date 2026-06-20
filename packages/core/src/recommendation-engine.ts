@@ -36,6 +36,36 @@ export interface Child {
   acquiredCapabilities: Set<string>
 }
 
+// 孩子對某個活動的歷史反應統計（由 companion_logs 聚合）。
+export type ChildReaction = 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
+
+export interface ActivityReactionStats {
+  liked: number // happy / engaged / calmed
+  disliked: number // leaving / disinterested（neutral 不計）
+}
+
+// 正向／負向反應分類——單一真實來源，Web 與行動端共用，避免兩邊各自硬編而漂移。
+const POSITIVE_REACTIONS: ReadonlySet<string> = new Set(['happy', 'engaged', 'calmed'])
+const NEGATIVE_REACTIONS: ReadonlySet<string> = new Set(['leaving', 'disinterested'])
+
+/** 由原始反應紀錄聚合成 activityId → {liked, disliked}。neutral 與未知值忽略。 */
+export function buildReactionStats(
+  rows: { activityId: string | null | undefined; reaction: string | null | undefined }[],
+): Map<string, ActivityReactionStats> {
+  const stats = new Map<string, ActivityReactionStats>()
+  for (const { activityId, reaction } of rows) {
+    if (!activityId || !reaction) continue
+    const isPos = POSITIVE_REACTIONS.has(reaction)
+    const isNeg = NEGATIVE_REACTIONS.has(reaction)
+    if (!isPos && !isNeg) continue
+    const cur = stats.get(activityId) ?? { liked: 0, disliked: 0 }
+    if (isPos) cur.liked += 1
+    else cur.disliked += 1
+    stats.set(activityId, cur)
+  }
+  return stats
+}
+
 export interface RecommendationContext {
   child: Child
   parentEnergy: ParentEnergy
@@ -44,6 +74,9 @@ export interface RecommendationContext {
   availableResources: Set<string>
   recentActivityIds: Set<string>
   maxDurationMinutes: number
+  // 選填：孩子對各活動的歷史反應。提供時啟用「自適應」個人化層（Step 8）；
+  // 不提供則行為與原本完全相同（向後相容）。
+  reactionStats?: Map<string, ActivityReactionStats>
 }
 
 export interface ScoredActivity extends Activity {
@@ -175,6 +208,49 @@ function applyRecencyPenalty(
   })
 }
 
+// Step 8 (additive personalization layer — does NOT reorder the canonical 7):
+// reaction-driven affinity. Uses logged child reactions to nudge ranking toward
+// what this child has enjoyed and away from what fell flat — the "learns what your
+// child loves / adapts in real time" loop. Additive (same point system as ZPD /
+// priority) so it's sign-safe even when a base score is negative. Only runs when
+// reactionStats is supplied; otherwise a no-op (backward compatible).
+const AFFINITY_POINTS_PER_NET = 2 // 每淨喜歡 +2 分
+const AFFINITY_NET_CAP = 3 // 淨值上下限 ±3 → 影響上限 ±6 分
+// 明確不喜歡（≥2 次負向且 0 正向）：直接給最大降幅。與加分上限同界（±6），維持加法計分一致。
+const STRONG_DISLIKE_PENALTY = AFFINITY_POINTS_PER_NET * AFFINITY_NET_CAP // 6
+
+function applyReactionAffinity(
+  activities: ScoredActivity[],
+  context: RecommendationContext,
+): ScoredActivity[] {
+  const stats = context.reactionStats
+  if (!stats || stats.size === 0) return activities
+  return activities.map((a) => {
+    const s = stats.get(a.id)
+    if (!s) return a
+    const liked = Number.isFinite(s.liked) ? s.liked : 0
+    const disliked = Number.isFinite(s.disliked) ? s.disliked : 0
+
+    // 明確不喜歡：強力降分，讓引擎「換別的」（對應對手的 recalibrate 行為）
+    if (disliked >= 2 && liked === 0) {
+      return {
+        ...a,
+        score: a.score - STRONG_DISLIKE_PENALTY,
+        reasons: [...a.reasons, '上次玩得不太順，先換別的'],
+      }
+    }
+
+    const net = Math.max(-AFFINITY_NET_CAP, Math.min(AFFINITY_NET_CAP, liked - disliked))
+    if (net === 0) return a
+    const delta = net * AFFINITY_POINTS_PER_NET
+    return {
+      ...a,
+      score: a.score + delta,
+      reasons: [...a.reasons, net > 0 ? '孩子之前很喜歡，加分' : '孩子之前興趣缺缺，降分'],
+    }
+  })
+}
+
 // Safety boundary: the engine is the reusable choking/safety filter, called from
 // multiple routes. Never trust the caller's stageKey or capability set — a
 // malformed stageKey would make HIGH_RISK_STAGES.includes() return false and
@@ -241,8 +317,13 @@ export function getRecommendations(
   // Step 6: Priority sorting
   scored = scoreByPriority(scored)
 
-  // Step 7: Recency penalty — then RE-SORT so the −30% actually changes ranking.
+  // Step 7: Recency penalty
   scored = applyRecencyPenalty(scored, context)
+
+  // Step 8: Reaction-driven affinity (additive personalization; no-op without data)
+  scored = applyReactionAffinity(scored, context)
+
+  // RE-SORT after the score adjustments so they actually change ranking.
   scored = scored.sort((x, y) => y.score - x.score)
 
   const result = scored.slice(0, limit)
