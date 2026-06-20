@@ -1,28 +1,60 @@
 import { useRouter } from 'expo-router'
-import { Pressable, Text, View } from 'react-native'
+import { useEffect } from 'react'
+import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Mascot } from '@/components/Mascot'
+import { useAuthStore } from '@/lib/stores/useAuthStore'
+import { colors } from '@/lib/theme'
 
+/**
+ * 進入點：依登入狀態導向。已登入 → 選孩子流程（/select）；未登入 → 顯示歡迎與登入。
+ * 取代原 Sprint-1 骨架（含假的示範卡），與 Web `/` 的導向行為一致。
+ */
 export default function HomeScreen() {
   const router = useRouter()
-  return (
-    <SafeAreaView className="flex-1 bg-[#FAF6F0]">
-      <View className="flex-1 items-center justify-center px-5">
-        <Text className="text-3xl font-bold text-[#FF6B35] mb-2">FamilyPlay</Text>
-        <Text className="text-[#6B615A] mb-8">30 秒找到今天的陪伴方式</Text>
+  const { session, isLoading } = useAuthStore()
 
-        <View className="w-full bg-white rounded-2xl p-6 shadow-sm border border-[#ECE5DB] mb-6">
-          <Text className="text-sm text-[#6B615A] mb-2">示範引導卡</Text>
-          <Text className="text-xl font-semibold text-[#241F1B] mb-2">問你一件今天的事</Text>
-          <Text className="text-2xl font-bold text-[#FF6B35]">你今天有什麼讓你開心的事嗎？</Text>
+  useEffect(() => {
+    if (!isLoading && session) router.replace('/select')
+  }, [isLoading, session, router])
+
+  // 還原 session 中，或已登入（即將導向）→ 顯示載入，不閃動歡迎畫面
+  if (isLoading || session) {
+    return (
+      <SafeAreaView
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bg }}
+      >
+        <ActivityIndicator color={colors.brand} />
+      </SafeAreaView>
+    )
+  }
+
+  // 未登入：歡迎 + 登入 CTA
+  return (
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
+      <View className="flex-1 items-center justify-center px-6">
+        <View
+          className="mb-5 items-center justify-center"
+          style={{ width: 88, height: 88, borderRadius: 28, backgroundColor: colors.brandTint }}
+        >
+          <Mascot size={60} />
         </View>
+        <Text className="mb-2 text-3xl font-bold" style={{ color: colors.brand }}>
+          FamilyPlay
+        </Text>
+        <Text className="mb-10 text-center" style={{ color: colors.muted }}>
+          給疲憊的你，30 秒拿到今天的親子陪伴方案
+        </Text>
 
         <Pressable
-          onPress={() => router.push('/select')}
-          className="w-full bg-[#FF6B35] rounded-xl py-4 items-center active:opacity-90"
-          accessibilityLabel="快給我一個陪伴方案"
+          onPress={() => router.push('/auth/login')}
           accessibilityRole="button"
+          accessibilityLabel="登入或註冊"
+          className="w-full items-center rounded-2xl py-4 active:opacity-90"
+          style={{ backgroundColor: colors.brand }}
         >
-          <Text className="text-lg font-bold text-white">🧡 快給我一個</Text>
+          <Text className="text-lg font-bold text-white">開始使用</Text>
         </Pressable>
       </View>
     </SafeAreaView>

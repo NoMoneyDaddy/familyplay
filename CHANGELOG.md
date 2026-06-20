@@ -33,6 +33,9 @@
 ### 行動端（Expo）陪伴歷史頁
 - 新增 `lib/history.ts` + `/history` 畫面：列近 50 筆陪伴紀錄（活動標題、反應、結果、日期），完成「推薦→做了→記錄→回顧」可視閉環。關聯標題物件/陣列兩種形狀 + 空狀態，`mapLogRow` 加單元測試。推薦畫面加入口。
 
+### 行動端（Expo）進入點依登入狀態導向
+- 重寫 `app/index.tsx`：移除 Sprint-1 假示範卡；還原 session 時顯示載入，已登入導向 `/select`，未登入顯示品牌歡迎 + 登入 CTA（與 Web `/` 導向行為一致、暖色主題）。
+
 ### 行動端（Expo）帳號/方案頁品質修正
 - 修好登出失效：`profile` 原本導向不存在的 `/auth/logout`，改為 `signOut()` + 導回登入（與 `select` 一致）。
 - `profile`／`pricing` 由英文 + 冷灰/藍配色改為繁體中文 + 暖色主題 token（遵守 `lib/theme.ts`「不散用冷灰 hex」）；方案頁誠實標示 App 內購（RevenueCat）即將推出、可先用網頁版訂閱。
