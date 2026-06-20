@@ -88,10 +88,13 @@ describe('POST /api/log', () => {
     expect((await res.json()).error).toBe('找不到孩子資料')
   })
 
-  it('非預期錯誤 → 500 並上報', async () => {
+  it('非預期錯誤 → 500 並上報（帶 route/userId）', async () => {
     h.logCompanion.mockRejectedValue(new Error('db down'))
     const res = await POST(post(validBody))
     expect(res.status).toBe(500)
-    expect(h.reportError).toHaveBeenCalled()
+    expect(h.reportError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ route: '/api/log', userId: 'u1' }),
+    )
   })
 })

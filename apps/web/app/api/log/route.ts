@@ -22,28 +22,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
 
-  const cookieStore = await cookies()
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: () => {},
-    },
-  })
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const rl = await checkRateLimit(`log:${user.id}`, 30)
-  if (!rl.success) {
-    return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
-  }
-
+  // userId 先宣告在 try 外：讓 auth/限流階段的非預期錯誤也能在 catch 帶上（可能尚未取得）。
+  let userId: string | undefined
+  // 整個處理包進 try：連 cookies()/getUser()/checkRateLimit() 的非預期錯誤（Supabase/Redis
+  // 故障）也走 catch 上報，不再靜默 500（風險 A）。
   try {
+    const cookieStore = await cookies()
+    const supabase = createServerClient(url, anonKey, {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: () => {},
+      },
+    })
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    userId = user.id
+
+    const rl = await checkRateLimit(`log:${user.id}`, 30)
+    if (!rl.success) {
+      return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
+    }
+
     const body = await request.json()
     const params = logSchema.parse(body)
 
@@ -62,8 +67,8 @@ export async function POST(request: Request) {
     if (error instanceof LogError) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
-    // 非預期 500 不再靜默：上報以利定位（風險 A）
-    reportError(error, { route: '/api/log', userId: user.id })
+    // 非預期 500 不再靜默：上報以利定位（風險 A）。userId 可能尚未取得（auth 階段就出錯）。
+    reportError(error, { route: '/api/log', userId })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -63,7 +63,10 @@ describe('GET /api/insights', () => {
     const json = await (await GET(get(CHILD))).json()
     expect(json.streak).toBe(0)
     expect(json.weekly.sessions).toBe(5)
-    expect(h.reportError).toHaveBeenCalled()
+    expect(h.reportError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ route: '/api/insights#streak' }),
+    )
   })
 
   it('weekly 失敗 → 回退 null 並上報，streak 仍正常', async () => {
@@ -71,6 +74,9 @@ describe('GET /api/insights', () => {
     const json = await (await GET(get(CHILD))).json()
     expect(json.streak).toBe(3)
     expect(json.weekly).toBeNull()
-    expect(h.reportError).toHaveBeenCalled()
+    expect(h.reportError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ route: '/api/insights#weekly' }),
+    )
   })
 })
