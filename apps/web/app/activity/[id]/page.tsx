@@ -1,5 +1,6 @@
 'use client'
 
+import { parseNaturalLog } from '@familyplay/data'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useRef, useState } from 'react'
 import { Mascot } from '@/app/components/mascot'
@@ -58,6 +59,9 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   const [error, setError] = useState<string | null>(null)
   // 預設只給「記一下」一鍵存（反應＝開心、完成度＝完成）；想細記再展開，降低疲憊家長的負擔。
   const [showDetails, setShowDetails] = useState(false)
+  // 自然語言快速記錄（AI3，純本地解析、不送 AI）：打一句話 → 預填反應/完成度供確認。
+  const [naturalText, setNaturalText] = useState('')
+  const [naturalNote, setNaturalNote] = useState<string | null>(null)
   // 記錄成功後的小慶祝（最有成就感的時刻），停留約 1.8 秒再回首頁。
   const [celebrating, setCelebrating] = useState(false)
   const [savedMins, setSavedMins] = useState(0)
@@ -123,6 +127,27 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
   // 返回：優先回上一頁（多半是 /now、/recommendations、/saved），沒有站內歷史就回 /now。
   const goBack = useGoBack('/now')
+
+  // 解析家長打的一句話 → 預填反應/完成度（純本地，不送 AI）。activityId 已知，故不需活動比對。
+  const applyNatural = () => {
+    const parsed = parseNaturalLog(naturalText)
+    if (!parsed.outcome && !parsed.reaction) {
+      setNaturalNote('沒抓到關鍵字，幫你展開手動選一下就好。')
+      setShowDetails(true)
+      return
+    }
+    const filled: string[] = []
+    if (parsed.reaction) {
+      setChildReaction(parsed.reaction)
+      filled.push(REACTIONS.find((r) => r.value === parsed.reaction)?.label ?? '反應')
+    }
+    if (parsed.outcome) {
+      setOutcome(parsed.outcome)
+      filled.push(OUTCOMES.find((o) => o.value === parsed.outcome)?.label ?? '完成度')
+    }
+    setShowDetails(true)
+    setNaturalNote(`幫你帶入：${filled.join(' · ')}，確認沒問題就按下面記下來。`)
+  }
 
   const handleComplete = async () => {
     // 後端要求 durationSecs 為正整數；秒數可能 < 0.5（快速點擊）四捨五入成 0 而被 400 擋下，
@@ -306,6 +331,36 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
       <Card className="space-y-4">
         <h2 className="font-semibold text-text">記一下今天</h2>
+
+        {/* 自然語言快速記錄：打一句話 → 本地解析預填反應/完成度（不送 AI，仍由你確認） */}
+        <div className="space-y-2">
+          <label htmlFor="natural-log" className="block text-sm font-medium text-muted">
+            用一句話描述（選填）
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="natural-log"
+              type="text"
+              value={naturalText}
+              onChange={(e) => setNaturalText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') applyNatural()
+              }}
+              placeholder="例如：玩積木玩超久，超開心"
+              className="min-w-0 flex-1 rounded-xl border border-border/60 bg-card px-3 py-2.5 text-sm text-text shadow-clay-sm outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={applyNatural}
+              disabled={!naturalText.trim()}
+            >
+              帶入
+            </Button>
+          </div>
+          {naturalNote && <p className="text-xs text-brand-strong">{naturalNote}</p>}
+        </div>
 
         {/* 細記反應／完成度：預設收合，想多寫再展開（多數時候一鍵存就好） */}
         {showDetails ? (
