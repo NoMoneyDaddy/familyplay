@@ -39,6 +39,10 @@
 - [x] 修正家庭成員顯示 Unknown User（改用 `household_members.nickname`）
 - [x] 交接小卡 `/handoff`：近況濃縮（階段/最近陪玩/發展中里程碑）+ 可分享（唯讀、不寫 DB、不送 AI）
 
+### 行動端（Expo）
+- [x] 核心推薦流程移植：`lib/recommend.ts`（端上編排 + `@familyplay/core` 七步，RLS 自動生效）+ `/recommendations` 畫面（選狀態/情境 → 3 方案 → 換一批）；修好 `select` 失效路由、首頁按鈕進流程；純函式加單元測試
+- [ ] 里程碑評估、陪伴紀錄、孩子管理畫面（待續）；推薦結果→活動詳情/記錄一筆
+
 ---
 
 ## 待手動套用 migration（CRITICAL）

@@ -55,7 +55,7 @@ export default function SelectScreen() {
   }, [session, router])
 
   const handleSelectChild = (childId: string) => {
-    router.push(`/(app)/recommendations?childId=${childId}`)
+    router.push(`/recommendations?childId=${childId}`)
   }
 
   const handleLogout = async () => {

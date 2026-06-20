@@ -2,6 +2,12 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 行動端（Expo）核心推薦流程
+- 新增 `apps/mobile/lib/recommend.ts`：在端上編排推薦（與 Web `/api/recommendations` 同流程），用行動端 Supabase client（帶 session → RLS 自動生效）查 child/活動/近 7 天紀錄/能力檔，呼叫 `@familyplay/core` 七步引擎；不經 Web API（cookie 驗證讀不到 mobile bearer）。
+- 新增 `/recommendations` 畫面：選家長狀態＋情境 → 30 秒拿到 3 個方案（時長、刺激度、發展領域標籤、白話理由）＋「換一批」（硬排除已看過）。
+- 修好 `select.tsx` 失效路由（`/(app)/recommendations` → `/recommendations`）；首頁「快給我一個」由死按鈕改為進入 `/select` 流程。
+- 純函式（`mapActivityRow`/`acquiredFrom`）抽出並加單元測試（vitest）。
+
 ### 付費整合 UI（LemonSqueezy web）
 - 訂閱管理改為可用：`GET /api/lemon/portal` 回傳 LemonSqueezy 客戶入口簽章 URL（更新付款／取消／恢復）；只讀 `entitlements.lemonsqueezy_subscription_id`、不寫方案，扣款由 webhook（service-role）回寫。
 - `/account/entitlements` 的「透過 LemonSqueezy 管理訂閱」由 disabled 改為導向客戶入口，含載入態與錯誤回報；附「更新付款方式、取消或恢復訂閱」說明，對齊 FAQ「隨時可取消」承諾。

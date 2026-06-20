@@ -1,8 +1,9 @@
-// Sprint 1 骨架首頁 — 完整 UI Sprint 5 實作
+import { useRouter } from 'expo-router'
 import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function HomeScreen() {
+  const router = useRouter()
   return (
     <SafeAreaView className="flex-1 bg-[#FAF6F0]">
       <View className="flex-1 items-center justify-center px-5">
@@ -16,6 +17,7 @@ export default function HomeScreen() {
         </View>
 
         <Pressable
+          onPress={() => router.push('/select')}
           className="w-full bg-[#FF6B35] rounded-xl py-4 items-center active:opacity-90"
           accessibilityLabel="快給我一個陪伴方案"
           accessibilityRole="button"
