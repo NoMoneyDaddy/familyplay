@@ -1,10 +1,16 @@
 import type { CompanionContext, ParentEnergy } from '@familyplay/core'
-import { fetchRecommendations, RecommendError, type RecommendedActivity } from '@familyplay/data'
+import {
+  fetchRecommendations,
+  fetchSavedIds,
+  RecommendError,
+  type RecommendedActivity,
+} from '@familyplay/data'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ActivityLogControl } from '@/components/ActivityLogControl'
+import { SaveButton } from '@/components/SaveButton'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
 
@@ -56,6 +62,7 @@ export default function RecommendationsScreen() {
   const [error, setError] = useState('')
   // 「換一批」累積排除已看過的活動 id
   const [seenIds, setSeenIds] = useState<string[]>([])
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
 
   const load = async (excludeIds: string[]) => {
     if (!childId) {
@@ -75,6 +82,10 @@ export default function RecommendationsScreen() {
       })
       setRecs(result)
       setSeenIds((prev) => [...new Set([...prev, ...result.map((r) => r.id)])])
+      // 收藏狀態（次要，失敗不影響推薦）
+      fetchSavedIds(supabase)
+        .then(setSavedIds)
+        .catch(() => {})
     } catch (err) {
       setError(err instanceof RecommendError ? err.message : '載入失敗，請稍後再試')
     } finally {
@@ -120,6 +131,19 @@ export default function RecommendationsScreen() {
             >
               <Text className="text-sm font-medium" style={{ color: colors.text }}>
                 🕑 看陪伴紀錄
+              </Text>
+              <Text className="text-sm" style={{ color: colors.muted }}>
+                ›
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/saved')}
+              accessibilityRole="button"
+              className="flex-row items-center justify-between rounded-2xl px-4 py-3 active:opacity-80"
+              style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}
+            >
+              <Text className="text-sm font-medium" style={{ color: colors.text }}>
+                ♥ 我的收藏
               </Text>
               <Text className="text-sm" style={{ color: colors.muted }}>
                 ›
@@ -222,9 +246,12 @@ export default function RecommendationsScreen() {
             className="mb-4 rounded-2xl p-5"
             style={{ backgroundColor: colors.card, ...clayCard }}
           >
-            <Text className="mb-1 text-xl font-bold" style={{ color: colors.text }}>
-              {rec.title}
-            </Text>
+            <View className="mb-1 flex-row items-start justify-between gap-2">
+              <Text className="flex-1 text-xl font-bold" style={{ color: colors.text }}>
+                {rec.title}
+              </Text>
+              <SaveButton activityId={rec.id} initialSaved={savedIds.has(rec.id)} />
+            </View>
             <Text className="mb-3 text-sm" style={{ color: colors.muted }}>
               {rec.minDurationMinutes}–{rec.maxDurationMinutes} 分鐘 ·{' '}
               {STIM_LABELS[rec.stimulationLevel] ?? rec.stimulationLevel}

@@ -2,6 +2,10 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 行動端收藏（saved / favorites）
+- 新增 `packages/data/src/saved.ts`：`fetchSaved`／`fetchSavedIds`／`saveActivity`／`unsaveActivity`（RLS、UNIQUE 去重，與 Web `/api/saved` 同表）；`mapSavedRow` 純函式加單元測試。
+- 行動端推薦卡新增 ♥/♡ 收藏切換（樂觀更新、失敗回復）；新增「我的收藏」`/saved` 列表頁與入口，家長可收藏喜歡的活動之後再找回。
+
 ### Web 端 streak / 本週洞察對齊
 - 新增 `GET /api/insights?childId=`（cookie 驗證 + `@familyplay/data` 的 `fetchStreak`／`fetchWeeklyInsights`，各自失敗回退、不擋整體）。
 - `/history` 顯示「🔥 連續陪伴 N 天」與「本週陪伴」卡（次數／天數／玩得開心%／最常玩），與行動端一致，雙平台都有情感回饋閉環。
