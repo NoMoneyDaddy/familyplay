@@ -50,6 +50,8 @@ function RecommendationsPageInner() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
   // 累積看過的活動 id，「換一批」時整批排除，確保每次都換不同的。
   const seenIds = useRef<Set<string>>(new Set())
+  // 請求序號：防止快速連點「換一批」時，較舊的回應亂序覆蓋較新的結果/seenIds（競態）。
+  const reqSeq = useRef(0)
 
   const childId = searchParams.get('childId') || ''
   const parentEnergy = searchParams.get('parentEnergy') || ''
@@ -62,6 +64,8 @@ function RecommendationsPageInner() {
         setLoading(false)
         return
       }
+      // 標記本次請求序號；await 之後若已被更新的請求超車（reqSeq 變大），就放棄寫入狀態。
+      const myReq = ++reqSeq.current
       if (mode === 'shuffle') setShuffling(true)
       else setLoading(true)
       setError(null)
@@ -80,6 +84,8 @@ function RecommendationsPageInner() {
           }),
         })
         const data = await res.json()
+        // 被更新的請求超車 → 這份是過期結果，丟棄不寫狀態/seenIds，避免亂序覆蓋
+        if (myReq !== reqSeq.current) return
         if (data.error) {
           // 換一批失敗不該清掉現有結果；只在初次載入時顯示錯誤畫面
           if (mode === 'initial') setError(data.error)
@@ -97,10 +103,15 @@ function RecommendationsPageInner() {
       } catch (err) {
         // 不把技術錯誤（如 502 回非 JSON 時的 "Unexpected token <…"）直接顯示給家長
         console.error('Failed to fetch recommendations:', err)
-        if (mode === 'initial') setError('系統忙線或網路不穩，請稍後再試。')
+        if (myReq === reqSeq.current && mode === 'initial') {
+          setError('系統忙線或網路不穩，請稍後再試。')
+        }
       } finally {
-        setLoading(false)
-        setShuffling(false)
+        // 只有最新請求能關掉 spinner，避免過期請求提前收掉新請求的載入態
+        if (myReq === reqSeq.current) {
+          setLoading(false)
+          setShuffling(false)
+        }
       }
     },
     [childId, parentEnergy, context],
