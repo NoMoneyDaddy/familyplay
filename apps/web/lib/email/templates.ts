@@ -48,14 +48,14 @@ export function weeklyRecapEmail(data: WeeklyRecapData): EmailMessage {
     '— FamilyPlay',
   ].join('\n')
 
-  const html = `<!doctype html><html lang="zh-Hant"><body style="margin:0;background:#FAF6F0;font-family:-apple-system,'Noto Sans TC',sans-serif;">
-  <div style="max-width:480px;margin:0 auto;padding:32px 24px;">
-    <div style="font-size:22px;font-weight:700;color:#241F1B;">${escapeHtml(headline)}</div>
-    <div style="margin-top:8px;font-size:15px;color:#6B615A;">${escapeHtml(streakLine)}</div>
-    <div style="margin-top:20px;font-size:15px;color:#241F1B;line-height:1.6;">${escapeHtml(body)}</div>
+  const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(headline)}</title></head><body style="margin:0;background:#FAF6F0;font-family:-apple-system,'Noto Sans TC',sans-serif;">
+  <main style="max-width:480px;margin:0 auto;padding:32px 24px;">
+    <h1 style="margin:0;font-size:22px;font-weight:700;color:#241F1B;">${escapeHtml(headline)}</h1>
+    <p style="margin:8px 0 0;font-size:15px;color:#6B615A;">${escapeHtml(streakLine)}</p>
+    <p style="margin:20px 0 0;font-size:15px;color:#241F1B;line-height:1.6;">${escapeHtml(body)}</p>
     <a href="${escapeHtml(`${appUrl}/now`)}" style="display:inline-block;margin-top:24px;background:#FF6B35;color:#fff;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:14px;">現在就陪 →</a>
-    <div style="margin-top:32px;font-size:12px;color:#A89E96;">FamilyPlay · 給疲憊家長的親子陪伴導航</div>
-  </div></body></html>`
+    <p style="margin-top:32px;font-size:12px;color:#A89E96;">FamilyPlay · 給疲憊家長的親子陪伴導航</p>
+  </main></body></html>`
 
   return { to, subject: headline, html, text }
 }
