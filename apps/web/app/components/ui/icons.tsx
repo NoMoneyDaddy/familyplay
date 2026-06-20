@@ -1,8 +1,7 @@
-'use client'
-
 /**
  * 線性 SVG 圖示集（自 ui.tsx 抽出，降低該 God file 體積與並行衝突）。
  * 反「AI slop」原則：用真正的線性 SVG 圖示取代 emoji 當作介面圖示。
+ * 純靜態 SVG、無 client-only API，刻意不加 'use client'，可直接用於 Server Component。
  */
 
 import type { ReactNode } from 'react'
