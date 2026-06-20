@@ -46,6 +46,16 @@ export async function getPlanPackages(): Promise<PurchasesPackage[]> {
 export class PurchaseError extends Error {}
 
 /**
+ * 恢復先前的購買（App Store / Google Play 政策要求訂閱頁必須提供）。
+ * 回傳是否擁有有效權益。實際 entitlements 仍以 RevenueCat webhook 回寫為準。
+ */
+export async function restorePurchases(): Promise<boolean> {
+  if (!ensureConfigured()) throw new PurchaseError('收費尚未設定')
+  const customerInfo = await Purchases.restorePurchases()
+  return Object.keys(customerInfo.entitlements.active).length > 0
+}
+
+/**
  * 購買指定方案。回傳是否取得有效權益。使用者主動取消視為 false（非錯誤）。
  * 實際的 entitlements 由 RevenueCat webhook（service-role）回寫，前端僅觸發購買。
  */

@@ -9,6 +9,7 @@ import {
   isPurchasesAvailable,
   PurchaseError,
   purchase,
+  restorePurchases,
 } from '@/lib/purchases'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
@@ -56,6 +57,7 @@ export default function PricingScreen() {
   const [purchasingId, setPurchasingId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [purchased, setPurchased] = useState(false)
+  const [restoring, setRestoring] = useState(false)
 
   useEffect(() => {
     if (!isPurchasesAvailable()) return
@@ -76,34 +78,55 @@ export default function PricingScreen() {
     }
   }, [])
 
+  // appUserID 必須等於 user_profiles.id，webhook 才能正確對應權益。識別後才購買/恢復。
+  const identifyOrRedirect = async (): Promise<boolean> => {
+    const supabase = createMobileClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      router.replace('/auth/login')
+      return false
+    }
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single()
+    if (!profile) throw new PurchaseError('找不到帳號資料')
+    await identifyPurchaser(profile.id)
+    return true
+  }
+
   const handleBuy = async (pkg: PurchasesPackage) => {
     if (purchasingId) return
     setPurchasingId(pkg.identifier)
     setError('')
     try {
-      // appUserID 必須等於 user_profiles.id，webhook 才能正確對應權益。
-      const supabase = createMobileClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) {
-        router.replace('/auth/login')
-        return
-      }
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single()
-      if (!profile) throw new PurchaseError('找不到帳號資料')
-
-      await identifyPurchaser(profile.id)
+      if (!(await identifyOrRedirect())) return
       const ok = await purchase(pkg)
       if (ok) setPurchased(true)
     } catch (err) {
       setError(err instanceof PurchaseError ? err.message : '購買失敗，請稍後再試')
     } finally {
       setPurchasingId(null)
+    }
+  }
+
+  // 恢復購買（App Store / Play 政策要求）。換機/重裝後找回既有訂閱。
+  const handleRestore = async () => {
+    if (restoring) return
+    setRestoring(true)
+    setError('')
+    try {
+      if (!(await identifyOrRedirect())) return
+      const ok = await restorePurchases()
+      if (ok) setPurchased(true)
+      else setError('找不到可恢復的購買')
+    } catch (err) {
+      setError(err instanceof PurchaseError ? err.message : '恢復失敗，請稍後再試')
+    } finally {
+      setRestoring(false)
     }
   }
 
@@ -224,6 +247,24 @@ export default function PricingScreen() {
               </View>
             ))}
           </>
+        )}
+
+        {/* 恢復購買（App Store / Play 政策要求）：換機或重裝後找回既有訂閱 */}
+        {isPurchasesAvailable() && (
+          <Pressable
+            onPress={handleRestore}
+            disabled={restoring}
+            accessibilityRole="button"
+            className="mt-2 items-center py-3 active:opacity-70"
+          >
+            {restoring ? (
+              <ActivityIndicator color={colors.muted} />
+            ) : (
+              <Text className="text-sm font-medium" style={{ color: colors.muted }}>
+                恢復購買
+              </Text>
+            )}
+          </Pressable>
         )}
       </ScrollView>
     </SafeAreaView>
