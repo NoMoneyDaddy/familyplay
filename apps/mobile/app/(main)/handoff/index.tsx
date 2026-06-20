@@ -84,9 +84,11 @@ export default function HandoffScreen() {
           fetchAchievedCapabilities(supabase, childId),
         ])
         if (childRes.error) throw childRes.error
+        // 查無孩子（無效 id / RLS 擋掉）→ 視為載入失敗，不要用預設值組出不完整小卡。
+        if (!childRes.data) throw new Error('child not found')
         if (cancelled) return
-        const child = childRes.data as { nickname?: string; birth_year_month?: string } | null
-        setNickname(child?.nickname || '寶寶')
+        const child = childRes.data as { nickname?: string; birth_year_month?: string }
+        setNickname(child.nickname || '寶寶')
         setStage(stageLabelFromBirth(child?.birth_year_month))
         setRecent(logs.slice(0, RECENT_COUNT))
         setAchieved(caps as Record<string, boolean>)
