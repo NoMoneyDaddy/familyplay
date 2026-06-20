@@ -58,16 +58,6 @@ export default function SelectScreen() {
     router.push(`/recommendations?childId=${childId}`)
   }
 
-  const handleLogout = async () => {
-    try {
-      const supabase = createMobileClient()
-      await supabase.auth.signOut()
-      router.replace('/auth/login')
-    } catch (err) {
-      console.error('Logout error:', err)
-    }
-  }
-
   if (loading) {
     return (
       <SafeAreaView
@@ -86,9 +76,14 @@ export default function SelectScreen() {
           <Text className="text-3xl font-bold" style={{ color: colors.text }}>
             選擇孩子
           </Text>
-          <Pressable onPress={handleLogout} className="active:opacity-70">
+          <Pressable
+            onPress={() => router.push('/profile')}
+            accessibilityRole="button"
+            accessibilityLabel="帳號與訂閱"
+            className="active:opacity-70"
+          >
             <Text className="text-sm" style={{ color: colors.muted }}>
-              登出
+              帳號
             </Text>
           </Pressable>
         </View>
