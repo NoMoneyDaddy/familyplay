@@ -103,8 +103,17 @@
 - [x] `sponsor_cards` 廣告渲染（C2）：`fetchActiveSponsorCards` + `/api/sponsors` +
   `SponsorSlot`（僅免費用戶可見、付費去廣告即隱藏），讓 Supporter「去廣告」賣點成立；
   抽 `lib/plan-cache` 與 AdSlot 共用一次 entitlements 查詢
-- 商業化解鎖（風險 C1，需經營決策）：交付 Plus 真實價值後拿掉 `plan-comparison` 的
-  `comingSoon`、開放結帳（需定價 + RevenueCat 後台設商品）
+- [x] Plus 結帳「一鍵開啟」基礎（C1 準備，先不收費）：付費卡改由「結帳就緒」判斷
+  （`lib/plan-checkout`）——RevenueCat web key 未設時付費卡顯示「即將推出」（不再跳錯），
+  Plus 另需 `NEXT_PUBLIC_PLUS_CHECKOUT_ENABLED='true'` 才開。移除硬寫 `comingSoon`、
+  誠實標記已交付的 Plus 功能（AI 生成/100 次/交接潤色）。RevenueCat 未設好＝全程休眠。
+
+### Plus 上線 checklist（待 RevenueCat 後台就緒＋定價確認）
+1. RevenueCat 後台建立 Plus 商品與 `plus` entitlement、Web Billing offering。
+2. 設環境變數：`NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY`、`NEXT_PUBLIC_REVENUECAT_PLUS_PACKAGE`、
+   `REVENUECAT_PLUS_ENTITLEMENT=plus`、webhook `REVENUECAT_WEBHOOK_AUTH`。
+3. 確認可收費後，設 `NEXT_PUBLIC_PLUS_CHECKOUT_ENABLED=true` → Plus 結帳即開放（無需改碼）。
+4.（同理 Supporter：設好 key + `NEXT_PUBLIC_REVENUECAT_SUPPORTER_PACKAGE` 即自動開放。）
 - 多孩子 UI/流程優化、推送通知、離線、本地化
 
 ---
