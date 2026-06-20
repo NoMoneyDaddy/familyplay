@@ -3,11 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button, ErrorAlert, Icon } from '@/app/components/ui'
-import {
-  isWebPurchasesAvailable,
-  purchasePlan,
-  WebPurchaseError,
-} from '@/lib/payment/revenuecat-web'
+import { purchasePlan, WebPurchaseError } from '@/lib/payment/revenuecat-web'
+import { checkoutReadyFor } from '@/lib/plan-checkout'
 
 type PaidPlan = 'supporter' | 'plus'
 
@@ -24,7 +21,6 @@ interface PlanCard {
   tagline: string
   features: PlanFeature[]
   highlight?: boolean
-  comingSoon?: boolean // 核心價值尚未實作的方案：暫不開放結帳，避免收費賣未交付功能
 }
 
 // 輕營利取向：大部分功能免費（以輕度廣告支撐）；付費可移除廣告並解鎖進階，價格溫和、隨時可取消。
@@ -64,15 +60,14 @@ const PLAN_CARDS: PlanCard[] = [
     name: 'Plus',
     price: 'NT$170',
     period: '/月',
-    tagline: '進階陪伴，AI 為你客製（開發中）',
+    tagline: '進階陪伴，AI 為你客製',
     highlight: true,
-    comingSoon: true,
     features: [
       { label: '支持者的全部功能' },
-      { label: 'AI 客製化活動生成', soon: true },
+      { label: 'AI 客製化活動生成' },
+      { label: '每月 100 次託管 AI 生成' },
+      { label: '交接摘要 AI 潤色（給保母／長輩）' },
       { label: '活動加密筆記', soon: true },
-      { label: '每月 100 次 AI 生成', soon: true },
-      { label: '交接摘要（給保母／長輩）', soon: true },
       { label: '優先支援', soon: true },
     ],
   },
@@ -103,8 +98,8 @@ export function PlanComparison({ currentPlan }: { currentPlan: string | null }) 
         return
       }
 
-      // 收費走 RevenueCat Web Billing。需設定 NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY。
-      if (!isWebPurchasesAvailable()) {
+      // 防護：結帳未就緒（RevenueCat 未設好 / Plus 開關未開）一律擋下，與卡片 CTA 一致。
+      if (!checkoutReadyFor(planId)) {
         setError('線上結帳尚未開放，請稍後再試')
         return
       }
@@ -137,8 +132,8 @@ export function PlanComparison({ currentPlan }: { currentPlan: string | null }) 
       if (cp === 'free') return { label: '你目前的方案', action: 'none' }
       return { label: '已包含在你的方案', action: 'none' }
     }
-    // 核心功能尚未實作的方案：暫不開放結帳（誠實，不收費賣未交付功能）
-    if (plan.comingSoon && cp !== plan.id) return { label: '即將推出', action: 'soon' }
+    // 結帳未就緒（RevenueCat 未設好 / Plus 開關未開）→ 顯示「即將推出」，不開會跳錯的購買鈕
+    if (!checkoutReadyFor(plan.id) && cp !== plan.id) return { label: '即將推出', action: 'soon' }
     // 付費方案
     if (cp === plan.id) return { label: '你目前的方案', action: 'none' }
     // 已在另一個付費方案 → 不可直接結帳（會重複扣款），導去訂閱管理升降級
