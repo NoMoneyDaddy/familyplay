@@ -2,6 +2,11 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 行動端（Expo）記錄一筆陪伴（閉環）
+- 新增 `lib/log.ts`：行動端寫 `companion_logs`（與 Web `/api/log` 同流程，RLS 生效）；`household_id`／`caregiver_id` 由 DB 推出、不信任前端，避免跨戶誤記。
+- 推薦卡新增 `ActivityLogControl`「做了這個」→ 選孩子反應（😊開心/🙂投入/😐普通/😣想離開/😌平靜）→ 寫一筆 → 餵推薦引擎「近 7 天降權」與未來歷史頁。
+- `logCompanion` 加 vitest（驗證 household/caregiver 由 DB 推出、未登入/查無/insert 失敗都丟 `LogError`）。
+
 ### 行動端（Expo）核心推薦流程
 - 新增 `apps/mobile/lib/recommend.ts`：在端上編排推薦（與 Web `/api/recommendations` 同流程），用行動端 Supabase client（帶 session → RLS 自動生效）查 child/活動/近 7 天紀錄/能力檔，呼叫 `@familyplay/core` 七步引擎；不經 Web API（cookie 驗證讀不到 mobile bearer）。
 - 新增 `/recommendations` 畫面：選家長狀態＋情境 → 30 秒拿到 3 個方案（時長、刺激度、發展領域標籤、白話理由）＋「換一批」（硬排除已看過）。

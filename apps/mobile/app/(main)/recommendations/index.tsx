@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { ActivityLogControl } from '@/components/ActivityLogControl'
 import { fetchRecommendations, RecommendError, type RecommendedActivity } from '@/lib/recommend'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
@@ -210,6 +211,8 @@ export default function RecommendationsScreen() {
                 ))}
               </View>
             )}
+
+            {childId ? <ActivityLogControl childId={childId} activityId={rec.id} /> : null}
           </View>
         ))}
 
