@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { getPlanCached, isPaidPlan } from '@/lib/plan-cache'
 
 // AdSense 的 client/slot 皆為公開值（會出現在頁面 HTML），用 NEXT_PUBLIC_ 前綴合理、非機密。
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
@@ -9,22 +10,6 @@ declare global {
   interface Window {
     adsbygoogle?: unknown[]
   }
-}
-
-// 模組層級快取：多個 AdSlot 或頁面切換時共用同一次 entitlements 請求，避免重複網路請求。
-let planPromise: Promise<string> | null = null
-function getPlanCached(): Promise<string> {
-  if (!planPromise) {
-    planPromise = fetch('/api/account/entitlements')
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('entitlements failed'))))
-      .then((d) => (d?.plan as string) ?? 'free')
-      .catch(() => {
-        // 暫時失敗不長存：清掉快取讓下次重試，否則一次網路抖動會把整個 session 鎖成 free。
-        planPromise = null
-        return 'free'
-      })
-  }
-  return planPromise
 }
 
 /**
@@ -43,7 +28,7 @@ export function AdSlot({ slot, className }: { slot?: string; className?: string 
     let active = true
     // 付費用戶（supporter/plus）不顯示廣告；其餘（免費／未登入／取得失敗）顯示
     getPlanCached().then((plan) => {
-      if (active && plan !== 'supporter' && plan !== 'plus') setShow(true)
+      if (active && !isPaidPlan(plan)) setShow(true)
     })
 
     return () => {
