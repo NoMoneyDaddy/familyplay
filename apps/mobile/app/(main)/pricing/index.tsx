@@ -1,3 +1,4 @@
+import { AccountError, fetchAccount } from '@familyplay/data'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
@@ -79,22 +80,19 @@ export default function PricingScreen() {
   }, [])
 
   // appUserID 必須等於 user_profiles.id，webhook 才能正確對應權益。識別後才購買/恢復。
+  // 帳號解析收斂到 @familyplay/data 的 fetchAccount（與其他端共用）。
   const identifyOrRedirect = async (): Promise<boolean> => {
-    const supabase = createMobileClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) {
-      router.replace('/auth/login')
-      return false
+    let account: Awaited<ReturnType<typeof fetchAccount>>
+    try {
+      account = await fetchAccount(createMobileClient())
+    } catch (err) {
+      if (err instanceof AccountError && err.code === 'unauthorized') {
+        router.replace('/auth/login')
+        return false
+      }
+      throw err instanceof AccountError ? new PurchaseError('找不到帳號資料') : err
     }
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-    if (!profile) throw new PurchaseError('找不到帳號資料')
-    await identifyPurchaser(profile.id)
+    await identifyPurchaser(account.profileId)
     return true
   }
 
