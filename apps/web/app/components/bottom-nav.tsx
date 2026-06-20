@@ -25,7 +25,8 @@ interface Tab {
   match: string[]
 }
 
-// 設定改放在每頁右上角的齒輪（見 SettingsGearLink），不再佔一個底部分頁。
+// 五個常駐分頁：今天 / 紀錄 / 收藏 / 孩子 / 設定（設定從右上角齒輪移進這裡，
+// 入口更好按、頂部更清爽）。bottom nav 上限 5 項（Material 準則）。
 const TABS: Tab[] = [
   {
     href: '/now',
@@ -36,6 +37,12 @@ const TABS: Tab[] = [
   { href: '/history', label: '紀錄', icon: 'history', match: ['/history', '/capabilities'] },
   { href: '/saved', label: '收藏', icon: 'heart', match: ['/saved'] },
   { href: '/children', label: '孩子', icon: 'child', match: ['/children'] },
+  {
+    href: '/settings',
+    label: '設定',
+    icon: 'settings',
+    match: ['/settings', '/account'],
+  },
 ]
 
 export function BottomNav() {

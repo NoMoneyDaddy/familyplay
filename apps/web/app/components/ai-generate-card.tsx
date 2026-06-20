@@ -224,7 +224,8 @@ export function AIGenerateCard({ childId }: { childId: string }) {
               href="/settings"
               className="inline-flex items-center justify-center gap-1 text-xs text-muted transition-opacity hover:opacity-70"
             >
-              或自帶 AI 金鑰
+              <Icon name="settings" className="h-[14px] w-[14px]" />
+              設定 AI 金鑰
             </Link>
           )}
         </>

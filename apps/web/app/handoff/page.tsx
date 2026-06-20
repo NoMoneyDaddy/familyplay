@@ -2,6 +2,7 @@
 
 import { getZpdTargets, MILESTONE_MAP } from '@familyplay/assessment'
 import { ALLOWED_CAPABILITY_KEYS, ALLOWED_STAGE_KEYS } from '@familyplay/core'
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import {
@@ -13,7 +14,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
-import { readAIKey } from '@/lib/ai-key'
+import { hasAIKey, readAIKey } from '@/lib/ai-key'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { lineShareUrl } from '@/lib/share'
 import { stageLabel } from '@/lib/stage-labels'
@@ -51,6 +52,19 @@ export default function HandoffPage() {
   // AI 潤色出來的溫暖短評（Plus 託管或 BYO key）；失敗則保持 null、續用規則式小卡。
   const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
+  // 是否已自帶 AI 金鑰：掛載後讀（避免 SSR 不一致），回到分頁時重讀，
+  // 讓設定頁存/清金鑰後此處的「設定金鑰」捷徑即時更新。
+  const [hasKey, setHasKey] = useState(false)
+  useEffect(() => {
+    const refresh = () => setHasKey(hasAIKey())
+    refresh()
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [])
   // 重試用：bump 即重新抓
   const [reloadTick, setReloadTick] = useState(0)
 
@@ -364,16 +378,28 @@ export default function HandoffPage() {
             </p>
           )}
 
-          <Button
-            variant="secondary"
-            size="md"
-            icon="sparkle"
-            loading={aiLoading}
-            className="w-full"
-            onClick={handleAiPolish}
-          >
-            {aiSummary ? '重新用 AI 潤色' : '用 AI 潤色（Plus／自帶金鑰）'}
-          </Button>
+          <div className="space-y-1.5">
+            <Button
+              variant="secondary"
+              size="md"
+              icon="sparkle"
+              loading={aiLoading}
+              className="w-full"
+              onClick={handleAiPolish}
+            >
+              {aiSummary ? '重新用 AI 潤色' : '用 AI 潤色（Plus／自帶金鑰）'}
+            </Button>
+            {/* 沒自帶金鑰時，就近給「去設定加金鑰」捷徑（Plus 免設定，故已有金鑰不顯示） */}
+            {!hasKey && (
+              <Link
+                href="/settings"
+                className="inline-flex w-full items-center justify-center gap-1 text-xs text-muted transition-opacity hover:opacity-70"
+              >
+                <Icon name="settings" className="h-[14px] w-[14px]" />
+                設定 AI 金鑰
+              </Link>
+            )}
+          </div>
 
           <Button size="lg" icon="link" className="w-full" onClick={handleShare}>
             分享給家人
