@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { getRequestId } from '@/lib/request-id'
 
 // ChildError code → HTTP 狀態
 const STATUS_BY_CODE: Record<string, number> = {
@@ -23,6 +24,7 @@ const schema = z.object({
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const requestId = getRequestId(request)
 
   if (!url || !anonKey) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
@@ -71,10 +73,10 @@ export async function POST(request: Request) {
     if (error instanceof ChildError) {
       const status = STATUS_BY_CODE[error.code] ?? 500
       // 4xx（unauthorized/profile_not_found）屬預期客戶端錯誤，不上報以免淹沒真正的系統告警。
-      if (status >= 500) reportError(error, { route: '/api/children', code: error.code })
+      if (status >= 500) reportError(error, { route: '/api/children', code: error.code, requestId })
       return NextResponse.json({ error: error.message }, { status })
     }
-    reportError(error, { route: '/api/children' })
+    reportError(error, { route: '/api/children', requestId })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

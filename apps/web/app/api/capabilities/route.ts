@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { getRequestId } from '@/lib/request-id'
 
 // 能力 key 為 camelCase 值（canRoll…）。白名單避免寫入/回傳任意鍵污染 JSONB。
 const ALLOWED = new Set<string>(ALLOWED_CAPABILITY_KEYS)
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
   const parsed = getSchema.safeParse({
     childId: new URL(request.url).searchParams.get('childId'),
   })
+  const requestId = getRequestId(request)
   if (!parsed.success) {
     return NextResponse.json({ error: 'childId 不合法' }, { status: 400 })
   }
@@ -77,7 +79,7 @@ export async function GET(request: Request) {
     .maybeSingle()
 
   if (error) {
-    reportError(error, { route: '/api/capabilities#GET' })
+    reportError(error, { route: '/api/capabilities#GET', requestId })
     return NextResponse.json({ error: '無法載入能力資料' }, { status: 500 })
   }
 
@@ -123,6 +125,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: '輸入不合法', details: parsed.error.errors }, { status: 400 })
   }
   const { childId, capabilityKey, achieved } = parsed.data
+  const requestId = getRequestId(request)
 
   // 原子更新單一鍵（DB 端 JSONB 合併/刪除），避免並發 read-modify-write 互相覆蓋；
   // RPC 內含缺檔自我修復。RLS 仍在 RPC 內生效（SECURITY INVOKER）。
@@ -135,9 +138,9 @@ export async function PATCH(request: Request) {
   if (error) {
     // RPC 尚未部署（migration 未套用）→ 退回應用層 read-modify-write，確保上線可用
     if (error.code === 'PGRST202' || /function.+does not exist/i.test(error.message)) {
-      return legacyUpdate(supabase, childId, capabilityKey, achieved)
+      return legacyUpdate(supabase, childId, capabilityKey, achieved, requestId)
     }
-    reportError(error, { route: '/api/capabilities#PATCH:rpc' })
+    reportError(error, { route: '/api/capabilities#PATCH:rpc', requestId })
     return NextResponse.json({ error: '儲存失敗，請稍後再試' }, { status: 500 })
   }
 
@@ -156,6 +159,7 @@ async function legacyUpdate(
   childId: string,
   capabilityKey: string,
   achieved: boolean,
+  requestId: string,
 ) {
   const { data: existing, error: readError } = await supabase
     .from('child_capability_profiles')
@@ -164,7 +168,7 @@ async function legacyUpdate(
     .maybeSingle()
 
   if (readError) {
-    reportError(readError, { route: '/api/capabilities#PATCH:read' })
+    reportError(readError, { route: '/api/capabilities#PATCH:read', requestId })
     return NextResponse.json({ error: '無法載入能力資料' }, { status: 500 })
   }
 
@@ -189,7 +193,7 @@ async function legacyUpdate(
     .eq('child_id', childId)
 
   if (writeError) {
-    reportError(writeError, { route: '/api/capabilities#PATCH:write' })
+    reportError(writeError, { route: '/api/capabilities#PATCH:write', requestId })
     return NextResponse.json({ error: '儲存失敗，請稍後再試' }, { status: 500 })
   }
 
