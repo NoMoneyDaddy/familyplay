@@ -84,6 +84,23 @@ export default function RecommendationsScreen() {
           </Pressable>
         </View>
 
+        {/* 里程碑入口：標記孩子會了什麼 → 推薦更貼近發展（ZPD） */}
+        {childId ? (
+          <Pressable
+            onPress={() => router.push(`/milestones?childId=${childId}`)}
+            accessibilityRole="button"
+            className="mb-5 flex-row items-center justify-between rounded-2xl px-4 py-3 active:opacity-80"
+            style={{ backgroundColor: colors.brandTint }}
+          >
+            <Text className="text-sm font-semibold" style={{ color: colors.brandStrong }}>
+              📊 標記發展里程碑，讓推薦更準
+            </Text>
+            <Text className="text-sm" style={{ color: colors.brandStrong }}>
+              ›
+            </Text>
+          </Pressable>
+        ) : null}
+
         {/* 家長狀態 */}
         <Text className="mb-2 text-sm font-semibold" style={{ color: colors.muted }}>
           你現在的狀態

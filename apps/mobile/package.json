@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
+    "@familyplay/assessment": "workspace:*",
     "@familyplay/core": "workspace:*",
     "@react-navigation/native": "^7.0.0",
     "@supabase/supabase-js": "^2.46.0",

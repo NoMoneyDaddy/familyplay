@@ -46,7 +46,8 @@
 ### 行動端（Expo）
 - [x] 核心推薦流程移植：`lib/recommend.ts`（端上編排 + `@familyplay/core` 七步，RLS 自動生效）+ `/recommendations` 畫面（選狀態/情境 → 3 方案 → 換一批）；修好 `select` 失效路由、首頁按鈕進流程；純函式加單元測試
 - [x] 記錄一筆陪伴（閉環）：`lib/log.ts` + 推薦卡「做了這個」→ 選反應 → 寫 `companion_logs`（餵近 7 天降權）；household/caregiver 由 DB 推出、加單元測試
-- [ ] 里程碑評估、陪伴歷史、孩子管理畫面（待續）；推薦結果→活動詳情
+- [x] 發展里程碑評估：`lib/capabilities.ts` + `/milestones` 畫面（分域標記、樂觀更新、ZPD 下一步），標記驅動 ZPD/Step 8；`pickAchieved` 加單元測試
+- [ ] 陪伴歷史、孩子管理畫面（待續）；推薦結果→活動詳情
 
 ---
 
