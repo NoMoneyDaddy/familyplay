@@ -105,8 +105,6 @@ export function PlanComparison({ currentPlan }: { currentPlan: string | null }) 
 
       // 收費走 RevenueCat Web Billing。需設定 NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY。
       if (!isWebPurchasesAvailable()) {
-        setSelectedPlan(null)
-        setAuthenticating(false)
         setError('線上結帳尚未開放，請稍後再試')
         return
       }
@@ -117,15 +115,15 @@ export function PlanComparison({ currentPlan }: { currentPlan: string | null }) 
         return
       }
       const ok = await purchasePlan(profile.userProfileId, planId)
-      setSelectedPlan(null)
-      setAuthenticating(false)
       // 成功：entitlements 由 RevenueCat webhook 回寫，導去訂閱頁等同步；取消則留在原頁。
       if (ok) router.push('/account/entitlements')
     } catch (err) {
       console.error('Checkout error:', err)
+      setError(err instanceof WebPurchaseError ? err.message : '結帳失敗，請稍後再試')
+    } finally {
+      // 統一在 finally 復位，避免早退分支殘留 loading 狀態。
       setSelectedPlan(null)
       setAuthenticating(false)
-      setError(err instanceof WebPurchaseError ? err.message : '結帳失敗，請稍後再試')
     }
   }
 

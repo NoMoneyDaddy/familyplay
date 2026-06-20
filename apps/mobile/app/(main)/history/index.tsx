@@ -1,4 +1,4 @@
-import { fetchHistory, type HistoryEntry } from '@familyplay/data'
+import { fetchHistory, fetchStreak, type HistoryEntry } from '@familyplay/data'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
@@ -32,12 +32,14 @@ export default function HistoryScreen() {
   const router = useRouter()
   const { childId } = useLocalSearchParams<{ childId: string }>()
   const [entries, setEntries] = useState<HistoryEntry[]>([])
+  const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (!childId) {
       setEntries([])
+      setStreak(0)
       setError('')
       setLoading(false)
       return
@@ -48,9 +50,18 @@ export default function HistoryScreen() {
       setLoading(true)
       setError('')
       setEntries([])
+      setStreak(0)
       try {
-        const rows = await fetchHistory(createMobileClient(), childId)
-        if (!cancelled) setEntries(rows)
+        const supabase = createMobileClient()
+        // 歷史與連續天數並行；streak 失敗不擋歷史（次要資訊）。
+        const [rows, streakDays] = await Promise.all([
+          fetchHistory(supabase, childId),
+          fetchStreak(supabase, { childId }).catch(() => 0),
+        ])
+        if (!cancelled) {
+          setEntries(rows)
+          setStreak(streakDays)
+        }
       } catch {
         if (!cancelled) setError('無法載入陪伴紀錄')
       } finally {
@@ -87,6 +98,24 @@ export default function HistoryScreen() {
             </Text>
           </Pressable>
         </View>
+
+        {/* 連續陪伴天數：強化習慣養成的成就感 */}
+        {streak > 0 ? (
+          <View
+            className="mb-6 flex-row items-center gap-3 rounded-2xl p-4"
+            style={{ backgroundColor: colors.brandTint, ...clayCard }}
+          >
+            <Text className="text-3xl">🔥</Text>
+            <View>
+              <Text className="text-lg font-bold" style={{ color: colors.brandStrong }}>
+                連續陪伴 {streak} 天
+              </Text>
+              <Text className="text-xs" style={{ color: colors.brandStrong }}>
+                每天一點點，就是最好的陪伴
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
         {error ? (
           <View className="mb-4 rounded-xl p-4" style={{ backgroundColor: colors.dangerTint }}>

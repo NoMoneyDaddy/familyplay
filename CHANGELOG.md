@@ -2,6 +2,14 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 連續陪伴天數（streak，習慣養成）
+- 新增 `packages/data/src/streak.ts`：`computeStreak`（純日期邏輯，今天未陪以昨天為錨、不中斷）＋`toLocalDate`（Asia/Taipei）＋`fetchStreak`（近 120 天窗）；8 個單元測試。
+- 行動端陪伴紀錄頁顯示「🔥 連續陪伴 N 天」徽章，強化 App 核心使命（幫家長持續陪伴）。
+
+### 審查修正
+- `plan-comparison` 結帳狀態復位統一移到 `finally`，避免早退分支殘留 loading（CodeRabbit）。
+- `.env.example` 修正 `NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY` 過時註解（已無 LemonSqueezy 回退）。
+
 ### 收費統一改 RevenueCat、移除 LemonSqueezy
 - 移除未實裝的 LemonSqueezy：刪 `/api/lemon/*`（create-checkout／webhook／portal）與 `lib/payment/lemonsqueezy.ts`；CSP（next.config）、服務條款／隱私政策、`.env.example`、文件改為 RevenueCat。
 - 網頁 Web Billing：新增 `lib/payment/revenuecat-web.ts`（`@revenuecat/purchases-js`）；`plan-comparison` 升級 CTA 改走 RevenueCat（appUserId = `user_profiles.id`，`/api/profile` 新增回傳 `userProfileId`）。`/account/entitlements` 管理改為平台說明（App Store／Play／RevenueCat）。
