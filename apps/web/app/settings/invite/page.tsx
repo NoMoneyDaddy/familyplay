@@ -164,8 +164,15 @@ export default function InvitePage() {
       <ErrorAlert message={error} />
 
       {loading ? (
-        <div className="text-center text-muted" role="status">
-          加載中...
+        <div
+          className="animate-pulse space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-clay-sm"
+          role="status"
+          aria-label="載入中"
+        >
+          <div className="h-5 w-1/3 rounded-full bg-bg" />
+          <div className="h-12 w-full rounded-lg bg-bg" />
+          <div className="h-12 w-full rounded-lg bg-bg" />
+          <span className="sr-only">加載中...</span>
         </div>
       ) : (
         <>
@@ -197,13 +204,17 @@ export default function InvitePage() {
                 生成邀請碼
               </Button>
 
-              {/* Generated Invite Display */}
+              {/* Generated Invite Display — 簽名強化：把生成出來的碼做成一張「票券」般的揭曉時刻，
+                  虛線框 + 大字碼，讓「拿到邀請碼」這個動作有儀式感、也更好讀好複製。 */}
               {generatedInvite && (
-                <div className="space-y-3 rounded-2xl bg-brand-tint p-4">
+                <div className="space-y-3 rounded-2xl border-2 border-dashed border-brand/40 bg-brand-tint p-4">
                   {/* 邀請碼：大、置中 */}
                   <div className="text-center">
-                    <p className="mb-1.5 text-xs text-muted">邀請碼</p>
-                    <code className="block truncate rounded-xl bg-card py-3 font-mono text-2xl font-bold tracking-[0.15em] text-brand">
+                    <p className="mb-1.5 flex items-center justify-center gap-1 text-xs font-semibold text-brand-strong">
+                      <Icon name="link" className="h-[13px] w-[13px]" />
+                      你的邀請碼
+                    </p>
+                    <code className="block truncate rounded-xl bg-card py-3 font-mono text-2xl font-bold tracking-[0.15em] text-brand shadow-clay-sm">
                       {generatedInvite.code}
                     </code>
                   </div>
@@ -216,7 +227,7 @@ export default function InvitePage() {
                     <Button
                       variant="secondary"
                       size="md"
-                      icon="copy"
+                      icon={copySuccess ? 'check' : 'copy'}
                       className="flex-1"
                       onClick={handleCopyCode}
                     >

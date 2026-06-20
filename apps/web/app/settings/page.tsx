@@ -78,15 +78,25 @@ export default function SettingsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <Card>
-            <h3 className="mb-4 font-semibold text-text">帳號</h3>
-            {user?.displayName && (
-              <p className="flex items-center gap-2 text-text">
-                <Icon name="user" className="h-[20px] w-[20px] text-brand" />
-                {user.displayName}
-              </p>
-            )}
-            <p className="mt-2 text-xs text-muted">FamilyPlay MVP v0.1</p>
+          {/* 帳號身分卡：頭像圓徽 + 名稱，把「這是誰的帳號」做成一眼可辨的頁首 */}
+          <Card className="flex items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-tint ring-1 ring-border/60">
+              {user?.avatarUrl ? (
+                // biome-ignore lint/performance/noImgElement: 第三方頭像 URL，毋須 next/image 優化
+                <img
+                  src={user.avatarUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <Icon name="user" className="h-7 w-7 text-brand" />
+              )}
+            </span>
+            <div className="min-w-0 space-y-0.5">
+              <p className="truncate font-semibold text-text">{user?.displayName || '我的帳號'}</p>
+              <p className="text-xs text-muted">FamilyPlay MVP v0.1</p>
+            </div>
           </Card>
 
           <ReminderToggle />
@@ -98,18 +108,21 @@ export default function SettingsPage() {
               <a
                 key={link.href}
                 href={link.href}
-                className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 text-text shadow-sm transition-colors hover:bg-bg"
+                className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-4 text-text shadow-clay-sm transition-all hover:bg-bg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
               >
-                <Icon name={link.icon} className="h-[20px] w-[20px] text-brand" />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-brand-tint">
+                  <Icon name={link.icon} className="h-[19px] w-[19px] text-brand" />
+                </span>
                 <span className="flex-1 font-medium">{link.label}</span>
                 <Icon name="chevronRight" className="h-[18px] w-[18px] text-faint" />
               </a>
             ))}
-
-            <Button variant="danger" icon="logout" onClick={handleLogout}>
-              登出
-            </Button>
           </div>
+
+          {/* 登出與導覽列分開：避免把「離開帳號」混進日常設定入口 */}
+          <Button variant="danger" icon="logout" onClick={handleLogout}>
+            登出
+          </Button>
 
           <Callout tone="tip" title="提示">
             你的資料已加密保存在 Supabase，符合隱私標準。

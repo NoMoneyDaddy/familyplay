@@ -172,6 +172,26 @@ export default function NowPage() {
   // 白話化的推薦理由（過濾引擎術語）；算一次供卡片重用
   const reasons = friendlyReasons(rec?.reasons)
 
+  // 載入骨架：用內容形狀的占位取代孤零零的轉圈，預留空間避免出答案時跳版（CLS）。
+  // 純色塊脈動，prefers-reduced-motion 會被全站重置降為靜態。
+  const RecSkeleton = () => (
+    <div className="space-y-4" aria-hidden="true">
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="h-7 w-32 animate-pulse rounded-full bg-brand-tint" />
+        <span className="h-3 w-48 animate-pulse rounded-full bg-border/60" />
+      </div>
+      <div className="space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-clay">
+        <span className="block h-6 w-3/4 animate-pulse rounded-lg bg-border/70" />
+        <div className="flex gap-1.5">
+          <span className="h-5 w-16 animate-pulse rounded-full bg-brand-tint" />
+          <span className="h-5 w-20 animate-pulse rounded-full bg-border/50" />
+        </div>
+        <span className="block h-12 w-full animate-pulse rounded-lg bg-brand-tint" />
+        <span className="block h-11 w-full animate-pulse rounded-lg bg-border/40" />
+      </div>
+    </div>
+  )
+
   // ── 結束畫面：記錄後 ──
   if (logged) {
     return (
@@ -189,10 +209,8 @@ export default function NowPage() {
           </div>
           {/* 連續陪伴天數：把抽象努力變成看得見的火苗，強化「明天也想再來」 */}
           {streak && streak >= 1 ? (
-            <div className="mx-auto flex items-center gap-2 rounded-full bg-brand-tint px-4 py-2">
-              <span className="text-xl" aria-hidden>
-                🔥
-              </span>
+            <div className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-brand-tint px-4 py-2 shadow-clay-sm ring-1 ring-brand/15">
+              <Icon name="sparkle" className="h-[16px] w-[16px] text-brand" />
               <span className="text-sm font-semibold text-brand-strong">連續陪伴 {streak} 天</span>
             </div>
           ) : null}
@@ -220,13 +238,9 @@ export default function NowPage() {
       {selectedChildId && <FirstRunHint />}
 
       {loading ? (
-        <div
-          className="flex flex-col items-center gap-3 py-20 text-center"
-          role="status"
-          aria-live="polite"
-        >
-          <span className="h-[22px] w-[22px] animate-spin rounded-full border-2 border-brand border-t-transparent" />
-          <p className="text-sm text-muted">幫你選一個現在就能玩的…</p>
+        <div role="status" aria-live="polite">
+          <p className="mb-4 text-center text-sm text-muted">幫你選一個現在就能玩的…</p>
+          <RecSkeleton />
         </div>
       ) : error ? (
         <Card className="space-y-4 py-10 text-center">
@@ -263,9 +277,10 @@ export default function NowPage() {
 
           {stale && (
             <p
-              className="rounded-xl bg-warning-tint px-4 py-2.5 text-center text-xs text-warning"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-warning-tint px-4 py-2.5 text-center text-xs text-warning"
               role="status"
             >
+              <Icon name="info" className="h-[14px] w-[14px] shrink-0" />
               目前離線，顯示的是上次的方案
             </p>
           )}

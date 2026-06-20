@@ -28,11 +28,13 @@ export default function AddChildPage() {
 
       {added.length > 0 && (
         <Callout tone="success" title={`已新增 ${added.length} 個孩子`}>
-          <ul className="flex flex-wrap gap-2 pt-1">
+          {/* 已新增的孩子做成白底膠囊 chip，和列表頁的頭像語言一致，
+              一眼看得出剛剛建了誰，連續新增時也有「累積感」。 */}
+          <ul className="flex flex-wrap gap-2 pt-1.5">
             {added.map((c) => (
               <li
                 key={c.id}
-                className="inline-flex items-center gap-1 rounded-full bg-card px-3 py-1 text-xs font-medium text-text"
+                className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-xs font-semibold text-text shadow-clay-sm"
               >
                 <Icon name="child" className="h-[14px] w-[14px] text-brand" />
                 {c.nickname}

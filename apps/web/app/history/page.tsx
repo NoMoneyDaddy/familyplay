@@ -67,6 +67,30 @@ interface Draft {
   durationMins: string
 }
 
+/** 載入骨架：黏土調的脈動占位，取代冷冰冰的「加載中…」文字，避免版面突跳（CLS）。 */
+function HistorySkeleton() {
+  return (
+    <div className="space-y-3" role="status" aria-label="載入中">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="animate-pulse rounded-xl border border-border/60 bg-card p-4 shadow-clay-sm"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-2/3 rounded-full bg-bg" />
+              <div className="h-3 w-1/3 rounded-full bg-bg" />
+            </div>
+            <div className="h-[34px] w-[34px] shrink-0 rounded-full bg-bg" />
+          </div>
+          <div className="mt-3 h-3 w-1/2 rounded-full bg-bg" />
+        </div>
+      ))}
+      <span className="sr-only">加載中...</span>
+    </div>
+  )
+}
+
 export default function HistoryPage() {
   const { selectedChildId, hasHydrated } = useChildStore()
   const [logs, setLogs] = useState<Log[]>([])
@@ -221,11 +245,11 @@ export default function HistoryPage() {
         <Icon name="chevronRight" className="h-[18px] w-[18px] shrink-0 text-faint" />
       </Link>
 
-      {/* 連續陪伴天數：強化習慣養成的成就感 */}
+      {/* 連續陪伴天數：強化習慣養成的成就感。用黏土徽章 + sparkle 圖示取代 emoji（一致圖示語言）。 */}
       {selectedChildId && streak > 0 && (
         <div className="flex items-center gap-3 rounded-2xl bg-brand-tint p-4 shadow-clay-sm">
-          <span className="text-3xl" aria-hidden>
-            🔥
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[image:var(--gradient-brand)] text-white shadow-brand">
+            <Icon name="sparkle" className="h-[22px] w-[22px]" />
           </span>
           <div>
             <p className="text-lg font-bold text-brand-strong">連續陪伴 {streak} 天</p>
@@ -301,15 +325,20 @@ export default function HistoryPage() {
           先建立孩子檔案，之後的陪伴紀錄就會收在這裡。
         </EmptyState>
       ) : loading ? (
-        <div className="text-center text-muted" role="status">
-          加載中...
-        </div>
+        <HistorySkeleton />
       ) : logs.length === 0 ? (
-        <EmptyState title="還沒有陪伴紀錄">
+        <EmptyState
+          title="還沒有陪伴紀錄"
+          action={
+            <LinkButton href="/now" icon="compass">
+              開始第一次陪伴
+            </LinkButton>
+          }
+        >
           完成一個活動並記錄孩子的反應後，就會出現在這裡，陪你看見每天的累積。
         </EmptyState>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {/* 波波陪伴：把累積說成鼓勵，不是進度條 */}
           <Card className="flex items-center gap-3 bg-brand-tint/50">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-card shadow-clay-sm">
@@ -320,12 +349,22 @@ export default function HistoryPage() {
               <span className="text-muted">每一次都算數 ☁️</span>
             </p>
           </Card>
-          <ul className="space-y-3">
+          {/* 簽名強化：把紀錄排成一條時間軸。左側暖色軸線串起每筆，結果徽章兼作節點，
+              讓「一路陪過來」的累積感比平鋪卡片更有故事性。 */}
+          <ul className="relative ml-[17px] space-y-3 border-l-2 border-border/70 pl-6">
             {logs.map((log) => {
               const badge = OUTCOME_BADGE[log.outcome] ?? OUTCOME_BADGE.default
               const isEditing = editingId === log.id
               return (
-                <Card key={log.id} as="li" className="p-4">
+                <Card key={log.id} as="li" className="relative p-4">
+                  {/* 時間軸節點：結果徽章移到軸線上，圈一圈頁底色把軸線「切斷」對齊卡片 */}
+                  <span
+                    role="img"
+                    aria-label={`結果：${OUTCOME_LABEL[log.outcome] ?? log.outcome}`}
+                    className={`absolute -left-[37px] top-4 flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full ring-4 ring-bg ${badge.wrap}`}
+                  >
+                    <Icon name={badge.icon} className="h-[18px] w-[18px]" />
+                  </span>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <p className="font-semibold text-text">{log.activityTitle}</p>
@@ -340,13 +379,6 @@ export default function HistoryPage() {
                         )}
                       </p>
                     </div>
-                    <span
-                      role="img"
-                      aria-label={`結果：${OUTCOME_LABEL[log.outcome] ?? log.outcome}`}
-                      className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full ${badge.wrap}`}
-                    >
-                      <Icon name={badge.icon} className="h-[18px] w-[18px]" />
-                    </span>
                   </div>
 
                   {isEditing ? (

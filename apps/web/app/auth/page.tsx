@@ -124,10 +124,16 @@ function AuthPageInner() {
       <div className="w-full max-w-[400px] space-y-6">
         {/* 主卡片：黏土質感的入口卡 */}
         <div className="space-y-7 rounded-[30px] bg-card p-7 shadow-clay ring-1 ring-border/50">
-          {/* Hero */}
+          {/* Hero：吉祥物徽章外圍加一圈柔和暈光，營造「被歡迎」的溫度（可降動態） */}
           <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-[72px] w-[72px] items-center justify-center rounded-[26px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
-              <Mascot className="h-12 w-12" />
+            <div className="relative mx-auto h-[88px] w-[88px]">
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full bg-brand opacity-15 blur-2xl"
+              />
+              <div className="relative mx-auto flex h-[88px] w-[88px] items-center justify-center rounded-[28px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
+                <Mascot className="h-14 w-14" />
+              </div>
             </div>
             <div className="space-y-1.5">
               <h1 className="text-[28px] font-bold leading-tight text-text">FamilyPlay</h1>
@@ -176,8 +182,14 @@ function AuthPageInner() {
             </button>
           </div>
 
-          {/* 信任元素 */}
-          <p className="text-center text-xs text-muted">免費開始 · 免信用卡 · 30 秒上手</p>
+          {/* 信任元素：分隔點對齊、字距放寬，讓三個賣點各自成塊更好掃讀 */}
+          <p className="flex items-center justify-center gap-2 text-center text-xs font-medium text-muted">
+            <span>免費開始</span>
+            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-border-strong" />
+            <span>免信用卡</span>
+            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-border-strong" />
+            <span>30 秒上手</span>
+          </p>
 
           {/* 不強制登入：可先免登入試用 */}
           <p className="text-center text-sm text-muted">
