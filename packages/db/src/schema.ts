@@ -183,8 +183,7 @@ export const entitlements = pgTable('entitlements', {
   plan: text('plan').notNull().default('free'), // 'free' | 'supporter' | 'plus'
   plusAiCallsRemaining: integer('plus_ai_calls_remaining').default(0),
   plusAiCallsResetAt: timestamp('plus_ai_calls_reset_at', { withTimezone: true }),
-  lemonSqueezySubscriptionId: text('lemonsqueezy_subscription_id'), // web
-  revenuecatCustomerId: text('revenuecat_customer_id'), // mobile
+  revenuecatCustomerId: text('revenuecat_customer_id'), // web + mobile（統一 RevenueCat）
   supporterPurchasedAt: timestamp('supporter_purchased_at', { withTimezone: true }),
   plusStartedAt: timestamp('plus_started_at', { withTimezone: true }),
   plusEndsAt: timestamp('plus_ends_at', { withTimezone: true }),

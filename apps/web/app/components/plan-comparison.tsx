@@ -29,7 +29,7 @@ interface PlanCard {
 
 // 輕營利取向：大部分功能免費（以輕度廣告支撐）；付費可移除廣告並解鎖進階，價格溫和、隨時可取消。
 // 誠實原則：尚未實作的功能一律標「即將推出」，核心未交付的方案不開放結帳。
-// 顯示價格須與 LemonSqueezy variant 設定一致（見 README / env）。
+// 顯示價格須與 RevenueCat 商品設定一致（見 README / env）。
 const PLAN_CARDS: PlanCard[] = [
   {
     id: 'free',
