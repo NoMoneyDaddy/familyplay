@@ -17,59 +17,26 @@ import {
   PageShell,
 } from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
+import {
+  isRealActivity,
+  type Recommendation,
+  readCachedRec,
+  saveCachedRec,
+  timeDefaultContext,
+} from '@/lib/recommendation'
 import { useChildStore } from '@/lib/stores/useChildStore'
-
-interface Rec {
-  id: string
-  title: string
-  reasons: string[]
-  minDurationMinutes?: number
-  maxDurationMinutes?: number
-  stimulationLevel?: 'low' | 'medium' | 'high'
-  developmentalFocus?: string[]
-}
 
 // 一鍵「現在就陪」：不問年齡、不問精力、不問情境——用上次的孩子、依時段自動帶情境、
 // 精力預設「有點累」，直接給「一個」主答案。想換就按「換一個」，玩完就一鍵記錄。
 // 預設精力刻意取偏低：疲憊家長是常態，給低負擔方案最安全；想精挑可走「自己挑狀態」。
 const DEFAULT_ENERGY = 'low'
 
-function timeDefaultContext(): string {
-  const hour = new Date().getHours()
-  return hour >= 19 || hour < 5 ? 'bedtime' : 'normal'
-}
-
-// 真實活動才有詳情頁（DB UUID）；引擎合成的安全回退方案 id 非 UUID，無對應頁面。
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-function isRealActivity(id: string): boolean {
-  return UUID_RE.test(id)
-}
-
-// 離線快取：記住每個孩子上次成功拿到的主方案，斷網/掛起時還能顯示一個能玩的，
-// 而非只給錯誤畫面。localStorage 在隱私模式可能 throw，全包 try-catch。
-const cacheKey = (childId: string) => `fp_now_rec_${childId}`
-function saveCachedRec(childId: string, rec: Rec) {
-  try {
-    localStorage.setItem(cacheKey(childId), JSON.stringify(rec))
-  } catch {
-    // 寫入失敗僅是無法離線回放，不影響本次
-  }
-}
-function readCachedRec(childId: string): Rec | null {
-  try {
-    const raw = localStorage.getItem(cacheKey(childId))
-    return raw ? (JSON.parse(raw) as Rec) : null
-  } catch {
-    return null
-  }
-}
-
 export default function NowPage() {
   const router = useRouter()
   const selectedChildId = useChildStore((s) => s.selectedChildId)
   const hasHydrated = useChildStore((s) => s.hasHydrated)
 
-  const [rec, setRec] = useState<Rec | null>(null)
+  const [rec, setRec] = useState<Recommendation | null>(null)
   const [loading, setLoading] = useState(true)
   const [shuffling, setShuffling] = useState(false)
   const [logging, setLogging] = useState(false)
@@ -113,7 +80,7 @@ export default function NowPage() {
           if (mode === 'initial') setError(data.error)
           return
         }
-        const next: Rec | undefined = (data.recommendations || [])[0]
+        const next: Recommendation | undefined = (data.recommendations || [])[0]
         if (!next || (mode === 'shuffle' && seenIds.current.has(next.id))) {
           setExhausted(true)
           return

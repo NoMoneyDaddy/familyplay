@@ -15,6 +15,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
+import { type Recommendation, timeDefaultContext } from '@/lib/recommendation'
 
 // 年齡帶 → 代表月齡（取各發展階段中段），讓年齡安全過濾正確運作
 const AGE_BANDS: { label: string; months: number }[] = [
@@ -44,23 +45,6 @@ const CONTEXT_OPTIONS: { value: string; label: string; icon: IconName }[] = [
 ]
 
 const AGE_STORAGE_KEY = 'fp_try_age_months'
-
-// 依時段預設情境：傍晚到清晨偏「睡前」，其餘「正常時光」。只是預選、可改。
-function timeDefaultContext(): string {
-  const hour = new Date().getHours()
-  return hour >= 19 || hour < 5 ? 'bedtime' : 'normal'
-}
-
-interface Recommendation {
-  id: string
-  title: string
-  score: number
-  reasons: string[]
-  minDurationMinutes?: number
-  maxDurationMinutes?: number
-  stimulationLevel?: 'low' | 'medium' | 'high'
-  developmentalFocus?: string[]
-}
 
 export default function TryPage() {
   const [ageMonths, setAgeMonths] = useState<number | null>(null)
