@@ -100,8 +100,11 @@
   `sanitizeHandoffSummary`，把規則式現況交給 AI 寫成 2–3 句溫暖短評；輸入沿用與活動生成
   完全相同的白名單（只送 stageKey + 發展中能力，零新增資料面），走 Safety Filter、
   BYO/Plus 託管配額，失敗安靜降回規則式小卡；交接頁加「AI 潤色」按鈕、短評自動帶入分享/儲存
-- 商業化解鎖（風險 C，需經營決策）：交付 Plus 真實價值後拿掉 `plan-comparison` 的
-  `comingSoon`、開放結帳；`sponsor_cards` 廣告渲染讓 Supporter「去廣告」賣點成立
+- [x] `sponsor_cards` 廣告渲染（C2）：`fetchActiveSponsorCards` + `/api/sponsors` +
+  `SponsorSlot`（僅免費用戶可見、付費去廣告即隱藏），讓 Supporter「去廣告」賣點成立；
+  抽 `lib/plan-cache` 與 AdSlot 共用一次 entitlements 查詢
+- 商業化解鎖（風險 C1，需經營決策）：交付 Plus 真實價值後拿掉 `plan-comparison` 的
+  `comingSoon`、開放結帳（需定價 + RevenueCat 後台設商品）
 - 多孩子 UI/流程優化、推送通知、離線、本地化
 
 ---

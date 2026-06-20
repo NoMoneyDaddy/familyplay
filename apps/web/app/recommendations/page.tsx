@@ -8,6 +8,7 @@ import { AdSlot } from '@/app/components/ad-slot'
 import { FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
 import { SaveHeart } from '@/app/components/save-heart'
+import { SponsorSlot } from '@/app/components/sponsor-slot'
 import {
   ActivityMeta,
   Button,
@@ -307,6 +308,8 @@ function RecommendationsPageInner() {
 
       {/* 輕度廣告：僅對免費用戶顯示、且需設定 AdSense；放在底部不干擾 */}
       <AdSlot className="pt-2" />
+      {/* 贊助小卡（在地親子資源）：同樣僅免費用戶可見，付費去廣告即隱藏 */}
+      <SponsorSlot placement="recommendations" className="pt-1" />
 
       <p className="px-2 text-center text-xs leading-relaxed text-faint">
         活動建議僅供親子陪伴參考，非醫療或專業評估，請由成人全程監護。詳見{' '}
