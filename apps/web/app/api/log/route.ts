@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const logSchema = z.object({
@@ -54,9 +55,15 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    // 無效 JSON 屬客戶端錯誤（與其他 route 一致），不上報
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    }
     if (error instanceof LogError) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
+    // 非預期 500 不再靜默：上報以利定位（風險 A）
+    reportError(error, { route: '/api/log', userId: user.id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
