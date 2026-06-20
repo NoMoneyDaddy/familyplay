@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export async function GET() {
@@ -45,7 +46,7 @@ export async function GET() {
       .limit(100)
 
     if (error) {
-      console.error('Failed to fetch children', error)
+      reportError(error, { route: '/api/children/list', userId: user.id })
       return NextResponse.json({ error: 'Failed to fetch children' }, { status: 500 })
     }
 
@@ -58,7 +59,8 @@ export async function GET() {
         createdAt: child.created_at,
       })),
     })
-  } catch {
+  } catch (error) {
+    reportError(error, { route: '/api/children/list', userId: user.id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

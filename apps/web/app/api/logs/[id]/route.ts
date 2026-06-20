@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 // 編輯紀錄：只允許改結果/反應/時長（不可變更 child_id、household_id —— RLS 的 WITH CHECK 鎖死）。
@@ -92,7 +93,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       .select('id')
 
     if (error) {
-      console.error('Failed to update companion log', error)
+      reportError(error, { route: 'PATCH /api/logs/[id]', userId: user.id })
       return NextResponse.json({ error: 'Failed to update log' }, { status: 500 })
     }
     if (!data || data.length === 0) {
@@ -108,6 +109,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
     }
+    reportError(error, { route: 'PATCH /api/logs/[id]', userId: user.id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -144,7 +146,7 @@ export async function DELETE(_request: Request, ctx: { params: Promise<{ id: str
     const { data, error } = await supabase.from('companion_logs').delete().eq('id', id).select('id')
 
     if (error) {
-      console.error('Failed to delete companion log', error)
+      reportError(error, { route: 'DELETE /api/logs/[id]', userId: user.id })
       return NextResponse.json({ error: 'Failed to delete log' }, { status: 500 })
     }
     if (!data || data.length === 0) {
@@ -156,6 +158,7 @@ export async function DELETE(_request: Request, ctx: { params: Promise<{ id: str
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    reportError(error, { route: 'DELETE /api/logs/[id]', userId: user.id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
