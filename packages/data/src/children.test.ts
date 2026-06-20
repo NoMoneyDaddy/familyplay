@@ -18,6 +18,7 @@ interface Captured {
 function makeSupabase(opts: {
   user?: { id: string; user_metadata?: Record<string, unknown> } | null
   profileId?: string | null
+  profileError?: boolean // user_profiles 查詢失敗（RLS/網路）
   ownedHousehold?: string // undefined = 沒有擁有的家庭
   membership?: string | null // null = 沒有加入的家庭
   rpc?: Result
@@ -41,8 +42,12 @@ function makeSupabase(opts: {
         return {
           select: () => ({
             eq: () => ({
-              single: async () =>
-                opts.profileId === null ? fail() : ok({ id: opts.profileId ?? 'profile-1' }),
+              maybeSingle: async () =>
+                opts.profileError
+                  ? fail()
+                  : opts.profileId === null
+                    ? ok(null)
+                    : ok({ id: opts.profileId ?? 'profile-1' }),
             }),
           }),
         }
@@ -51,8 +56,12 @@ function makeSupabase(opts: {
         return {
           select: () => ({
             eq: () => ({
-              maybeSingle: async () =>
-                opts.ownedHousehold === undefined ? ok(null) : ok({ id: opts.ownedHousehold }),
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () =>
+                    opts.ownedHousehold === undefined ? ok(null) : ok({ id: opts.ownedHousehold }),
+                }),
+              }),
             }),
           }),
           insert: (payload: Record<string, unknown>) => {
@@ -147,6 +156,16 @@ describe('createChild', () => {
   it('未登入 → ChildError(unauthorized)', async () => {
     const supabase = makeSupabase({ user: null })
     await expect(createChild(supabase, args)).rejects.toMatchObject({ code: 'unauthorized' })
+  })
+
+  it('查無 user_profile → ChildError(profile_not_found, 404 類)', async () => {
+    const supabase = makeSupabase({ profileId: null })
+    await expect(createChild(supabase, args)).rejects.toMatchObject({ code: 'profile_not_found' })
+  })
+
+  it('user_profile 查詢失敗（RLS/網路）→ ChildError(profile_failed, 5xx 類，不誤判 404)', async () => {
+    const supabase = makeSupabase({ profileError: true })
+    await expect(createChild(supabase, args)).rejects.toMatchObject({ code: 'profile_failed' })
   })
 
   it('沒有擁有的家庭但有加入的 → 用加入的家庭', async () => {

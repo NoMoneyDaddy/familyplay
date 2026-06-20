@@ -10,6 +10,7 @@ import { checkRateLimit } from '@/lib/ratelimit'
 const STATUS_BY_CODE: Record<string, number> = {
   unauthorized: 401,
   profile_not_found: 404,
+  profile_failed: 500,
   household_failed: 500,
   create_failed: 500,
 }
@@ -60,18 +61,18 @@ export async function POST(request: Request) {
 
     // 家庭歸屬解析（擁有→加入→新建）、原子 RPC＋兩段式退路、能力檔與回滾全在
     // @familyplay/data 統一處理；Web 與行動端共用同一份編排（RLS 由 client session 生效）。
-    const childId = await createChild(supabase, { nickname, birthYearMonth })
+    // 已驗過 user，直接傳入避免 createChild 內再打一次 supabase.auth.getUser()。
+    const childId = await createChild(supabase, { nickname, birthYearMonth, user })
     return NextResponse.json({ childId })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
     if (error instanceof ChildError) {
-      reportError(error, { route: '/api/children', code: error.code })
-      return NextResponse.json(
-        { error: error.message },
-        { status: STATUS_BY_CODE[error.code] ?? 500 },
-      )
+      const status = STATUS_BY_CODE[error.code] ?? 500
+      // 4xx（unauthorized/profile_not_found）屬預期客戶端錯誤，不上報以免淹沒真正的系統告警。
+      if (status >= 500) reportError(error, { route: '/api/children', code: error.code })
+      return NextResponse.json({ error: error.message }, { status })
     }
     reportError(error, { route: '/api/children' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
