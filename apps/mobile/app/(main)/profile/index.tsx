@@ -11,11 +11,18 @@ interface ProfileData {
   avatarUrl: string | null
 }
 
-/** 帳號頁：顯示基本資料、訂閱入口、登出。繁中 + 暖色主題（與全 App 一致）。 */
+const PLAN_LABELS: Record<string, string> = {
+  free: '免費',
+  supporter: '支持者',
+  plus: 'Plus',
+}
+
+/** 帳號頁：顯示基本資料、目前方案、訂閱入口、登出。繁中 + 暖色主題（與全 App 一致）。 */
 export default function ProfileScreen() {
   const router = useRouter()
   const { session } = useAuthStore()
   const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [plan, setPlan] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -33,11 +40,18 @@ export default function ProfileScreen() {
         const supabase = createMobileClient()
         const { data, error: fetchError } = await supabase
           .from('user_profiles')
-          .select('display_name, avatar_url')
+          .select('id, display_name, avatar_url')
           .eq('auth_user_id', session.user.id)
           .single()
         if (fetchError || !data) throw fetchError ?? new Error('No profile')
         setProfile({ displayName: data.display_name, avatarUrl: data.avatar_url })
+        // 目前方案（RLS own_entitlement_read 允許本人讀）；查不到視為 free。
+        const { data: ent } = await supabase
+          .from('entitlements')
+          .select('plan')
+          .eq('user_profile_id', data.id)
+          .maybeSingle()
+        setPlan(ent?.plan ?? 'free')
       } catch (err) {
         console.error('Failed to fetch profile:', err)
         setError('無法載入帳號資料')
@@ -103,6 +117,16 @@ export default function ProfileScreen() {
           <Text className="mt-2 text-sm" style={{ color: colors.muted }}>
             {session?.user?.email || '—'}
           </Text>
+          {plan ? (
+            <View className="mt-4 flex-row items-center justify-between border-t border-border pt-4">
+              <Text className="text-sm" style={{ color: colors.muted }}>
+                目前方案
+              </Text>
+              <Text className="text-sm font-bold" style={{ color: colors.brand }}>
+                {PLAN_LABELS[plan] ?? plan}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <Pressable
