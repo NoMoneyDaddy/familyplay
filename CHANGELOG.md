@@ -8,6 +8,10 @@
 - 修好 Playwright e2e 跑不起來的設定 bug：config 從 repo 根移到 `apps/web`（`@playwright/test` 所在處、`turbo test:e2e` 執行處），原本根 config 找不到依賴、且 `turbo test:e2e` 在 `apps/web` 無 config 會誤抓 vitest 檔。
 - 更新過時 smoke（`/` 現導向 `/try`）＋擴充 e2e：法務頁、`/pricing` 三方案、`/offline`、`/try` 表單互動/a11y。手機斷點實跑 chromium 8 案全綠。
 
+### 行動端（Expo）帳號/方案頁品質修正
+- 修好登出失效：`profile` 原本導向不存在的 `/auth/logout`，改為 `signOut()` + 導回登入（與 `select` 一致）。
+- `profile`／`pricing` 由英文 + 冷灰/藍配色改為繁體中文 + 暖色主題 token（遵守 `lib/theme.ts`「不散用冷灰 hex」）；方案頁誠實標示 App 內購（RevenueCat）即將推出、可先用網頁版訂閱。
+
 ### 行動端（Expo）發展里程碑評估
 - 新增 `lib/capabilities.ts`：讀／標記孩子能力（與 Web `/api/capabilities` 同流程，RLS；標記走原子 RPC `set_child_capability`，未部署時退回讀-改-寫）；`pickAchieved` 白名單過濾＋單元測試。
 - 新增 `/milestones` 畫面：分五大領域標記「會了/還沒」（樂觀更新、逐顆 pending、已標記計數），並用 `getZpdTargets` 顯示「接下來正在發展中」。標記後驅動推薦引擎 ZPD 與 Step 8。
