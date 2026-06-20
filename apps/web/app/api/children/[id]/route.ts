@@ -132,6 +132,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
+    // 無效 JSON 屬客戶端錯誤（400），不上報 Sentry 以免噪音（與 /api/logs/[id] 一致）
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    }
     reportError(error, { route: 'PUT /api/children/[id]', userId: user.id, childId: id })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

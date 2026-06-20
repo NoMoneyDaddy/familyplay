@@ -93,7 +93,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       .select('id')
 
     if (error) {
-      reportError(error, { route: 'PATCH /api/logs/[id]', userId: user.id })
+      reportError(error, { route: 'PATCH /api/logs/[id]', userId: user.id, logId: id })
       return NextResponse.json({ error: 'Failed to update log' }, { status: 500 })
     }
     if (!data || data.length === 0) {
@@ -146,7 +146,7 @@ export async function DELETE(_request: Request, ctx: { params: Promise<{ id: str
     const { data, error } = await supabase.from('companion_logs').delete().eq('id', id).select('id')
 
     if (error) {
-      reportError(error, { route: 'DELETE /api/logs/[id]', userId: user.id })
+      reportError(error, { route: 'DELETE /api/logs/[id]', userId: user.id, logId: id })
       return NextResponse.json({ error: 'Failed to delete log' }, { status: 500 })
     }
     if (!data || data.length === 0) {

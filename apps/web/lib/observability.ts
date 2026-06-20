@@ -20,12 +20,8 @@ export interface ErrorContext {
 
 export function reportError(error: unknown, context?: ErrorContext): void {
   if (!error) return // 空值不上報，避免無意義的 Sentry 事件
-  // server log 也帶上 user/child，stdout 同樣能快速定位
-  console.error(
-    context?.route ?? 'error',
-    { userId: context?.userId, childId: context?.childId },
-    error,
-  )
+  // server log 帶完整 context，stdout 也能快速定位（含 logId 等自訂擴充欄位，不漏資訊）
+  console.error(context?.route ?? 'error', context, error)
   try {
     Sentry.withScope((scope) => {
       if (context?.userId) scope.setUser({ id: String(context.userId) })
