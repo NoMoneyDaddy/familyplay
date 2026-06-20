@@ -174,6 +174,23 @@ export default function HistoryScreen() {
           </View>
         ) : null}
 
+        {/* 交接小卡入口：把孩子現狀濃縮成一張卡，分享給接手的家人 */}
+        {childId ? (
+          <Pressable
+            onPress={() => router.push(`/handoff?childId=${childId}`)}
+            accessibilityRole="button"
+            className="mb-6 flex-row items-center justify-between rounded-2xl px-4 py-3 active:opacity-80"
+            style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}
+          >
+            <Text className="text-sm font-medium" style={{ color: colors.text }}>
+              📇 做一張交接小卡，分享給家人
+            </Text>
+            <Text className="text-sm" style={{ color: colors.muted }}>
+              ›
+            </Text>
+          </Pressable>
+        ) : null}
+
         {error ? (
           <View className="mb-4 rounded-xl p-4" style={{ backgroundColor: colors.dangerTint }}>
             <Text className="text-sm" style={{ color: colors.danger }}>
