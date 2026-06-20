@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { SettingsGearLink } from '@/app/components/settings-gear-link'
 import {
   Button,
   Callout,
@@ -75,11 +74,7 @@ export default function ChildrenPage() {
   if (loading) {
     return (
       <PageShell>
-        <PageHeader
-          title="管理孩子"
-          subtitle="編輯和管理你的孩子檔案"
-          action={<SettingsGearLink />}
-        />
+        <PageHeader title="管理孩子" subtitle="編輯和管理你的孩子檔案" />
         {/* 骨架：先佔好卡片位置，避免清單載入時版面跳動（CLS） */}
         <ul className="space-y-3" aria-hidden="true">
           {[0, 1].map((i) => (
@@ -107,11 +102,7 @@ export default function ChildrenPage() {
 
   return (
     <PageShell>
-      <PageHeader
-        title="管理孩子"
-        subtitle="編輯和管理你的孩子檔案"
-        action={<SettingsGearLink />}
-      />
+      <PageHeader title="管理孩子" subtitle="編輯和管理你的孩子檔案" />
 
       <ErrorAlert message={error} />
 
