@@ -1,10 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { type ProfileResolveKind, resolveProfileId } from './profile'
 
 // 交接小卡持久化：把「孩子現況濃縮卡」存進 handoff_summaries，之後家庭成員可回看。
 // household_id / created_by 由 childId 與當前使用者推出（不信任前端），RLS 僅本家庭成員可讀寫。
 // 跨平台共用：Web 與行動端各自帶 session 的 client。
 
 export class HandoffError extends Error {}
+
+// 行為保留：未登入 → '尚未登入'；查詢失敗或查無 → '找不到使用者資料'。
+const handoffProfileError = (kind: ProfileResolveKind) =>
+  new HandoffError(kind === 'unauthorized' ? '尚未登入' : '找不到使用者資料')
 
 export interface HandoffSummary {
   id: string
@@ -44,24 +49,14 @@ export async function saveHandoff(
     .single()
   if (childError || !child?.household_id) throw new HandoffError('找不到孩子資料')
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new HandoffError('尚未登入')
-
-  const { data: profile, error: profileError } = await supabase
-    .from('user_profiles')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single()
-  if (profileError || !profile) throw new HandoffError('找不到使用者資料')
+  const profileId = await resolveProfileId(supabase, handoffProfileError)
 
   const { data, error } = await supabase
     .from('handoff_summaries')
     .insert({
       household_id: child.household_id,
       child_id: childId,
-      created_by: profile.id,
+      created_by: profileId,
       summary_text: summaryText,
       logs_referenced: logsReferenced,
     })

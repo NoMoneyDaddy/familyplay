@@ -38,7 +38,7 @@ function makeSupabase(opts: {
         return {
           select: () => ({
             eq: () => ({
-              single: async () => ({
+              maybeSingle: async () => ({
                 data: opts.profileId === null ? null : { id: opts.profileId ?? 'profile-1' },
                 error: null,
               }),
