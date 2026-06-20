@@ -39,6 +39,15 @@ export default defineConfig({
       name: 'iPad',
       use: { ...devices['iPad Mini'], viewport: { width: 768, height: 1024 } },
     },
+    // 桌機斷點：mobile-first 置中欄（max-w-480）在寬螢幕的呈現與環境陰影框架
+    {
+      name: '桌機 (1280px)',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+    },
+    {
+      name: '桌機大 (1440px)',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+    },
   ],
 
   webServer: {
