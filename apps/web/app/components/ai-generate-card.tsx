@@ -49,6 +49,8 @@ export function AIGenerateCard({ childId }: { childId: string }) {
   // 方案讀不到（網路/DB 錯誤、planStatus:'unknown'）時不要把入口藏掉——寧可顯示按鈕，
   // 後端仍以配額把關（非 Plus 會安靜降回）。回到分頁時重讀，升級/掉訂後即時反映。
   const [allowManaged, setAllowManaged] = useState(false)
+  // Plus 會員本月託管 AI 生成剩餘次數（null = 非 Plus 或讀不到，不顯示）
+  const [plusRemaining, setPlusRemaining] = useState<number | null>(null)
   useEffect(() => {
     let cancelled = false
     const refresh = () => {
@@ -59,6 +61,11 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           // 讀失敗或狀態未知 → 視為可嘗試（不藏入口）；讀到明確方案才依 plan 判斷
           if (!d || d.planStatus === 'unknown') setAllowManaged(true)
           else setAllowManaged(d.plan === 'plus')
+          setPlusRemaining(
+            d && d.plan === 'plus' && typeof d.plusAiCallsRemaining === 'number'
+              ? d.plusAiCallsRemaining
+              : null,
+          )
         })
         .catch(() => {
           if (!cancelled) setAllowManaged(true)
@@ -103,6 +110,8 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           ...(data.activity as GeneratedActivity),
           targetedSkills: Array.isArray(data.targetedSkills) ? data.targetedSkills : undefined,
         })
+        // 託管模式（無 BYO key）成功會扣 1 次配額，本地同步遞減顯示
+        if (!key && plusRemaining != null) setPlusRemaining(Math.max(0, plusRemaining - 1))
       } else {
         // ok:false（金鑰無效/額度用盡/安全擋下/解析失敗…）一律給同一句溫和訊息
         setError('這次沒生成成功，可能是金鑰或額度問題，稍後再試或換個服務。')
@@ -173,6 +182,9 @@ export function AIGenerateCard({ childId }: { childId: string }) {
             {error}
           </p>
         )}
+        {plusRemaining != null && (
+          <p className="text-center text-xs text-muted">本月 Plus AI 生成還剩 {plusRemaining} 次</p>
+        )}
         <Button variant="secondary" size="md" icon="refresh" loading={loading} onClick={generate}>
           再生一個
         </Button>
@@ -192,6 +204,9 @@ export function AIGenerateCard({ childId }: { childId: string }) {
             ? 'Plus 免設定，依孩子的程度生一個。'
             : '依孩子的程度，現場生一個全新的小活動。'}
         </p>
+        {plusRemaining != null && (
+          <p className="text-xs text-muted">本月 Plus AI 生成還剩 {plusRemaining} 次</p>
+        )}
       </div>
       {error && (
         <p className="rounded-lg bg-warning-tint px-3 py-2 text-xs text-warning" role="status">

@@ -43,6 +43,7 @@ export async function GET() {
       plan: 'free',
       planStatus: 'ok',
       plusEndsAt: null,
+      plusAiCallsRemaining: null,
       revenuecatCustomerId: null,
     })
   }
@@ -59,7 +60,7 @@ export async function GET() {
   // 避免短暫錯誤把 Plus 使用者誤判成 free。
   const { data: entitlements, error: entError } = await supabase
     .from('entitlements')
-    .select('plan,plus_ends_at,revenuecat_customer_id')
+    .select('plan,plus_ends_at,plus_ai_calls_remaining,revenuecat_customer_id')
     .eq('user_profile_id', profile.id)
     .maybeSingle()
   if (entError) reportError(entError, { route: '/api/profile#entitlements' })
@@ -74,6 +75,9 @@ export async function GET() {
     plan: entError ? null : entitlements?.plan || 'free',
     planStatus: entError ? 'unknown' : 'ok',
     plusEndsAt: entitlements?.plus_ends_at || null,
+    // 只在 Plus 才有意義；前端據此顯示「本月 AI 生成剩餘次數」
+    plusAiCallsRemaining:
+      entitlements?.plan === 'plus' ? (entitlements?.plus_ai_calls_remaining ?? null) : null,
     revenuecatCustomerId: entitlements?.revenuecat_customer_id || null,
   })
 }
