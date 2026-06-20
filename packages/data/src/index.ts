@@ -4,6 +4,7 @@
 export * from './activity'
 export * from './capabilities'
 export * from './children'
+export * from './handoff'
 export * from './history'
 export * from './insights'
 export * from './log'
