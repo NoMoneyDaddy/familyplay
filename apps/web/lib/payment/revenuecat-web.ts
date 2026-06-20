@@ -36,8 +36,11 @@ export async function purchasePlan(appUserId: string, plan: WebPlan): Promise<bo
   const offerings = await purchases.getOfferings()
   const pkgs = offerings.current?.availablePackages ?? []
 
+  // 計費正確性：必須以該方案設定的 package id 精準對應，缺設定／找不到一律 fail-closed，
+  // 絕不退回 pkgs[0]（否則選 Plus 可能扣到別的方案）。
   const wantedId = packageIdFor(plan)
-  const pkg = wantedId ? pkgs.find((p) => p.identifier === wantedId) : pkgs[0]
+  if (!wantedId) throw new WebPurchaseError('方案尚未設定，請稍後再試')
+  const pkg = pkgs.find((p) => p.identifier === wantedId)
   if (!pkg) throw new WebPurchaseError('找不到對應方案')
 
   try {

@@ -23,6 +23,8 @@ const ERROR_STATUS: Record<string, number> = {
   age_invalid: 400,
   age_future: 400,
   activities_failed: 500,
+  logs_failed: 500,
+  capabilities_failed: 500,
 }
 
 export async function POST(request: Request) {

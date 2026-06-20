@@ -145,6 +145,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unknown product/entitlement' }, { status: 400 })
       }
 
+      // Plus 為訂閱，RevenueCat 正常都帶 expiration_at_ms。若缺漏/不合法，仍用保守回退
+      // （+30 天）避免遺失已付款的升級，但上報以利偵測異常事件（不靜默）。
+      const ms = event.expiration_at_ms
+      if (plan === 'plus' && (ms == null || Number.isNaN(new Date(ms).getTime()))) {
+        reportError(new Error('RevenueCat plus event missing/invalid expiration_at_ms'), {
+          route: '/api/revenuecat/webhook',
+          eventId,
+        })
+      }
       const plusEndsAt = resolveExpiry(event.expiration_at_ms)
       // upsert：行動端 IAP 不經我們的 checkout 端點，entitlements 列可能尚未存在。
       const { error } = await supabase.from('entitlements').upsert(

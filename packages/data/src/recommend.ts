@@ -73,6 +73,8 @@ export type RecommendErrorCode =
   | 'age_invalid'
   | 'age_future'
   | 'activities_failed'
+  | 'logs_failed'
+  | 'capabilities_failed'
 
 export class RecommendError extends Error {
   code: RecommendErrorCode
@@ -171,10 +173,12 @@ export async function fetchRecommendations(
         .order('created_at', { ascending: false })
         .limit(500),
       supabase
+        // maybeSingle：孩子尚無能力檔是正常情況（data=null、非 error），
+        // 才能與真正的 DB/RLS 錯誤區分。
         .from('child_capability_profiles')
         .select('capabilities')
         .eq('child_id', childId)
-        .single(),
+        .maybeSingle(),
       supabase
         .from('companion_logs')
         .select('activity_id,child_reaction')
@@ -185,8 +189,16 @@ export async function fetchRecommendations(
         .limit(500),
     ])
 
+  // 不吞錯：任何一個查詢失敗都 fail-closed（避免靜默退化成「沒紀錄/沒能力」而推出
+  // 不正確的結果，也讓 DB/RLS 故障可被監控發現）。與既有 activitiesResult 一致。
   if (activitiesResult.error) {
     throw new RecommendError('activities_failed', '無法載入活動資料')
+  }
+  if (recentLogsResult.error || reactionLogsResult.error) {
+    throw new RecommendError('logs_failed', '無法載入陪伴紀錄')
+  }
+  if (capProfileResult.error) {
+    throw new RecommendError('capabilities_failed', '無法載入能力資料')
   }
   const rows = (activitiesResult.data || []) as ActivityRow[]
 
