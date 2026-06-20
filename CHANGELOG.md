@@ -2,6 +2,10 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 本週陪伴洞察（weekly insights，情感回饋）
+- 新增 `packages/data/src/insights.ts`：`computeWeeklyInsights`（純聚合：次數／天數／最常玩／正向反應率）＋`fetchWeeklyInsights`（近 7 個本地日，Asia/Taipei）；6 個單元測試。
+- 行動端陪伴紀錄頁新增「本週陪伴」卡（次數／天數／玩得開心%／最常玩），給疲憊家長「你做得很好」的回饋，驅動留存。次要資訊，載入失敗不擋歷史。
+
 ### 連續陪伴天數（streak，習慣養成）
 - 新增 `packages/data/src/streak.ts`：`computeStreak`（純日期邏輯，今天未陪以昨天為錨、不中斷）＋`toLocalDate`（Asia/Taipei）＋`fetchStreak`（近 120 天窗）；8 個單元測試。
 - 行動端陪伴紀錄頁顯示「🔥 連續陪伴 N 天」徽章，強化 App 核心使命（幫家長持續陪伴）。
