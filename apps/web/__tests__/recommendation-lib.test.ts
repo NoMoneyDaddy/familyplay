@@ -58,6 +58,11 @@ describe('離線快取 round-trip', () => {
     expect(readCachedRec('nobody')).toBeNull()
   })
 
+  it('殘缺/舊結構快取（缺 reasons）→ null，不回殘缺物件', () => {
+    localStorage.setItem('fp_now_rec_child-x', JSON.stringify({ id: 'c1', title: '積木' }))
+    expect(readCachedRec('child-x')).toBeNull()
+  })
+
   it('localStorage throw（隱私模式）→ save 不爆、read 回 null', () => {
     vi.stubGlobal('localStorage', {
       getItem: () => {
