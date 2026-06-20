@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChildForm } from '@/app/components/child-form'
-import { Button, PageHeader, PageShell } from '@/app/components/ui'
+import { Button, EmptyState, PageHeader, PageShell } from '@/app/components/ui'
 
 interface Child {
   id: string
@@ -42,9 +42,28 @@ export default function EditChildPage() {
   if (loading) {
     return (
       <PageShell>
-        <div className="text-center text-muted" role="status">
-          加載中...
+        <PageHeader title="編輯孩子" backHref="/children" />
+        {/* 骨架：先佔好表單卡片的位置，避免抓到孩子資料後版面跳動 */}
+        <div
+          className="animate-pulse space-y-6 rounded-xl border border-border/60 bg-card p-6 shadow-clay"
+          aria-hidden="true"
+        >
+          <div className="space-y-2">
+            <div className="h-4 w-20 rounded bg-bg" />
+            <div className="h-12 w-full rounded-lg bg-bg" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-16 rounded bg-bg" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="h-12 rounded-lg bg-bg" />
+              <div className="h-12 rounded-lg bg-bg" />
+            </div>
+          </div>
+          <div className="h-12 w-full rounded-lg bg-bg" />
         </div>
+        <span className="sr-only" role="status">
+          加載中...
+        </span>
       </PageShell>
     )
   }
@@ -52,12 +71,17 @@ export default function EditChildPage() {
   if (!child) {
     return (
       <PageShell>
-        <div className="space-y-4 text-center">
-          <p className="text-muted">找不到這個孩子</p>
-          <Button variant="ghost" onClick={() => router.push('/children')}>
-            返回
-          </Button>
-        </div>
+        <PageHeader title="編輯孩子" backHref="/children" />
+        <EmptyState
+          title="找不到這個孩子"
+          action={
+            <Button variant="secondary" icon="back" onClick={() => router.push('/children')}>
+              回到孩子列表
+            </Button>
+          }
+        >
+          這個檔案可能已被刪除，或連結不正確。
+        </EmptyState>
       </PageShell>
     )
   }

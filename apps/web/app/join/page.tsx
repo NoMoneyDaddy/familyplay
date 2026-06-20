@@ -8,6 +8,7 @@ import {
   Card,
   ErrorAlert,
   Field,
+  Icon,
   PageHeader,
   PageShell,
   TextInput,
@@ -85,16 +86,27 @@ function JoinPageInner() {
         </Callout>
       ) : (
         // Input State
-        <Card className="space-y-4">
+        <Card className="space-y-5">
+          {/* 簽名強化：一張收到邀請的「請帖」感——圓潤的家庭徽章把單一任務（輸入碼）框成
+              一個溫暖的歡迎時刻，而不是冷冰冰的表單欄位。 */}
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-[26px] bg-[image:var(--gradient-brand)] text-white shadow-brand">
+              <Icon name="family" className="h-8 w-8" />
+            </span>
+            <p className="text-sm leading-relaxed text-muted">輸入家人給你的邀請碼，一起照顧寶寶</p>
+          </div>
+
           <Field label="邀請碼（8 碼英數）" htmlFor="code">
             <TextInput
               id="code"
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="例如：A1B2C3D4"
+              placeholder="A1B2C3D4"
               maxLength={8}
-              className="text-center font-mono text-lg tracking-widest"
+              autoComplete="off"
+              autoCapitalize="characters"
+              className="text-center font-mono text-2xl font-bold tracking-[0.3em]"
               disabled={loading}
             />
           </Field>
@@ -107,7 +119,7 @@ function JoinPageInner() {
             disabled={loading || !code.trim()}
             onClick={() => handleAcceptInvite(code)}
           >
-            接受邀請
+            {loading ? '加入中…' : '接受邀請'}
           </Button>
 
           <Callout tone="tip" title="提示">

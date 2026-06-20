@@ -14,7 +14,15 @@ import {
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
-import { Callout, FOCUS_LABEL, Icon, LinkButton, PageHeader, PageShell } from '@/app/components/ui'
+import {
+  Callout,
+  EmptyState,
+  FOCUS_LABEL,
+  Icon,
+  LinkButton,
+  PageHeader,
+  PageShell,
+} from '@/app/components/ui'
 import { fetchWithTimeout } from '@/lib/fetch-timeout'
 import { useChildStore } from '@/lib/stores/useChildStore'
 import { useGoBack } from '@/lib/use-go-back'
@@ -125,26 +133,63 @@ export default function CapabilitiesPage() {
     <PageShell>
       {/* ChildSwitcher 一律掛載：它負責抓孩子清單並設定當前孩子 */}
       <ChildSwitcher />
-      <PageHeader
-        title="發展里程碑"
-        subtitle={`已會 ${achievedCount} / ${TOTAL} 項`}
-        onBack={goBack}
-      />
+      <PageHeader title="發展里程碑" subtitle="標記孩子已經會的，推薦會更貼近他" onBack={goBack} />
+
+      {/* 簽名強化：把「已會 X / TOTAL」從一句副標升級成一條黏土進度條，
+          讓家長一眼看到整體進展、也給標記里程碑這件事一點累積的成就感。
+          只在已選孩子且資料就緒時顯示，避免在載入/空狀態出現空條。 */}
+      {hasHydrated && selectedChildId && !loading && (
+        <div className="space-y-1.5">
+          <div className="flex items-baseline justify-between text-sm">
+            <span className="font-semibold text-text">整體進展</span>
+            <span className="text-muted">
+              已會 <span className="font-display font-bold text-brand">{achievedCount}</span> /{' '}
+              {TOTAL} 項
+            </span>
+          </div>
+          <div
+            className="h-2.5 w-full overflow-hidden rounded-full bg-brand-tint shadow-[inset_0_1px_2px_rgb(74_49_28/0.08)]"
+            role="progressbar"
+            aria-valuenow={achievedCount}
+            aria-valuemin={0}
+            aria-valuemax={TOTAL}
+            aria-label={`發展里程碑進度：${TOTAL} 項中已會 ${achievedCount} 項`}
+          >
+            <div
+              className="h-full rounded-full bg-[image:var(--gradient-brand)] transition-[width] duration-500 ease-out"
+              style={{ width: `${TOTAL ? (achievedCount / TOTAL) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {!hasHydrated ? (
         <div className="text-center text-muted" role="status">
           加載中...
         </div>
       ) : !selectedChildId ? (
-        <div className="space-y-4 rounded-lg border border-border bg-card p-6 text-center shadow-sm">
-          <p className="text-muted">還沒有孩子檔案</p>
-          <LinkButton href="/children/add" icon="plus">
-            新增孩子
-          </LinkButton>
-        </div>
+        <EmptyState
+          title="還沒有孩子檔案"
+          action={
+            <LinkButton href="/children/add" icon="plus">
+              新增孩子
+            </LinkButton>
+          }
+        >
+          先建立孩子的檔案，就能開始標記里程碑、讓推薦更貼近他的發展。
+        </EmptyState>
       ) : loading ? (
-        <div className="text-center text-muted" role="status">
-          加載中...
+        // 骨架：先佔好里程碑清單的位置，避免抓到資料後版面跳動
+        <div className="space-y-3" aria-hidden="true">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-[58px] animate-pulse rounded-xl border border-border/60 bg-card"
+            />
+          ))}
+          <span className="sr-only" role="status">
+            加載中...
+          </span>
         </div>
       ) : (
         <div className="space-y-5">
@@ -210,7 +255,7 @@ export default function CapabilitiesPage() {
                           onClick={() => toggle(m.key)}
                           aria-pressed={done}
                           disabled={busy}
-                          className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3.5 text-left transition-colors disabled:opacity-60 ${
+                          className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3.5 text-left transition-all duration-150 enabled:active:scale-[0.99] disabled:opacity-60 ${
                             done
                               ? 'border-transparent bg-success-tint'
                               : 'border-border bg-card hover:border-brand/50'

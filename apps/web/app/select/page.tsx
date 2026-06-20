@@ -95,13 +95,20 @@ export default function SelectPage() {
             {ENERGY_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex cursor-pointer flex-row items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
+                className="group flex cursor-pointer flex-row items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50 active:scale-[0.98]"
               >
-                <input type="radio" name="parentEnergy" value={option.value} className="sr-only" />
-                <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                <input
+                  type="radio"
+                  name="parentEnergy"
+                  value={option.value}
+                  className="peer sr-only"
+                />
+                <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand transition-colors peer-checked:bg-[image:var(--gradient-brand)] peer-checked:text-white peer-checked:shadow-brand">
                   <Icon name={option.icon} className="h-[24px] w-[24px]" />
                 </span>
-                <span className="text-sm font-medium text-text">{option.label}</span>
+                <span className="text-sm font-medium text-text peer-checked:font-semibold peer-checked:text-brand-strong">
+                  {option.label}
+                </span>
               </label>
             ))}
           </div>
@@ -109,17 +116,19 @@ export default function SelectPage() {
 
         {/* 情境 */}
         <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-text">
+          <legend className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-text">
             現在的情境
             {autoPicked && (
-              <span className="ml-1.5 font-normal text-faint">已依時段預選，可更改</span>
+              <span className="rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-faint">
+                已依時段預選，可更改
+              </span>
             )}
           </legend>
           <div className="grid gap-2.5">
             {CONTEXT_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex cursor-pointer items-center gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-clay-sm transition-all hover:-translate-y-0.5 has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:checked]:shadow-clay has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50 active:scale-[0.99]"
               >
                 <input
                   type="radio"

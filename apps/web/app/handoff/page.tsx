@@ -247,8 +247,22 @@ export default function HandoffPage() {
           先建立孩子檔案，就能產生交接小卡。
         </EmptyState>
       ) : loading ? (
-        <div className="text-center text-muted" role="status">
-          加載中...
+        <div
+          className="animate-pulse space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-clay-sm"
+          role="status"
+          aria-label="載入中"
+        >
+          <div className="h-5 w-1/2 rounded-full bg-bg" />
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-start gap-2.5">
+              <div className="h-7 w-7 shrink-0 rounded-lg bg-bg" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-1/4 rounded-full bg-bg" />
+                <div className="h-3 w-2/3 rounded-full bg-bg" />
+              </div>
+            </div>
+          ))}
+          <span className="sr-only">加載中...</span>
         </div>
       ) : loadError ? (
         // 失敗時明確報錯並提供重試，避免把載入失敗誤顯示成空小卡、甚至被分享
@@ -264,66 +278,81 @@ export default function HandoffPage() {
         </EmptyState>
       ) : (
         <div className="space-y-4">
-          <Card className="space-y-4">
-            <h2 className="text-lg font-bold text-text">{child?.nickname || '寶寶'}的小卡</h2>
-
-            {aiSummary && (
-              <div className="rounded-xl bg-brand-tint px-3.5 py-3">
-                <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-brand-strong">
-                  <Icon name="sparkle" className="h-[14px] w-[14px]" />
-                  AI 暖場白
-                </p>
-                <p className="text-sm leading-relaxed text-text">{aiSummary}</p>
-              </div>
-            )}
-
-            {stage && (
-              <div className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand">
-                  <Icon name="child" className="h-[16px] w-[16px]" />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold text-muted">現在階段</p>
-                  <p className="text-sm text-text">{stage}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-start gap-2.5">
-              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand">
-                <Icon name="today" className="h-[16px] w-[16px]" />
+          {/* 簽名強化：讓小卡像一張「實體可分享的卡片」——頂部品牌色卡帶 + 內裡白底，
+              而非又一張表單卡。家長一看就知道這是要傳出去給家人的東西。 */}
+          <Card className="overflow-hidden p-0">
+            <div className="flex items-center gap-2.5 bg-[image:var(--gradient-brand)] px-5 py-3.5 text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                <Icon name="family" className="h-[18px] w-[18px]" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted">最近陪玩</p>
-                {recent.length === 0 ? (
-                  <p className="text-sm text-faint">還沒有紀錄</p>
-                ) : (
-                  <ul className="space-y-1">
-                    {recent.map((l) => (
-                      <li key={l.id} className="text-sm text-text">
-                        {l.activityTitle}
-                        <span className="text-faint">
-                          （{OUTCOME_LABEL[l.outcome] ?? l.outcome}
-                          {l.caregiverName ? `，${l.caregiverName}陪` : ''}）
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-white/85">
+                  陪伴交接小卡
+                </p>
+                <h2 className="truncate text-lg font-bold leading-tight">
+                  {child?.nickname || '寶寶'}
+                </h2>
               </div>
             </div>
+            <div className="space-y-4 p-6">
+              {aiSummary && (
+                <div className="rounded-xl bg-brand-tint px-3.5 py-3">
+                  <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-brand-strong">
+                    <Icon name="sparkle" className="h-[14px] w-[14px]" />
+                    AI 暖場白
+                  </p>
+                  <p className="text-sm leading-relaxed text-text">{aiSummary}</p>
+                </div>
+              )}
 
-            {nextItems.length > 0 && (
+              {stage && (
+                <div className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand">
+                    <Icon name="child" className="h-[16px] w-[16px]" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-muted">現在階段</p>
+                    <p className="text-sm text-text">{stage}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-start gap-2.5">
                 <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand">
-                  <Icon name="sparkle" className="h-[16px] w-[16px]" />
+                  <Icon name="today" className="h-[16px] w-[16px]" />
                 </span>
-                <div>
-                  <p className="text-xs font-semibold text-muted">接下來在發展</p>
-                  <p className="text-sm text-text">{nextItems.map((m) => m.label).join('、')}</p>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-muted">最近陪玩</p>
+                  {recent.length === 0 ? (
+                    <p className="text-sm text-faint">還沒有紀錄</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {recent.map((l) => (
+                        <li key={l.id} className="text-sm text-text">
+                          {l.activityTitle}
+                          <span className="text-faint">
+                            （{OUTCOME_LABEL[l.outcome] ?? l.outcome}
+                            {l.caregiverName ? `，${l.caregiverName}陪` : ''}）
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
-            )}
+
+              {nextItems.length > 0 && (
+                <div className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand">
+                    <Icon name="sparkle" className="h-[16px] w-[16px]" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-muted">接下來在發展</p>
+                    <p className="text-sm text-text">{nextItems.map((m) => m.label).join('、')}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </Card>
 
           {shareNote && (

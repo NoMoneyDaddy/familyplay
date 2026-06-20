@@ -23,6 +23,34 @@ import { fetchWithTimeout, isAbortError } from '@/lib/fetch-timeout'
 import { isRealActivity, type Recommendation } from '@/lib/recommendation'
 import { useGoBack } from '@/lib/use-go-back'
 
+// 卡片進場：依序淡入＋輕微上浮，讓「最適合的先到」有方向感（motion-meaning）。
+// 只用 opacity/transform（不動版位、無 CLS）；prefers-reduced-motion 時直接顯示、不位移。
+function Reveal({ index, children }: { index: number; children: React.ReactNode }) {
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      setShown(true)
+      return
+    }
+    const t = setTimeout(() => setShown(true), 40 * index)
+    return () => clearTimeout(t)
+  }, [index])
+  return (
+    <li
+      className="transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none"
+      style={{
+        opacity: shown ? 1 : 0,
+        transform: shown ? 'none' : 'translateY(10px)',
+      }}
+    >
+      {children}
+    </li>
+  )
+}
+
 function RecommendationsPageInner() {
   const searchParams = useSearchParams()
   const goBack = useGoBack('/select')
@@ -190,75 +218,73 @@ function RecommendationsPageInner() {
             const isTop = idx === 0
             const reasons = friendlyReasons(rec.reasons)
             return (
-              <Card
-                as="li"
-                key={rec.id}
-                className={isTop ? 'relative ring-2 ring-brand/60' : 'relative'}
-              >
-                {isTop && (
-                  <span className="absolute -top-2.5 left-5 inline-flex items-center gap-1 rounded-full bg-[image:var(--gradient-brand)] px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-brand">
-                    <Icon name="star" className="h-[12px] w-[12px]" />
-                    最適合
-                  </span>
-                )}
-                <div className="mb-4 flex items-start gap-3">
-                  {/* 領域插畫縮圖（含右下角排名徽章），仿競品卡片的配圖質感 */}
-                  <FocusIllustration
-                    focus={rec.developmentalFocus?.[0]}
-                    rank={idx + 1}
-                    isTop={isTop}
-                  />
-                  <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
-                    {rec.title}
-                  </h2>
-                  {/* 一鍵收藏主答案，不必先打開活動 */}
-                  <SaveHeart
-                    activityId={rec.id}
-                    initialSaved={savedIds.has(rec.id)}
-                    className="-mr-1"
-                  />
-                </div>
+              <Reveal index={idx} key={rec.id}>
+                <Card className={isTop ? 'relative ring-2 ring-brand/60' : 'relative'}>
+                  {isTop && (
+                    <span className="absolute -top-2.5 left-5 inline-flex items-center gap-1 rounded-full bg-[image:var(--gradient-brand)] px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-brand">
+                      <Icon name="star" className="h-[12px] w-[12px]" />
+                      最適合
+                    </span>
+                  )}
+                  <div className="mb-4 flex items-start gap-3">
+                    {/* 領域插畫縮圖（含右下角排名徽章），仿競品卡片的配圖質感 */}
+                    <FocusIllustration
+                      focus={rec.developmentalFocus?.[0]}
+                      rank={idx + 1}
+                      isTop={isTop}
+                    />
+                    <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
+                      {rec.title}
+                    </h2>
+                    {/* 一鍵收藏主答案，不必先打開活動 */}
+                    <SaveHeart
+                      activityId={rec.id}
+                      initialSaved={savedIds.has(rec.id)}
+                      className="-mr-1"
+                    />
+                  </div>
 
-                <ActivityMeta
-                  developmentalFocus={rec.developmentalFocus}
-                  minDurationMinutes={rec.minDurationMinutes}
-                  maxDurationMinutes={rec.maxDurationMinutes}
-                  stimulationLevel={rec.stimulationLevel}
-                  className="mb-4"
-                />
+                  <ActivityMeta
+                    developmentalFocus={rec.developmentalFocus}
+                    minDurationMinutes={rec.minDurationMinutes}
+                    maxDurationMinutes={rec.maxDurationMinutes}
+                    stimulationLevel={rec.stimulationLevel}
+                    className="mb-4"
+                  />
 
-                {/* 只在最適合的卡列出理由，其餘保持安靜——一個主答案，不是並排比較。
+                  {/* 只在最適合的卡列出理由，其餘保持安靜——一個主答案，不是並排比較。
                     用 friendlyReasons 過濾掉引擎內部術語，只留家長看得懂的話。 */}
-                {isTop && reasons.length > 0 && (
-                  <ul className="mb-4 space-y-1.5 text-xs text-muted">
-                    {reasons.map((reason) => (
-                      <li key={reason} className="flex items-start gap-1.5">
-                        <Icon
-                          name="check"
-                          className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success"
-                        />
-                        <span>{reason}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                  {isTop && reasons.length > 0 && (
+                    <ul className="mb-4 space-y-1.5 text-xs text-muted">
+                      {reasons.map((reason) => (
+                        <li key={reason} className="flex items-start gap-1.5">
+                          <Icon
+                            name="check"
+                            className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success"
+                          />
+                          <span>{reason}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
-                {/* 安全回退方案 id 非真實活動 UUID、無詳情頁；不渲染會 404 的連結。 */}
-                {isRealActivity(rec.id) ? (
-                  <LinkButton
-                    href={`/activity/${rec.id}?childId=${childId}`}
-                    variant={isTop ? 'primary' : 'secondary'}
-                    size="lg"
-                    icon="book"
-                  >
-                    開始這個活動
-                  </LinkButton>
-                ) : (
-                  <p className="rounded-xl bg-brand-tint/60 px-4 py-3 text-center text-sm text-text">
-                    這個就很適合現在——坐到孩子旁邊，直接開始吧。
-                  </p>
-                )}
-              </Card>
+                  {/* 安全回退方案 id 非真實活動 UUID、無詳情頁；不渲染會 404 的連結。 */}
+                  {isRealActivity(rec.id) ? (
+                    <LinkButton
+                      href={`/activity/${rec.id}?childId=${childId}`}
+                      variant={isTop ? 'primary' : 'secondary'}
+                      size="lg"
+                      icon="book"
+                    >
+                      開始這個活動
+                    </LinkButton>
+                  ) : (
+                    <p className="rounded-xl bg-brand-tint/60 px-4 py-3 text-center text-sm text-text">
+                      這個就很適合現在——坐到孩子旁邊，直接開始吧。
+                    </p>
+                  )}
+                </Card>
+              </Reveal>
             )
           })}
         </ol>

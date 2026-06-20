@@ -103,15 +103,32 @@ export default function EntitlementsPage() {
     <PageShell>
       <PageHeader title="訂閱方案" subtitle="管理你的 FamilyPlay 方案" align="center" />
 
-      {/* 目前方案卡 */}
-      <Card className={isCurrentPlanHighlighted ? 'border-brand bg-brand-tint' : ''}>
-        <div className="mb-4 flex items-start justify-between">
+      {/* 目前方案卡：付費方案做成「會員卡」頭——品牌徽章 + 方案名，給訂閱者一點被重視的儀式感 */}
+      <Card
+        className={`relative overflow-hidden ${isCurrentPlanHighlighted ? 'border-brand/30 bg-brand-tint' : ''}`}
+      >
+        {isCurrentPlanHighlighted && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand opacity-10 blur-2xl"
+          />
+        )}
+        <div className="relative mb-4 flex items-center gap-3">
+          <span
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] ${
+              isCurrentPlanHighlighted
+                ? 'bg-[image:var(--gradient-brand)] shadow-brand'
+                : 'bg-brand-tint'
+            }`}
+          >
+            <Icon
+              name={planInfo.icon}
+              className={`h-6 w-6 ${isCurrentPlanHighlighted ? 'text-white' : 'text-brand'}`}
+            />
+          </span>
           <div>
             <p className="text-sm font-medium text-muted">目前方案</p>
-            <div className="mt-2 flex items-center gap-2">
-              <Icon name={planInfo.icon} className="h-[26px] w-[26px] text-brand" />
-              <h2 className="text-2xl font-bold text-text">{planInfo.name}</h2>
-            </div>
+            <h2 className="text-2xl font-bold leading-tight text-text">{planInfo.name}</h2>
           </div>
         </div>
 
@@ -143,18 +160,19 @@ export default function EntitlementsPage() {
                   </span>
                 </div>
 
-                {/* AI 生成剩餘次數 */}
-                <div className="space-y-2 border-t border-border pt-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted">AI 生成剩餘</span>
-                    <span className="text-sm font-bold text-brand">
+                {/* AI 生成剩餘次數：抬成獨立焦點統計——大數字 + 進度條，一眼看懂還剩多少額度 */}
+                <div className="space-y-2.5 rounded-lg bg-card p-4 shadow-clay-sm ring-1 ring-border/50">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-sm font-medium text-muted">AI 生成剩餘</span>
+                    <span className="font-display text-2xl font-bold text-brand">
                       {entitlements.plusAiCallsRemaining}
+                      <span className="ml-1 text-sm font-medium text-muted">/ 100</span>
                     </span>
                   </div>
 
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-border">
                     <div
-                      className="h-full bg-[image:var(--gradient-brand)] transition-all"
+                      className="h-full rounded-full bg-[image:var(--gradient-brand)] transition-all"
                       style={{
                         width: `${Math.min(100, (entitlements.plusAiCallsRemaining / 100) * 100)}%`,
                       }}

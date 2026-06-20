@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { LegalLinks } from '@/app/components/legal-links'
 import { PlanComparison } from '@/app/components/plan-comparison'
-import { Callout, Card, PageHeader, PageShell } from '@/app/components/ui'
+import { Callout, Card, Icon, PageHeader, PageShell } from '@/app/components/ui'
 import { useGoBack } from '@/lib/use-go-back'
 
 const PLAN_LABELS: Record<string, string> = {
@@ -68,6 +68,26 @@ export default function PricingPage() {
         </div>
       ) : (
         <>
+          {/* 簽名區：暖色支持帶——先說清楚「為什麼付費」，把方案放進溫暖的脈絡裡 */}
+          <Card className="relative overflow-hidden border-brand/30 bg-brand-tint">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-brand opacity-10 blur-2xl"
+            />
+            <div className="relative flex items-start gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-[image:var(--gradient-brand)] shadow-brand">
+                <Icon name="heart" className="h-6 w-6 text-white" />
+              </span>
+              <div className="space-y-1">
+                <p className="font-bold text-text">付費，是為了支持開發</p>
+                <p className="text-sm leading-relaxed text-muted">
+                  核心的陪伴方案永久免費。付費方案移除廣告、解鎖進階，也讓我們有餘力把這個 App
+                  做得更好。
+                </p>
+              </div>
+            </div>
+          </Card>
+
           {currentPlan === null && (
             <Card className="p-4 text-center text-sm text-muted">
               免費版無需付費即可開始；登入後即可選擇付費方案支持我們。
@@ -87,15 +107,20 @@ export default function PricingPage() {
           <PlanComparison currentPlan={currentPlan} />
 
           {currentPlan && currentPlan !== 'free' && (
-            <p className="text-center text-sm">
-              <button
-                type="button"
-                onClick={() => router.push('/account/entitlements')}
-                className="font-medium text-brand hover:underline"
-              >
-                管理我的訂閱（目前：{PLAN_LABELS[currentPlan] ?? currentPlan}）
-              </button>
-            </p>
+            <button
+              type="button"
+              onClick={() => router.push('/account/entitlements')}
+              className="flex w-full items-center gap-3 rounded-lg border border-border/60 bg-card p-4 text-left shadow-clay-sm transition-all hover:bg-bg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+            >
+              <Icon name="card" className="h-[20px] w-[20px] shrink-0 text-brand" />
+              <span className="flex-1">
+                <span className="block font-semibold text-text">管理我的訂閱</span>
+                <span className="block text-sm text-muted">
+                  目前：{PLAN_LABELS[currentPlan] ?? currentPlan}
+                </span>
+              </span>
+              <Icon name="chevronRight" className="h-[18px] w-[18px] shrink-0 text-faint" />
+            </button>
           )}
 
           <LegalLinks className="pt-2" />

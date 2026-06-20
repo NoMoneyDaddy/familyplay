@@ -37,8 +37,12 @@ function StatTile({
 }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-3 shadow-clay-sm">
-      <Icon name={icon} className="h-[18px] w-[18px] text-brand" />
-      <p className="mt-1.5 font-display text-2xl font-bold leading-none text-text">{value}</p>
+      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-tint">
+        <Icon name={icon} className="h-[16px] w-[16px] text-brand" aria-hidden="true" />
+      </span>
+      <p className="mt-2 font-display text-2xl font-bold leading-none tabular-nums text-text">
+        {value}
+      </p>
       <p className="mt-1 text-xs text-muted">{label}</p>
     </div>
   )
@@ -56,7 +60,9 @@ function Section({
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-text">
-        <Icon name={icon} className="h-[18px] w-[18px] text-brand" />
+        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-tint">
+          <Icon name={icon} className="h-[15px] w-[15px] text-brand" aria-hidden="true" />
+        </span>
         {title}
       </h2>
       {children}
@@ -68,11 +74,25 @@ function Section({
 function PanelFallback<T>({ panel }: { panel: Panel<T> }) {
   if (panel.ok) return null
   return (
-    <Card className="text-sm">
+    <Card className="flex items-start gap-2.5 text-sm">
       {panel.configured ? (
-        <p className="text-danger">讀取失敗：{panel.error}</p>
+        <>
+          <Icon
+            name="alert"
+            className="mt-0.5 h-[16px] w-[16px] shrink-0 text-danger"
+            aria-hidden="true"
+          />
+          <p className="text-danger">讀取失敗：{panel.error}</p>
+        </>
       ) : (
-        <p className="text-muted">尚未連線 — {panel.hint}</p>
+        <>
+          <Icon
+            name="info"
+            className="mt-0.5 h-[16px] w-[16px] shrink-0 text-faint"
+            aria-hidden="true"
+          />
+          <p className="text-muted">尚未連線 — {panel.hint}</p>
+        </>
       )}
     </Card>
   )
@@ -184,9 +204,10 @@ export default async function AdminDashboardPage() {
               href={health.data.url}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-medium text-brand hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
             >
-              開啟網站 ↗
+              開啟網站
+              <Icon name="link" className="h-[13px] w-[13px]" aria-hidden="true" />
             </a>
           </Card>
         ) : (
@@ -286,9 +307,10 @@ export default async function AdminDashboardPage() {
               href={posthog.data.url}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-medium text-brand hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
             >
-              開啟儀表板 ↗
+              開啟儀表板
+              <Icon name="link" className="h-[13px] w-[13px]" aria-hidden="true" />
             </a>
           </Card>
         ) : (
@@ -296,7 +318,10 @@ export default async function AdminDashboardPage() {
         )}
       </Section>
 
-      <p className="pb-2 text-center text-xs text-faint">僅限管理員 · 資料即時讀取，不另外快取</p>
+      <p className="flex items-center justify-center gap-1.5 pb-2 text-center text-xs text-faint">
+        <Icon name="lock" className="h-[13px] w-[13px]" aria-hidden="true" />
+        僅限管理員 · 資料即時讀取，不另外快取
+      </p>
     </PageShell>
   )
 }

@@ -75,9 +75,32 @@ export default function ChildrenPage() {
   if (loading) {
     return (
       <PageShell>
-        <div className="text-center text-muted" role="status">
+        <PageHeader
+          title="管理孩子"
+          subtitle="編輯和管理你的孩子檔案"
+          action={<SettingsGearLink />}
+        />
+        {/* 骨架：先佔好卡片位置，避免清單載入時版面跳動（CLS） */}
+        <ul className="space-y-3" aria-hidden="true">
+          {[0, 1].map((i) => (
+            <li key={i} className="animate-pulse rounded-xl border border-border/60 bg-card p-4">
+              <div className="flex items-center gap-3">
+                <span className="h-11 w-11 shrink-0 rounded-[16px] bg-bg" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-24 rounded bg-bg" />
+                  <div className="h-3 w-16 rounded bg-bg" />
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <div className="h-9 flex-1 rounded-lg bg-bg" />
+                <div className="h-9 flex-1 rounded-lg bg-bg" />
+              </div>
+            </li>
+          ))}
+        </ul>
+        <span className="sr-only" role="status">
           加載中...
-        </div>
+        </span>
       </PageShell>
     )
   }
@@ -108,15 +131,22 @@ export default function ChildrenPage() {
           <ul className="space-y-3">
             {children.map((child) => (
               <Card as="li" key={child.id} className="space-y-3 p-4">
-                <div className="flex items-start gap-2">
-                  <Icon name="child" className="mt-0.5 h-[18px] w-[18px] text-brand" />
-                  <div className="flex-1">
-                    <h2 className="font-semibold text-text">{child.nickname}</h2>
-                    {child.birthYearMonth && (
-                      <p className="text-sm text-muted">出生: {child.birthYearMonth}</p>
-                    )}
-                    {stageLabel(child.stageKey) && (
-                      <p className="mt-1 text-xs text-faint">{stageLabel(child.stageKey)}</p>
+                <div className="flex items-center gap-3">
+                  {/* 簽名強化：給每個孩子一個圓潤的品牌色頭像方塊，讓列表從「一排條目」
+                      變成「一群孩子」，呼應黏土暖色調性、也提升可掃讀性。 */}
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-brand-tint text-brand shadow-clay-sm">
+                    <Icon name="child" className="h-[22px] w-[22px]" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate font-semibold text-text">{child.nickname}</h2>
+                    {stageLabel(child.stageKey) ? (
+                      <span className="mt-1 inline-flex items-center rounded-full bg-bg px-2 py-0.5 text-[11px] font-medium text-muted">
+                        {stageLabel(child.stageKey)}
+                      </span>
+                    ) : (
+                      child.birthYearMonth && (
+                        <p className="text-sm text-muted">出生：{child.birthYearMonth}</p>
+                      )
                     )}
                   </div>
                 </div>

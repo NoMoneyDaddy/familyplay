@@ -203,9 +203,21 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
   if (activityLoading) {
     return (
       <PageShell>
-        <p className="py-12 text-center text-muted" role="status">
-          加載活動中...
-        </p>
+        <div role="status" aria-live="polite">
+          <span className="sr-only">載入活動中…</span>
+          <div
+            className="space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-clay"
+            aria-hidden
+          >
+            <span className="block h-7 w-2/3 animate-pulse rounded-lg bg-border/70" />
+            <span className="block h-5 w-1/2 animate-pulse rounded-full bg-brand-tint" />
+            <div className="space-y-2.5 pt-1">
+              <span className="block h-4 w-full animate-pulse rounded-full bg-border/50" />
+              <span className="block h-4 w-5/6 animate-pulse rounded-full bg-border/50" />
+              <span className="block h-4 w-4/6 animate-pulse rounded-full bg-border/50" />
+            </div>
+          </div>
+        </div>
       </PageShell>
     )
   }
@@ -268,12 +280,22 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
           <div className="space-y-2">
             <h2 className="text-sm font-semibold text-text">步驟</h2>
-            <ol className="space-y-2">
+            {/* 步驟做成「食譜卡」式的編號清單：圓形品牌號碼徽章 + 左側連續細線，
+                把「照著一步步做」的節奏視覺化（此頁的核心動作就是按步驟陪玩）。 */}
+            <ol className="space-y-1">
               {activity.steps.map((step, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: Activity steps are static and ordered
-                <li key={i} className="flex gap-3">
-                  <span className="font-semibold text-brand">{i + 1}</span>
-                  <span className="text-text">{step}</span>
+                <li key={i} className="relative flex gap-3 pb-3 last:pb-0">
+                  {i < activity.steps.length - 1 && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-[13px] top-7 bottom-1 w-px bg-border"
+                    />
+                  )}
+                  <span className="relative z-10 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-sm font-bold text-brand-strong shadow-clay-sm ring-1 ring-brand/15">
+                    {i + 1}
+                  </span>
+                  <span className="pt-0.5 leading-relaxed text-text">{step}</span>
                 </li>
               ))}
             </ol>
@@ -427,7 +449,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
         <ErrorAlert message={error} />
 
         <Button type="button" onClick={handleComplete} loading={loading} size="lg" icon="check">
-          {loading ? '記錄中...' : '記一下 ✓'}
+          {loading ? '記錄中…' : '記一下'}
         </Button>
         {!showDetails && (
           <p className="text-center text-xs text-faint">會記為「完成 · 開心」，想改可展開上面</p>
