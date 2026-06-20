@@ -1,10 +1,19 @@
-import { getAgeMonths, getStageKey } from '@familyplay/core'
+import { ChildError, createChild } from '@familyplay/data'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
+
+// ChildError code → HTTP 狀態
+const STATUS_BY_CODE: Record<string, number> = {
+  unauthorized: 401,
+  profile_not_found: 404,
+  profile_failed: 500,
+  household_failed: 500,
+  create_failed: 500,
+}
 
 const schema = z.object({
   nickname: z.string().min(1),
@@ -50,140 +59,20 @@ export async function POST(request: Request) {
   try {
     const { nickname, birthYearMonth } = schema.parse(body)
 
-    const { data: userProfile } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (!userProfile) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    }
-
-    // 找使用者要把孩子加進的家庭：
-    //   1) 優先用自己「擁有」的家庭
-    //   2) 否則用自己「以成員身分加入」的家庭——受邀的 caregiver 也能往共用家庭新增孩子，
-    //      而不是被迫另開新家庭，這樣家人才是真的「共同」管理同一批孩子
-    //   3) 都沒有才新建一個自己擁有的家庭
-    const { data: ownedHousehold, error: ownedError } = await supabase
-      .from('households')
-      .select('id')
-      .eq('owner_id', userProfile.id)
-      .maybeSingle()
-
-    // 查詢失敗（RLS/網路/暫時性錯誤）時必須中止——否則會誤判「沒有家庭」而誤建重複家庭
-    if (ownedError) {
-      reportError(ownedError, { route: '/api/children' })
-      return NextResponse.json({ error: 'Failed to look up household' }, { status: 500 })
-    }
-
-    let householdId = ownedHousehold?.id
-
-    if (!householdId) {
-      const { data: membership, error: membershipError } = await supabase
-        .from('household_members')
-        .select('household_id')
-        .eq('user_profile_id', userProfile.id)
-        .limit(1)
-        .maybeSingle()
-      if (membershipError) {
-        reportError(membershipError, { route: '/api/children' })
-        return NextResponse.json({ error: 'Failed to look up membership' }, { status: 500 })
-      }
-      householdId = membership?.household_id
-    }
-
-    if (!householdId) {
-      const { data: newHousehold, error: createHouseholdError } = await supabase
-        .from('households')
-        .insert({
-          owner_id: userProfile.id,
-          name: `${user.user_metadata?.name ?? '我'}的家庭`,
-        })
-        .select('id')
-        .single()
-
-      if (createHouseholdError) {
-        reportError(createHouseholdError, { route: '/api/children' })
-      }
-      householdId = newHousehold?.id
-    }
-
-    if (!householdId) {
-      return NextResponse.json({ error: 'Failed to create household' }, { status: 500 })
-    }
-
-    const ageMonths = getAgeMonths(birthYearMonth)
-    const stageKey = getStageKey(ageMonths)
-
-    // 優先用原子化 RPC（child + capability 同一交易）。migration 尚未套用時 RPC 不存在，
-    // 退回兩段式 insert + 回滾，確保「先部署程式、後手動套用 migration」的順序不致中斷建立孩子。
-    const { data: rpcChildId, error: rpcError } = await supabase.rpc(
-      'create_child_with_capability',
-      {
-        p_household_id: householdId,
-        p_nickname: nickname,
-        p_birth_year_month: birthYearMonth,
-        p_stage_key: stageKey,
-      },
-    )
-
-    if (!rpcError && rpcChildId) {
-      return NextResponse.json({ childId: rpcChildId })
-    }
-
-    // 只有「函式不存在」（migration 未套用）才退回兩段式；其餘實質錯誤直接回對應狀態，
-    // 避免白跑一次必失敗的 fallback、避免誤導日誌、也避免 RPC 內部 bug 被靜默吞掉。
-    const isFuncMissing = rpcError?.code === 'PGRST202' || rpcError?.code === '42883'
-    if (rpcError && !isFuncMissing) {
-      reportError(rpcError, { route: '/api/children' })
-      const status = rpcError.code === '42501' ? 403 : rpcError.code === '28000' ? 401 : 500
-      return NextResponse.json({ error: 'Failed to create child' }, { status })
-    }
-
-    console.warn(
-      'create_child_with_capability RPC unavailable, falling back to two-step:',
-      rpcError,
-    )
-
-    const { data: child, error: childError } = await supabase
-      .from('child_profiles')
-      .insert({
-        household_id: householdId,
-        nickname,
-        birth_year_month: birthYearMonth,
-        stage_key: stageKey,
-      })
-      .select('id')
-      .single()
-
-    if (childError || !child) {
-      reportError(childError, { route: '/api/children' })
-      return NextResponse.json({ error: 'Failed to create child' }, { status: 500 })
-    }
-
-    // 能力 profile 是 ZPD 推薦的前提；檢查錯誤，失敗就回滾剛建立的孩子，避免半套資料。
-    const { error: capError } = await supabase.from('child_capability_profiles').insert({
-      child_id: child.id,
-      capabilities: {},
-    })
-
-    if (capError) {
-      reportError(capError, { route: '/api/children' })
-      const { error: rollbackError } = await supabase
-        .from('child_profiles')
-        .delete()
-        .eq('id', child.id)
-      if (rollbackError) {
-        console.error('Failed to rollback child profile creation:', rollbackError)
-      }
-      return NextResponse.json({ error: 'Failed to create child' }, { status: 500 })
-    }
-
-    return NextResponse.json({ childId: child.id })
+    // 家庭歸屬解析（擁有→加入→新建）、原子 RPC＋兩段式退路、能力檔與回滾全在
+    // @familyplay/data 統一處理；Web 與行動端共用同一份編排（RLS 由 client session 生效）。
+    // 已驗過 user，直接傳入避免 createChild 內再打一次 supabase.auth.getUser()。
+    const childId = await createChild(supabase, { nickname, birthYearMonth, user })
+    return NextResponse.json({ childId })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
+    }
+    if (error instanceof ChildError) {
+      const status = STATUS_BY_CODE[error.code] ?? 500
+      // 4xx（unauthorized/profile_not_found）屬預期客戶端錯誤，不上報以免淹沒真正的系統告警。
+      if (status >= 500) reportError(error, { route: '/api/children', code: error.code })
+      return NextResponse.json({ error: error.message }, { status })
     }
     reportError(error, { route: '/api/children' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

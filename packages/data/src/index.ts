@@ -3,6 +3,7 @@
 // RLS 由各自的 client 帶 session 自動生效；此層不持有任何金鑰。
 export * from './activity'
 export * from './capabilities'
+export * from './children'
 export * from './history'
 export * from './insights'
 export * from './log'

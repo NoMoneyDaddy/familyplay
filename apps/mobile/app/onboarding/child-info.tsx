@@ -1,3 +1,4 @@
+import { ChildError, createChild } from '@familyplay/data'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
@@ -27,22 +28,15 @@ export default function ChildInfoScreen() {
     setError('')
 
     try {
-      const supabase = createMobileClient()
-
-      const { error: createError } = await supabase.from('child_profiles').insert({
-        user_id: session.user.id,
+      // 家庭歸屬（household_id，NOT NULL）與能力檔由 @familyplay/data 統一推出，
+      // 不可直接 insert（child_profiles 無 user_id 欄位、且需建立能力檔）。
+      await createChild(createMobileClient(), {
         nickname,
-        birth_year_month: `${birthYear}-${String(birthMonth).padStart(2, '0')}`,
+        birthYearMonth: `${birthYear}-${String(birthMonth).padStart(2, '0')}`,
       })
-
-      if (createError) {
-        setError(createError.message || '建立失敗，請重試')
-        return
-      }
-
       router.replace('/select')
     } catch (err) {
-      setError(err instanceof Error ? err.message : '發生錯誤，請重試')
+      setError(err instanceof ChildError ? err.message : '建立失敗，請重試')
     } finally {
       setLoading(false)
     }
