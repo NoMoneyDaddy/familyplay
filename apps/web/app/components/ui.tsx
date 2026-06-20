@@ -279,6 +279,7 @@ export const FOCUS_LABEL: Record<string, string> = {
  *  讓卡片只留下「為什麼這個適合我的孩子」這種看得懂的話。 */
 const REASON_FRIENDLY: Record<string, string> = {
   發展中能力加分: '正好練到他正在發展的能力',
+  '孩子之前很喜歡，加分': '他之前玩這個玩得很開心',
 }
 export function friendlyReasons(reasons: string[] | undefined): string[] {
   if (!Array.isArray(reasons)) return []

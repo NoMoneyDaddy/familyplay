@@ -33,6 +33,17 @@ const FOCUS_LABELS: Record<string, string> = {
 
 const STIM_LABELS: Record<string, string> = { low: '低刺激', medium: '中刺激', high: '高刺激' }
 
+// 引擎內部評分 reason 對家長沒意義，白名單轉白話、其餘（優先度調整/降分等）丟掉（與 Web 一致）。
+const REASON_FRIENDLY: Record<string, string> = {
+  發展中能力加分: '正好練到他正在發展的能力',
+  '孩子之前很喜歡，加分': '他之前玩這個玩得很開心',
+}
+function friendlyReasons(reasons: string[]): string[] {
+  return Array.from(
+    new Set(reasons.map((r) => REASON_FRIENDLY[r]).filter((r): r is string => Boolean(r))),
+  )
+}
+
 /** 與 Web /now 對齊的行動端推薦流程：選狀態 → 30 秒拿到方案 → 可換一批。 */
 export default function RecommendationsScreen() {
   const router = useRouter()
@@ -235,9 +246,9 @@ export default function RecommendationsScreen() {
               </View>
             )}
 
-            {rec.reasons.length > 0 && (
+            {friendlyReasons(rec.reasons).length > 0 && (
               <View className="gap-1">
-                {rec.reasons.map((reason) => (
+                {friendlyReasons(rec.reasons).map((reason) => (
                   <Text key={reason} className="text-sm" style={{ color: colors.muted }}>
                     · {reason}
                   </Text>
