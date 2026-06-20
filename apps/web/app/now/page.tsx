@@ -76,6 +76,8 @@ export default function NowPage() {
   const [logged, setLogged] = useState<null | 'completed' | 'tried'>(null)
   // 記錄後的連續陪伴天數，用於結束畫面的火苗回饋（習慣養成的成就感）；抓不到就不顯示
   const [streak, setStreak] = useState<number | null>(null)
+  // 本週累計陪伴次數，給結束畫面「你做得很好」的正向回饋；抓不到就不顯示
+  const [weeklySessions, setWeeklySessions] = useState<number | null>(null)
   const [exhausted, setExhausted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [stale, setStale] = useState(false) // 離線/失敗時顯示的是上次快取的方案
@@ -174,15 +176,18 @@ export default function NowPage() {
       setLogging(false)
       setLogged(outcome)
     }
-    // 記錄後抓連續天數，給結束畫面火苗回饋（次要：失敗就只顯示原本文案，不擋流程）
+    // 記錄後抓連續天數與本週次數，給結束畫面正向回饋（次要：失敗就只顯示原本文案，不擋流程）
     try {
       const res = await fetchWithTimeout(`/api/insights?childId=${selectedChildId}`)
       if (res.ok) {
         const data = await res.json()
         if (typeof data.streak === 'number' && data.streak > 0) setStreak(data.streak)
+        if (typeof data.weekly?.sessions === 'number' && data.weekly.sessions > 0) {
+          setWeeklySessions(data.weekly.sessions)
+        }
       }
     } catch {
-      // 無 streak 就維持原本的結束畫面
+      // 無洞察就維持原本的結束畫面
     }
   }
 
@@ -191,6 +196,7 @@ export default function NowPage() {
     setExhausted(false)
     setLogged(null)
     setStreak(null)
+    setWeeklySessions(null)
     setStale(false)
     setRec(null)
     load([], 'initial')
@@ -222,6 +228,10 @@ export default function NowPage() {
               </span>
               <span className="text-sm font-semibold text-brand-strong">連續陪伴 {streak} 天</span>
             </div>
+          ) : null}
+          {/* 本週累計次數：給「你這週做得很好」的正向回饋 */}
+          {weeklySessions && weeklySessions >= 1 ? (
+            <p className="text-xs text-muted">本週已經陪了 {weeklySessions} 次 💛</p>
           ) : null}
           <div className="space-y-2">
             <Button size="lg" icon="sparkle" onClick={restart} className="w-full">
