@@ -3,6 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button, ErrorAlert, Icon } from '@/app/components/ui'
+import {
+  isWebPurchasesAvailable,
+  purchasePlan,
+  WebPurchaseError,
+} from '@/lib/payment/revenuecat-web'
 
 type PaidPlan = 'supporter' | 'plus'
 
@@ -98,30 +103,29 @@ export function PlanComparison({ currentPlan }: { currentPlan: string | null }) 
         return
       }
 
-      const checkoutResponse = await fetch('/api/lemon/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          planId,
-          returnUrl: `${window.location.origin}/account/entitlements`,
-        }),
-      })
-
-      if (!checkoutResponse.ok) {
-        const err = await checkoutResponse.json()
+      // 收費走 RevenueCat Web Billing。需設定 NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY。
+      if (!isWebPurchasesAvailable()) {
         setSelectedPlan(null)
         setAuthenticating(false)
-        setError(err.error || '無法建立結帳，請稍後再試')
+        setError('線上結帳尚未開放，請稍後再試')
         return
       }
 
-      const { checkoutUrl } = await checkoutResponse.json()
-      window.location.href = checkoutUrl
+      const profile = await profileResponse.json()
+      if (!profile.userProfileId) {
+        router.push('/auth')
+        return
+      }
+      const ok = await purchasePlan(profile.userProfileId, planId)
+      setSelectedPlan(null)
+      setAuthenticating(false)
+      // 成功：entitlements 由 RevenueCat webhook 回寫，導去訂閱頁等同步；取消則留在原頁。
+      if (ok) router.push('/account/entitlements')
     } catch (err) {
       console.error('Checkout error:', err)
       setSelectedPlan(null)
       setAuthenticating(false)
-      setError(err instanceof Error ? err.message : '結帳失敗，請稍後再試')
+      setError(err instanceof WebPurchaseError ? err.message : '結帳失敗，請稍後再試')
     }
   }
 

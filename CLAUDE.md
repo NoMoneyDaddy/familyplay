@@ -178,7 +178,7 @@ perf: 性能優化
 
 ### 待實現 🚧
 - Mobile UI（Expo，`apps/mobile`）
-- 付費整合 UI（LemonSqueezy web / RevenueCat mobile；後端 `/api/lemon/*` 已存在）
+- 付費整合 UI（統一 RevenueCat：行動端 IAP + Web Billing；webhook `/api/revenuecat/webhook`）
 - 推送通知、本地化、離線強化
 
 ---

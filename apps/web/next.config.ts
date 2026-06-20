@@ -37,16 +37,17 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               // Google AdSense（輕度廣告）所需來源；未設定 AdSense 時不會載入這些腳本
-              "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com",
+              // RevenueCat Web Billing 透過 Stripe 呈現結帳，需允許 Stripe 腳本
+              "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://js.stripe.com",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               // next/font 會把 Google 字型自我託管在同源 /_next/static/media，
               // 因此 font-src 必須允許 'self'（先前只放 gstatic，導致所有自我託管字型
               // 被 CSP 擋下、全站退回系統字型）。data: 供少數內嵌字型情境。
               "font-src 'self' data: fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' *.supabase.co *.googleapis.com generativelanguage.googleapis.com api.openai.com api.anthropic.com *.groq.com *.lemonsqueezy.com app.posthog.com *.sentry.io https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
-              // 廣告以 iframe 呈現，需允許 Google 廣告框架來源
-              'frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com',
+              "connect-src 'self' *.supabase.co *.googleapis.com generativelanguage.googleapis.com api.openai.com api.anthropic.com *.groq.com api.revenuecat.com *.revenuecat.com api.stripe.com app.posthog.com *.sentry.io https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
+              // 廣告與 RevenueCat/Stripe 結帳以 iframe 呈現，需允許其框架來源
+              'frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://js.stripe.com https://hooks.stripe.com',
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

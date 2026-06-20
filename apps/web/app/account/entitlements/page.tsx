@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { PlanComparison } from '@/app/components/plan-comparison'
 import {
-  Button,
   Callout,
   Card,
   ErrorAlert,
@@ -30,8 +29,6 @@ export default function EntitlementsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [entitlements, setEntitlements] = useState<Entitlements | null>(null)
-  const [portalLoading, setPortalLoading] = useState(false)
-  const [portalError, setPortalError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,31 +64,6 @@ export default function EntitlementsPage() {
       month: 'long',
       day: 'numeric',
     })
-  }
-
-  // 取得 LemonSqueezy 託管的客戶入口（更新付款／取消／恢復）。前端不寫 entitlements，
-  // 只導向 LemonSqueezy；扣款後由 webhook（service-role）回寫方案。
-  const openManagePortal = async () => {
-    setPortalLoading(true)
-    setPortalError(null)
-    try {
-      const res = await fetch('/api/lemon/portal')
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        setPortalError(err.error || '暫時無法開啟訂閱管理，請稍後再試')
-        return
-      }
-      const { portalUrl } = await res.json()
-      if (portalUrl) {
-        window.location.href = portalUrl
-      } else {
-        setPortalError('暫時無法開啟訂閱管理，請稍後再試')
-      }
-    } catch {
-      setPortalError('暫時無法開啟訂閱管理，請稍後再試')
-    } finally {
-      setPortalLoading(false)
-    }
   }
 
   const getPlanDisplay = (plan: string): { name: string; icon: IconName } => {
@@ -200,21 +172,15 @@ export default function EntitlementsPage() {
         )}
       </Card>
 
-      {/* 訂閱管理（付費方案）：導向 LemonSqueezy 客戶入口，可更新付款／取消／恢復 */}
+      {/* 訂閱管理（付費方案）：RevenueCat。行動端由 App Store／Google Play 管理；
+          網頁 Web Billing 的取消／付款更新由 RevenueCat 寄送的訂閱信內連結處理。 */}
       {entitlements.plan !== 'free' && (
-        <div className="space-y-2">
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={openManagePortal}
-            loading={portalLoading}
-            icon="link"
-          >
-            {portalLoading ? '開啟中…' : '透過 LemonSqueezy 管理訂閱'}
-          </Button>
-          <ErrorAlert message={portalError} />
-          <p className="text-center text-xs text-muted">更新付款方式、取消或恢復訂閱</p>
-        </div>
+        <Callout tone="info" title="管理訂閱">
+          <p>
+            行動端訂閱請至 App Store / Google Play 的「訂閱」管理；網頁訂閱可透過 RevenueCat
+            寄送的訂閱確認信中的連結更新付款方式或取消。
+          </p>
+        </Callout>
       )}
 
       {/* 說明 */}

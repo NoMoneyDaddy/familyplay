@@ -13,7 +13,7 @@ import {
 export const runtime = 'nodejs'
 
 // RevenueCat 統一收費 webhook（行動端 IAP + Web Billing 共用）。
-// entitlements 只由此（service-role）寫，前端不可自助升級——與 LemonSqueezy webhook 同模式。
+// entitlements 只由此（service-role）寫，前端不可自助升級。
 const webhookSchema = z.object({
   event: z.object({
     type: z.string(),

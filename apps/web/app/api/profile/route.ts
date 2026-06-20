@@ -35,6 +35,7 @@ export async function GET() {
 
   if (!profile) {
     return NextResponse.json({
+      userProfileId: null,
       displayName: user.user_metadata?.name || 'User',
       avatarUrl: null,
       householdId: null,
@@ -64,6 +65,8 @@ export async function GET() {
   if (entError) reportError(entError, { route: '/api/profile#entitlements' })
 
   return NextResponse.json({
+    // RevenueCat Web Billing 的 appUserId 用此值（= entitlements.user_profile_id，webhook 對應）。非機密。
+    userProfileId: profile.id,
     displayName: profile.display_name || user.user_metadata?.name || 'User',
     avatarUrl: profile.avatar_url,
     householdId: householdMember?.household_id || null,

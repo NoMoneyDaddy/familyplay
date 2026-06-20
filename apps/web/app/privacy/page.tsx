@@ -85,7 +85,8 @@ export default function PrivacyPage() {
               <strong>PostHog / Sentry</strong>：使用分析與錯誤監控。
             </li>
             <li>
-              <strong>LemonSqueezy</strong>：付費訂閱金流（我們不會儲存你的信用卡資料）。
+              <strong>RevenueCat</strong>：付費訂閱金流（行動端經 App Store／Google Play，網頁經
+              RevenueCat Web Billing；我們不會儲存你的信用卡資料）。
             </li>
             <li>
               <strong>Google AdSense</strong>：免費版可能顯示少量廣告（付費後移除）。

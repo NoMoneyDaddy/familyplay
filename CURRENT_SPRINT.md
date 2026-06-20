@@ -29,9 +29,11 @@
 - [x] 設定頁 BYO key UI（sessionStorage）+ `/now`「都看過了」接「AI 生一個」
 - [x] 託管/Plus 配額計次：`consume_plus_ai_call`／`refund_plus_ai_call` RPC（SECURITY DEFINER、伺服器端定額），AI 端點無 BYO key 時走託管金鑰並原子扣配額、失敗退還；卡片 Plus 免設定
 
-### 付費整合 UI（LemonSqueezy web）
-- [x] 升級結帳已串：`/pricing`＋`plan-comparison` CTA →「成為支持者」打 `/api/lemon/create-checkout` 導向結帳，回來讀 `/api/profile`／`/api/account/entitlements` 反映方案（entitlements 只由 service-role webhook 寫，前端不可自助升級；Plus 仍標「即將推出」直到核心交付確認）
-- [x] 訂閱管理可用：`GET /api/lemon/portal` 取 LemonSqueezy 客戶入口（更新付款／取消／恢復）；`/account/entitlements` 管理按鈕由 disabled 改為導向入口（含載入態/錯誤回報）
+### 付費整合 UI（統一 RevenueCat）
+- [x] 移除 LemonSqueezy（未實裝）：刪 `/api/lemon/*`＋lib，CSP／法務頁／env 改 RevenueCat
+- [x] 後端 `/api/revenuecat/webhook`：驗 Authorization → idempotency → entitlement_ids/product 對應方案 → service-role upsert `entitlements`（前端不可自助升級）；純邏輯 + 10 單測
+- [x] 行動端 App 內購：`lib/purchases.ts`（react-native-purchases）+ `pricing` 可購買；金鑰未設定即休眠
+- [x] 網頁 Web Billing：`lib/payment/revenuecat-web.ts` + `plan-comparison` CTA 改走 RevenueCat；`/api/profile` 回 `userProfileId` 當 appUserId
 
 ### 首次導覽與多人家庭
 - [x] `/now` 首次三步上手提示（一次性、localStorage、顯示即標記看過）

@@ -2,6 +2,11 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 收費統一改 RevenueCat、移除 LemonSqueezy
+- 移除未實裝的 LemonSqueezy：刪 `/api/lemon/*`（create-checkout／webhook／portal）與 `lib/payment/lemonsqueezy.ts`；CSP（next.config）、服務條款／隱私政策、`.env.example`、文件改為 RevenueCat。
+- 網頁 Web Billing：新增 `lib/payment/revenuecat-web.ts`（`@revenuecat/purchases-js`）；`plan-comparison` 升級 CTA 改走 RevenueCat（appUserId = `user_profiles.id`，`/api/profile` 新增回傳 `userProfileId`）。`/account/entitlements` 管理改為平台說明（App Store／Play／RevenueCat）。
+- CSP 放行 RevenueCat／Stripe（Web Billing 底層）所需 script／connect／frame 來源。
+
 ### RevenueCat 行動端 App 內購（前端）
 - 新增 `lib/purchases.ts`：`react-native-purchases` 封裝（configure／logIn／getOfferings／purchasePackage），**金鑰未設定即休眠**（no-op、不顯示購買鈕、不崩潰）。`appUserID` 綁定 `user_profiles.id`，與 webhook 對應。
 - `pricing` 畫面：RevenueCat 已設定 → 顯示 store offering 方案並可購買（購買後 webhook 回寫權益）；否則顯示靜態後備。`.env.example` 補 `EXPO_PUBLIC_REVENUECAT_*`。
