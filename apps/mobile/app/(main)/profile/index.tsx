@@ -1,3 +1,4 @@
+import { fetchAccount } from '@familyplay/data'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
@@ -37,21 +38,10 @@ export default function ProfileScreen() {
           setError('無法載入帳號資料')
           return
         }
-        const supabase = createMobileClient()
-        const { data, error: fetchError } = await supabase
-          .from('user_profiles')
-          .select('id, display_name, avatar_url')
-          .eq('auth_user_id', session.user.id)
-          .single()
-        if (fetchError || !data) throw fetchError ?? new Error('No profile')
-        setProfile({ displayName: data.display_name, avatarUrl: data.avatar_url })
-        // 目前方案（RLS own_entitlement_read 允許本人讀）；查不到視為 free。
-        const { data: ent } = await supabase
-          .from('entitlements')
-          .select('plan')
-          .eq('user_profile_id', data.id)
-          .maybeSingle()
-        setPlan(ent?.plan ?? 'free')
+        // 收斂到 @familyplay/data 的 fetchAccount（與其他端共用）：profile + 方案一次取齊。
+        const account = await fetchAccount(createMobileClient())
+        setProfile({ displayName: account.displayName ?? '', avatarUrl: account.avatarUrl })
+        setPlan(account.plan)
       } catch (err) {
         console.error('Failed to fetch profile:', err)
         setError('無法載入帳號資料')
