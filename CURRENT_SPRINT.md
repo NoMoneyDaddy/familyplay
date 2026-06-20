@@ -39,6 +39,10 @@
 - [x] 修正家庭成員顯示 Unknown User（改用 `household_members.nickname`）
 - [x] 交接小卡 `/handoff`：近況濃縮（階段/最近陪玩/發展中里程碑）+ 可分享（唯讀、不寫 DB、不送 AI）
 
+### 推薦引擎自適應 + E2E
+- [x] Step 8 反應自適應（加分層、不改 7 步）：core `buildReactionStats`/`applyReactionAffinity`，Web＋行動端帶入近 60 天反應，6 個新單測
+- [x] 修好 Playwright 設定（config 移到 `apps/web`）＋更新/擴充 e2e（法務/方案/離線/試用表單），chromium 實跑全綠
+
 ### 行動端（Expo）
 - [x] 核心推薦流程移植：`lib/recommend.ts`（端上編排 + `@familyplay/core` 七步，RLS 自動生效）+ `/recommendations` 畫面（選狀態/情境 → 3 方案 → 換一批）；修好 `select` 失效路由、首頁按鈕進流程；純函式加單元測試
 - [x] 記錄一筆陪伴（閉環）：`lib/log.ts` + 推薦卡「做了這個」→ 選反應 → 寫 `companion_logs`（餵近 7 天降權）；household/caregiver 由 DB 推出、加單元測試

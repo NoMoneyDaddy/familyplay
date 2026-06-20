@@ -1,6 +1,7 @@
 import {
   type Activity,
   ALLOWED_STAGE_KEYS,
+  buildReactionStats,
   type CompanionContext,
   getAgeMonths,
   getRecommendations,
@@ -133,25 +134,35 @@ export async function fetchRecommendations(
   }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const [activitiesResult, recentLogsResult, capProfileResult] = await Promise.all([
-    supabase
-      .from('companion_activities')
-      .select(ACTIVITY_COLUMNS)
-      .eq('is_active', true)
-      .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
-      .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`),
-    supabase
-      .from('companion_logs')
-      .select('activity_id')
-      .eq('child_id', childId)
-      .gt('created_at', sevenDaysAgo)
-      .limit(500),
-    supabase
-      .from('child_capability_profiles')
-      .select('capabilities')
-      .eq('child_id', childId)
-      .single(),
-  ])
+  // 反應自適應用較長的窗（60 天）：偏好比「近期降權」存活更久。
+  const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+  const [activitiesResult, recentLogsResult, capProfileResult, reactionLogsResult] =
+    await Promise.all([
+      supabase
+        .from('companion_activities')
+        .select(ACTIVITY_COLUMNS)
+        .eq('is_active', true)
+        .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
+        .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`),
+      supabase
+        .from('companion_logs')
+        .select('activity_id')
+        .eq('child_id', childId)
+        .gt('created_at', sevenDaysAgo)
+        .limit(500),
+      supabase
+        .from('child_capability_profiles')
+        .select('capabilities')
+        .eq('child_id', childId)
+        .single(),
+      supabase
+        .from('companion_logs')
+        .select('activity_id,child_reaction')
+        .eq('child_id', childId)
+        .not('child_reaction', 'is', null)
+        .gt('created_at', sixtyDaysAgo)
+        .limit(500),
+    ])
 
   if (activitiesResult.error) {
     throw new RecommendError('無法載入活動資料')
@@ -163,6 +174,15 @@ export async function fetchRecommendations(
   )
   const acquiredCapabilities = acquiredFrom(
     capProfileResult.data?.capabilities as Record<string, unknown> | null,
+  )
+  // 反應自適應統計；無資料時為空 Map → 引擎略過 Step 8
+  const reactionStats = buildReactionStats(
+    (
+      (reactionLogsResult.data || []) as {
+        activity_id: string | null
+        child_reaction: string | null
+      }[]
+    ).map((l) => ({ activityId: l.activity_id, reaction: l.child_reaction })),
   )
 
   // 驗證快取的 stage_key 在白名單內；否則由年齡重算
@@ -189,6 +209,7 @@ export async function fetchRecommendations(
       availableSpace,
       availableResources: new Set(availableResources),
       recentActivityIds,
+      reactionStats,
       maxDurationMinutes,
     },
     3,

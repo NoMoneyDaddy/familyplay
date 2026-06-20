@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test'
 
-test('首頁載入正常', async ({ page }) => {
+// 不需登入即可跑的煙霧測試：未登入時根路徑導向 /try（先給價值、不強制註冊）。
+test('未登入根路徑導向免費試用 /try', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('FamilyPlay')).toBeVisible()
-  await expect(page.getByRole('button', { name: /快給我一個/ })).toBeVisible()
+  await expect(page).toHaveURL(/\/try$/)
+  await expect(page.getByText('免費試試看')).toBeVisible()
+  await expect(page.getByRole('button', { name: /看看推薦/ })).toBeVisible()
 })
 
 test('health check 回傳 ok', async ({ page }) => {

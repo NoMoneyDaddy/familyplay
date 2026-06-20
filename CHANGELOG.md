@@ -2,6 +2,12 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 推薦引擎反應自適應（Step 8）＋ Playwright 修復
+- 競品研究（Puffling／Tovi）：減少選擇＋從反應自適應是留存關鍵。引擎新增 Step 8（加分層、不改 7 步順序）：用 `companion_logs` 近 60 天孩子反應微調排序——喜歡的加分、明確不喜歡的（≥2 次負向且 0 正向）強力降分「換別的」；加法計分、淨值上限 ±3（影響 ±6 分）。向後相容（無 `reactionStats` 即略過）。
+- `buildReactionStats` 正負反應分類抽到 core（Web/行動端單一真實來源），Web `/api/recommendations` 與行動端 `lib/recommend.ts` 都帶入；6 個新單元測試。
+- 修好 Playwright e2e 跑不起來的設定 bug：config 從 repo 根移到 `apps/web`（`@playwright/test` 所在處、`turbo test:e2e` 執行處），原本根 config 找不到依賴、且 `turbo test:e2e` 在 `apps/web` 無 config 會誤抓 vitest 檔。
+- 更新過時 smoke（`/` 現導向 `/try`）＋擴充 e2e：法務頁、`/pricing` 三方案、`/offline`、`/try` 表單互動/a11y。手機斷點實跑 chromium 8 案全綠。
+
 ### 行動端（Expo）記錄一筆陪伴（閉環）
 - 新增 `lib/log.ts`：行動端寫 `companion_logs`（與 Web `/api/log` 同流程，RLS 生效）；`household_id`／`caregiver_id` 由 DB 推出、不信任前端，避免跨戶誤記。
 - 推薦卡新增 `ActivityLogControl`「做了這個」→ 選孩子反應（😊開心/🙂投入/😐普通/😣想離開/😌平靜）→ 寫一筆 → 餵推薦引擎「近 7 天降權」與未來歷史頁。

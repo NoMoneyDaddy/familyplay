@@ -1,4 +1,10 @@
-import { ALLOWED_STAGE_KEYS, getAgeMonths, getRecommendations, getStageKey } from '@familyplay/core'
+import {
+  ALLOWED_STAGE_KEYS,
+  buildReactionStats,
+  getAgeMonths,
+  getRecommendations,
+  getStageKey,
+} from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
@@ -94,27 +100,38 @@ export async function POST(request: Request) {
     // recentLogs 加上限：近 7 天紀錄理論上可能很多，但降權只需「出現過的活動集合」，
     // 500 筆已遠超實際需求，避免狂記錄的家長把整段歷史一次拉回。
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    const [activitiesResult, recentLogsResult, capProfileResult] = await Promise.all([
-      supabase
-        .from('companion_activities')
-        .select(
-          'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
-        )
-        .eq('is_active', true)
-        .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
-        .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`),
-      supabase
-        .from('companion_logs')
-        .select('activity_id')
-        .eq('child_id', childId)
-        .gt('created_at', sevenDaysAgo)
-        .limit(500),
-      supabase
-        .from('child_capability_profiles')
-        .select('capabilities')
-        .eq('child_id', childId)
-        .single(),
-    ])
+    // 反應自適應用較長的窗（60 天）：偏好比「近期降權」存活更久，
+    // 才能真正「學會孩子喜歡什麼」。與 7 天降權彼此獨立、各自一個查詢。
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+    const [activitiesResult, recentLogsResult, capProfileResult, reactionLogsResult] =
+      await Promise.all([
+        supabase
+          .from('companion_activities')
+          .select(
+            'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,play_type,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
+          )
+          .eq('is_active', true)
+          .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
+          .or(`max_age_months.is.null,max_age_months.gte.${ageMonths}`),
+        supabase
+          .from('companion_logs')
+          .select('activity_id')
+          .eq('child_id', childId)
+          .gt('created_at', sevenDaysAgo)
+          .limit(500),
+        supabase
+          .from('child_capability_profiles')
+          .select('capabilities')
+          .eq('child_id', childId)
+          .single(),
+        supabase
+          .from('companion_logs')
+          .select('activity_id,child_reaction')
+          .eq('child_id', childId)
+          .not('child_reaction', 'is', null)
+          .gt('created_at', sixtyDaysAgo)
+          .limit(500),
+      ])
 
     const { data: activities, error: activitiesError } = activitiesResult
     if (activitiesError) {
@@ -124,6 +141,14 @@ export async function POST(request: Request) {
 
     const recentActivityIds = new Set(
       recentLogsResult.data?.map((l) => l.activity_id).filter(Boolean) || [],
+    )
+
+    // 反應自適應統計（activityId → liked/disliked）；查詢失敗或無資料時為空 Map → 引擎自動略過 Step 8
+    const reactionStats = buildReactionStats(
+      (reactionLogsResult.data || []).map((l) => ({
+        activityId: l.activity_id,
+        reaction: l.child_reaction,
+      })),
     )
 
     const capProfile = capProfileResult.data
@@ -183,6 +208,7 @@ export async function POST(request: Request) {
         availableSpace,
         availableResources: new Set(availableResources),
         recentActivityIds,
+        reactionStats,
         maxDurationMinutes,
       },
       3,
