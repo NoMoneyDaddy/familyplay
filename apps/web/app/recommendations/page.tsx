@@ -20,24 +20,8 @@ import {
   PageShell,
 } from '@/app/components/ui'
 import { fetchWithTimeout, isAbortError } from '@/lib/fetch-timeout'
+import { isRealActivity, type Recommendation } from '@/lib/recommendation'
 import { useGoBack } from '@/lib/use-go-back'
-
-interface Recommendation {
-  id: string
-  title: string
-  score: number
-  reasons: string[]
-  minDurationMinutes?: number
-  maxDurationMinutes?: number
-  stimulationLevel?: 'low' | 'medium' | 'high'
-  developmentalFocus?: string[]
-}
-
-// 真實活動才有詳情頁（DB UUID）；引擎合成的安全回退方案 id 非 UUID，無對應頁面。
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-function isRealActivity(id: string): boolean {
-  return UUID_RE.test(id)
-}
 
 function RecommendationsPageInner() {
   const searchParams = useSearchParams()
