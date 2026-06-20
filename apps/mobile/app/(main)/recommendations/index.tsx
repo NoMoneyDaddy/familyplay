@@ -82,8 +82,10 @@ export default function RecommendationsScreen() {
         availableSpace: 'anywhere',
         excludeIds,
       })
-      // 換一批換不到新的（excludeIds 非空且回空）→ 保留現有清單、標記看完，不要清空讓畫面變空。
-      if (result.length === 0 && excludeIds.length > 0) {
+      // 引擎保證至少回一個安全兜底，result 不會為空；改判「新結果是否全是看過的」。
+      // 換一批（excludeIds 非空）回來全都在排除清單內 → 只剩看過的或兜底，標記看完、保留現有清單。
+      const allSeen = excludeIds.length > 0 && result.every((r) => excludeIds.includes(r.id))
+      if (allSeen) {
         setExhausted(true)
       } else {
         setRecs(result)
