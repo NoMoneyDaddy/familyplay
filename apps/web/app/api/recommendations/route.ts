@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { getRequestId } from '@/lib/request-id'
 
 const requestSchema = z.object({
   childId: z.string().uuid(),
@@ -30,6 +31,7 @@ const ERROR_STATUS: Record<string, number> = {
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const requestId = getRequestId(request)
 
   if (!url || !anonKey) {
     return Response.json({ error: 'Server misconfigured' }, { status: 500 })
@@ -77,11 +79,11 @@ export async function POST(request: Request) {
       // 「找不到孩子」維持原本英文訊息以相容既有前端；其餘用引擎給的中文訊息。
       const message = error.code === 'child_not_found' ? 'Child not found' : error.message
       if (error.code === 'activities_failed') {
-        reportError(error, { route: '/api/recommendations' })
+        reportError(error, { route: '/api/recommendations', requestId })
       }
       return Response.json({ error: message }, { status: ERROR_STATUS[error.code] ?? 500 })
     }
-    reportError(error, { route: '/api/recommendations' })
+    reportError(error, { route: '/api/recommendations', requestId })
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

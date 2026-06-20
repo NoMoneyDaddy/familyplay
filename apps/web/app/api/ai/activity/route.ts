@@ -18,6 +18,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { getRequestId } from '@/lib/request-id'
 
 // AI 生成 provider 白名單（BYO 自帶金鑰與 Plus 託管金鑰都從此白名單取用）。
 // 兩種模式：
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
   try {
     return await handlePost(request)
   } catch (err) {
-    reportError(err, { route: '/api/ai/activity' })
+    reportError(err, { route: '/api/ai/activity', requestId: getRequestId(request) })
     return fallback('internal_error')
   }
 }

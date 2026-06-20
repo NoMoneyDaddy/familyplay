@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { getRequestId } from '@/lib/request-id'
 
 const logSchema = z.object({
   childId: z.string().uuid(),
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
 
   // userId 先宣告在 try 外：讓 auth/限流階段的非預期錯誤也能在 catch 帶上（可能尚未取得）。
   let userId: string | undefined
+  const requestId = getRequestId(request)
   // 整個處理包進 try：連 cookies()/getUser()/checkRateLimit() 的非預期錯誤（Supabase/Redis
   // 故障）也走 catch 上報，不再靜默 500（風險 A）。
   try {
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
     // 非預期 500 不再靜默：上報以利定位（風險 A）。userId 可能尚未取得（auth 階段就出錯）。
-    reportError(error, { route: '/api/log', userId })
+    reportError(error, { route: '/api/log', userId, requestId })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
