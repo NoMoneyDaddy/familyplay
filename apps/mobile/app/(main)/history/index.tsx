@@ -1,4 +1,10 @@
-import { fetchHistory, fetchStreak, type HistoryEntry } from '@familyplay/data'
+import {
+  fetchHistory,
+  fetchStreak,
+  fetchWeeklyInsights,
+  type HistoryEntry,
+  type WeeklyInsights,
+} from '@familyplay/data'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
@@ -33,6 +39,7 @@ export default function HistoryScreen() {
   const { childId } = useLocalSearchParams<{ childId: string }>()
   const [entries, setEntries] = useState<HistoryEntry[]>([])
   const [streak, setStreak] = useState(0)
+  const [insights, setInsights] = useState<WeeklyInsights | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -40,6 +47,7 @@ export default function HistoryScreen() {
     if (!childId) {
       setEntries([])
       setStreak(0)
+      setInsights(null)
       setError('')
       setLoading(false)
       return
@@ -51,16 +59,19 @@ export default function HistoryScreen() {
       setError('')
       setEntries([])
       setStreak(0)
+      setInsights(null)
       try {
         const supabase = createMobileClient()
-        // 歷史與連續天數並行；streak 失敗不擋歷史（次要資訊）。
-        const [rows, streakDays] = await Promise.all([
+        // 歷史 / 連續天數 / 本週洞察並行；後兩者為次要資訊，失敗不擋歷史。
+        const [rows, streakDays, weekly] = await Promise.all([
           fetchHistory(supabase, childId),
           fetchStreak(supabase, { childId }).catch(() => 0),
+          fetchWeeklyInsights(supabase, { childId }).catch(() => null),
         ])
         if (!cancelled) {
           setEntries(rows)
           setStreak(streakDays)
+          setInsights(weekly)
         }
       } catch {
         if (!cancelled) setError('無法載入陪伴紀錄')
@@ -114,6 +125,52 @@ export default function HistoryScreen() {
                 每天一點點，就是最好的陪伴
               </Text>
             </View>
+          </View>
+        ) : null}
+
+        {/* 本週洞察：給家長一個「你做得很好」的情感回饋 */}
+        {insights && insights.sessions > 0 ? (
+          <View
+            className="mb-6 rounded-2xl p-5"
+            style={{ backgroundColor: colors.card, ...clayCard }}
+          >
+            <Text className="mb-3 text-base font-bold" style={{ color: colors.text }}>
+              本週陪伴
+            </Text>
+            <View className="flex-row justify-between">
+              <View className="items-center">
+                <Text className="text-2xl font-bold" style={{ color: colors.brand }}>
+                  {insights.sessions}
+                </Text>
+                <Text className="text-xs" style={{ color: colors.muted }}>
+                  次陪伴
+                </Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-2xl font-bold" style={{ color: colors.brand }}>
+                  {insights.activeDays}
+                </Text>
+                <Text className="text-xs" style={{ color: colors.muted }}>
+                  天有陪
+                </Text>
+              </View>
+              {insights.positiveReactionRate != null ? (
+                <View className="items-center">
+                  <Text className="text-2xl font-bold" style={{ color: colors.brand }}>
+                    {Math.round(insights.positiveReactionRate * 100)}%
+                  </Text>
+                  <Text className="text-xs" style={{ color: colors.muted }}>
+                    玩得開心
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            {insights.topActivityTitle ? (
+              <Text className="mt-3 text-sm" style={{ color: colors.muted }}>
+                最常玩：
+                <Text style={{ color: colors.text }}>{insights.topActivityTitle}</Text>
+              </Text>
+            ) : null}
           </View>
         ) : null}
 
