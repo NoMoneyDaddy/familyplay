@@ -63,6 +63,8 @@ export default function RecommendationsScreen() {
   // 「換一批」累積排除已看過的活動 id
   const [seenIds, setSeenIds] = useState<string[]>([])
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+  // 換一批換不到新的（只剩看過的）→ 標記已看完，保留現有清單並提示
+  const [exhausted, setExhausted] = useState(false)
 
   const load = async (excludeIds: string[]) => {
     if (!childId) {
@@ -80,8 +82,14 @@ export default function RecommendationsScreen() {
         availableSpace: 'anywhere',
         excludeIds,
       })
-      setRecs(result)
-      setSeenIds((prev) => [...new Set([...prev, ...result.map((r) => r.id)])])
+      // 換一批換不到新的（excludeIds 非空且回空）→ 保留現有清單、標記看完，不要清空讓畫面變空。
+      if (result.length === 0 && excludeIds.length > 0) {
+        setExhausted(true)
+      } else {
+        setRecs(result)
+        setExhausted(false)
+        setSeenIds((prev) => [...new Set([...prev, ...result.map((r) => r.id)])])
+      }
       // 收藏狀態（次要，失敗不影響推薦）
       fetchSavedIds(supabase)
         .then(setSavedIds)
@@ -217,6 +225,7 @@ export default function RecommendationsScreen() {
         <Pressable
           onPress={() => {
             setSeenIds([])
+            setExhausted(false)
             load([])
           }}
           disabled={loading}
@@ -302,7 +311,28 @@ export default function RecommendationsScreen() {
           </View>
         ))}
 
-        {recs && recs.length > 0 && (
+        {/* 初次就沒有方案（罕見：內容被安全規則全濾掉）→ 給明確出口而非空白 */}
+        {recs && recs.length === 0 && !loading && !error ? (
+          <View className="items-center rounded-2xl p-8" style={{ backgroundColor: colors.card }}>
+            <Text className="text-center text-base" style={{ color: colors.muted }}>
+              這個狀態下暫時沒有合適的活動。{'\n'}換個精力或情境再試試。
+            </Text>
+          </View>
+        ) : null}
+
+        {/* 換一批換完了：保留現有清單，提示換狀態常常就有新的 */}
+        {exhausted ? (
+          <View
+            className="mt-2 items-center rounded-2xl p-5"
+            style={{ backgroundColor: colors.brandTint }}
+          >
+            <Text className="text-center text-sm font-medium" style={{ color: colors.brandStrong }}>
+              這些都玩過了 🎉{'\n'}換個精力或情境，常常就有新的。
+            </Text>
+          </View>
+        ) : null}
+
+        {recs && recs.length > 0 && !exhausted && (
           <Pressable
             onPress={() => load(seenIds)}
             disabled={loading}
