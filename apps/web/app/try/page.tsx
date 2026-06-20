@@ -46,6 +46,23 @@ const CONTEXT_OPTIONS: { value: string; label: string; icon: IconName }[] = [
 
 const AGE_STORAGE_KEY = 'fp_try_age_months'
 
+// 三步進度的步驟圓點：未完成顯示步數、完成轉成品牌色打勾。
+// 「年齡→精力→情境」是真正的順序流程（順序帶資訊），故用編號而非裝飾。
+function StepDot({ n, done }: { n: number; done: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 ${
+        done
+          ? 'bg-[image:var(--gradient-brand)] text-white shadow-brand'
+          : 'bg-brand-tint text-brand'
+      }`}
+    >
+      {done ? '✓' : n}
+    </span>
+  )
+}
+
 export default function TryPage() {
   const [ageMonths, setAgeMonths] = useState<number | null>(null)
   // 精力預設「有點累」（疲憊是常態，給低負擔最安全；可改）。讓返訪者（年齡已記住）
@@ -238,10 +255,39 @@ export default function TryPage() {
           />
         </div>
 
+        {/* 三步進度條（簽名元素）：依序填滿，給「差一步就拿到方案」的推進感。
+            純色彩過渡、尊重 reduced-motion；rail 不可互動故 aria-hidden，
+            進度以下方文字向輔助科技播報。 */}
+        {(() => {
+          const steps = [ageMonths !== null, energy !== null, context !== null]
+          const done = steps.filter(Boolean).length
+          return (
+            <div className="space-y-2">
+              <div aria-hidden className="flex items-center gap-2">
+                {steps.map((ok, i) => (
+                  <span
+                    // biome-ignore lint/suspicious/noArrayIndexKey: 固定三步、順序穩定
+                    key={i}
+                    className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                      ok ? 'bg-[image:var(--gradient-brand)]' : 'bg-border'
+                    }`}
+                  />
+                ))}
+              </div>
+              <p aria-live="polite" className="text-center text-xs font-medium text-muted">
+                {done < 3 ? `還差 ${3 - done} 項，就拿到今天的方案` : '三項都選好了，往下看推薦'}
+              </p>
+            </div>
+          )
+        })()}
+
         <div className="space-y-6">
           {/* 年齡 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-semibold text-text">孩子幾歲？</legend>
+            <legend className="flex items-center gap-2 text-sm font-semibold text-text">
+              <StepDot n={1} done={ageMonths !== null} />
+              孩子幾歲？
+            </legend>
             <div className="grid grid-cols-3 gap-2">
               {AGE_BANDS.map((band) => (
                 <button
@@ -272,9 +318,10 @@ export default function TryPage() {
 
           {/* 精力 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-semibold text-text">
+            <legend className="flex items-center gap-2 text-sm font-semibold text-text">
+              <StepDot n={2} done={energy !== null} />
               你現在的精力？
-              <span className="ml-1.5 font-normal text-faint">已預選，可更改</span>
+              <span className="font-normal text-faint">已預選，可更改</span>
             </legend>
             <div className="grid grid-cols-2 gap-3">
               {ENERGY_OPTIONS.map((o) => (
@@ -309,7 +356,10 @@ export default function TryPage() {
 
           {/* 情境 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-semibold text-text">現在的情境？</legend>
+            <legend className="flex items-center gap-2 text-sm font-semibold text-text">
+              <StepDot n={3} done={context !== null} />
+              現在的情境？
+            </legend>
             <div className="grid gap-2.5">
               {CONTEXT_OPTIONS.map((o) => (
                 <button
