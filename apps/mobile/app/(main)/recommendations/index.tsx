@@ -283,6 +283,21 @@ export default function RecommendationsScreen() {
               </View>
             )}
 
+            <Pressable
+              onPress={() => router.push(`/activity?id=${rec.id}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`看 ${rec.title} 怎麼玩`}
+              className="mt-3 flex-row items-center justify-between rounded-xl px-4 py-2.5 active:opacity-80"
+              style={{ backgroundColor: colors.brandTint }}
+            >
+              <Text className="text-sm font-semibold" style={{ color: colors.brandStrong }}>
+                看怎麼玩 · 步驟、可以問什麼
+              </Text>
+              <Text className="text-sm" style={{ color: colors.brandStrong }}>
+                ›
+              </Text>
+            </Pressable>
+
             {childId ? <ActivityLogControl childId={childId} activityId={rec.id} /> : null}
           </View>
         ))}

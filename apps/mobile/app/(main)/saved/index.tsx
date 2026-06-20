@@ -119,6 +119,21 @@ export default function SavedScreen() {
                 ))}
               </View>
             ) : null}
+
+            <Pressable
+              onPress={() => router.push(`/activity?id=${item.activityId}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`看 ${item.title} 怎麼玩`}
+              className="mt-3 flex-row items-center justify-between rounded-xl px-4 py-2.5 active:opacity-80"
+              style={{ backgroundColor: colors.brandTint }}
+            >
+              <Text className="text-sm font-semibold" style={{ color: colors.brandStrong }}>
+                看怎麼玩 · 步驟、可以問什麼
+              </Text>
+              <Text className="text-sm" style={{ color: colors.brandStrong }}>
+                ›
+              </Text>
+            </Pressable>
           </View>
         ))}
       </ScrollView>
