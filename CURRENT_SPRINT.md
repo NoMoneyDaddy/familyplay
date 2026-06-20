@@ -10,11 +10,22 @@
 - [x] 四象限全維度審計白皮書 `ULTIMATE_PROJECT_STRATEGY.md`（風險登記簿 + ROI 矩陣 + Phase 1–3 路線圖）
 - [x] 修 `.env.example`：PostHog 變數名不一致（admin 指標必壞的真 bug）+ 補齊 13 個缺漏 env
 - [x] 可觀測性止血（風險 A）：`reportError` 帶 userId/childId/requestId scope（Sentry setUser/tag）+ 補齊靜默吞錯端點（logs / logs/[id] / children/list / children/[id]）
-- [x] 推薦 `load()` 防競態（風險 D1）：reqSeq 序號丟棄亂序回應
+- [x] 推薦 `load()` 防競態（風險 D1）：reqSeq 序號丟棄亂序回應 → 再加 `AbortController`
+  真正取消被超車的舊請求（省伺服器白算），`fetchWithTimeout` 用 `AbortSignal.any`
+  合併外部與逾時 signal（互不覆蓋）
+- [x] Request/Trace ID 鏈路（風險 A2）：middleware 生成/轉發/回傳 `x-request-id`，
+  route 以 `getRequestId` 帶入 `reportError`
 - [x] `/now` 記錄後 streak 火苗 + 本週次數回饋（留存 H1 / H3-lite，零後端）
 - [x] `/api/try` 共用 `mapActivityRow` + 移除死碼 `/api/recommend`（D2/F1）
-- [x] API route 整合測試護欄（風險 B）：`/api/recommendations`、`/api/revenuecat/webhook`、`/api/ai/activity` 三大核心 route + vitest `@` 別名（web 45 測試）
-- [ ] 仍待手動：套用 2 個 migration（解鎖 Plus 託管 AI，見下方）
+- [x] `/api/saved` GET 收斂到 `@familyplay/data` `fetchSaved`（D2）：刪前端 `pickActivity`，
+  消除三份重複關聯映射
+- [x] API route 整合測試護欄（風險 B1）：核心三 route（recommendations/webhook/ai-activity）
+  + log/insights/profile/children/capabilities/handoff + saved/logs[id]/children[id]
+  + 家庭邀請 accept/generate + account/entitlements + fetch-timeout（web 161 測試）
+- [x] 品牌分享圖（4.3 LINE 生態系）：`opengraph-image`（next/og，含中文字型子集載入，
+  不含孩子資料）+ twitter `summary_large_image` + PWA `shortcuts`（長按直達 /now、里程碑）
+- [x] 交接小卡持久化（AI2 持久化半部）：`handoff_summaries` 表 + `saveHandoff`/`fetchHandoffs`
+  + `/api/handoff` POST/GET + 頁面「儲存這張小卡」
 
 ### 導覽 / 版面 / 易讀性
 - [x] 活動詳情頁返回鍵 + 全站次級頁一致返回（共用 `useGoBack`，防跳出站外）
@@ -84,8 +95,11 @@
 ## 下一步候選
 
 - 行動端（Expo）UI（`apps/mobile`）：把 Web 的「現在就陪」「里程碑」「紀錄」流程移植到 Expo Router（沿用 `packages/core`／`packages/assessment`，金鑰用 Secure Storage）
-- 付費整合 UI（web）已串：升級結帳＋訂閱管理入口完成；剩下 Plus 上架決策（核心交付確認後把 `plan-comparison` 的 Plus `comingSoon` 拿掉、設好 `LEMONSQUEEZY_PLUS_MONTHLY_VARIANT_ID`）與行動端 RevenueCat
-- 交接摘要 AI 強化（目前 `/handoff` 為規則式唯讀；可選持久化到 `handoff_summaries`）
+- 付費整合 UI（web）已串：升級結帳＋訂閱管理入口完成；剩下 Plus 上架決策（核心交付確認後把 `plan-comparison` 的 Plus `comingSoon` 拿掉、設好 RevenueCat 商品/權益）與行動端 RevenueCat 串接
+- 交接摘要 AI 強化（持久化已完成；剩 AI 潤色半部——把規則式濃縮交給 AI 寫成溫暖短評，
+  須走 Safety Filter + 白名單、不送孩子個資）
+- 商業化解鎖（風險 C，需經營決策）：交付 Plus 真實價值後拿掉 `plan-comparison` 的
+  `comingSoon`、開放結帳；`sponsor_cards` 廣告渲染讓 Supporter「去廣告」賣點成立
 - 多孩子 UI/流程優化、推送通知、離線、本地化
 
 ---

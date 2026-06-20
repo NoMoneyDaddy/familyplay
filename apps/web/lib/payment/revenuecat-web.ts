@@ -2,7 +2,7 @@ import { ErrorCode, Purchases } from '@revenuecat/purchases-js'
 
 // RevenueCat Web Billing 前端封裝（client-only，SDK 用 window）。
 // 「公開金鑰未設定即休眠」：未設 NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY 時視為不可用，
-// 呼叫端回退 LemonSqueezy。appUserId 必須等於 user_profiles.id（webhook 對應權益）。
+// 呼叫端據此停用結帳入口。appUserId 必須等於 user_profiles.id（webhook 對應權益）。
 
 type WebPlan = 'supporter' | 'plus'
 
