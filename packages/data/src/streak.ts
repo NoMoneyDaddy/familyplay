@@ -29,25 +29,52 @@ function addDays(dateStr: string, n: number): string {
   return d.toISOString().slice(0, 10)
 }
 
+export interface StreakInfo {
+  streak: number
+  /** 是否動用了「寬限日」（中間漏接一天被原諒）。給 UI 顯示 ❄️ 寬限提示用。 */
+  graceUsed: boolean
+}
+
 /**
- * 計算「目前連續陪伴天數」：從今天（或昨天，若今天還沒陪）往回數連續有紀錄的天數。
- * 今天還沒紀錄時 streak 仍延續（以昨天為錨），讓家長有一整天可以維持。抽出以便單元測試。
+ * 計算「目前連續陪伴天數」，含**一天寬限**（grace，預設 1）：
+ * 中間漏接「一天」不會讓 streak 歸零（損失趨避——別讓家長因偶爾漏一天就前功盡棄），
+ * 但漏掉的那天本身不計入天數。連續漏兩天（超過寬限）才真正中斷。
+ * 今天還沒紀錄時 streak 仍以昨天為錨延續（給家長一整天可維持）。抽出以便單元測試。
  */
-export function computeStreak(dates: string[], today: string): number {
+export function computeStreakInfo(dates: string[], today: string, grace = 1): StreakInfo {
   const set = new Set(dates)
-  const yesterday = addDays(today, -1)
-  let anchor: string
-  if (set.has(today)) anchor = today
-  else if (set.has(yesterday)) anchor = yesterday
-  else return 0
+  let cur = today
+  // 今天還沒陪不算中斷、也不計數：直接往前一天當起點（不花寬限）。
+  if (!set.has(cur)) cur = addDays(cur, -1)
 
   let streak = 0
-  let cur = anchor
-  while (set.has(cur)) {
-    streak += 1
-    cur = addDays(cur, -1)
+  let gracesLeft = grace
+  let graceUsed = false
+  let pendingGrace = false // 剛花了寬限、但還沒確認後面是否真的連著
+  while (true) {
+    if (set.has(cur)) {
+      streak += 1
+      // 花掉的寬限後面真的接到一天 → 才算「寬限橋接成功」（結尾無效寬限不標）
+      if (pendingGrace) {
+        graceUsed = true
+        pendingGrace = false
+      }
+      cur = addDays(cur, -1)
+    } else if (gracesLeft > 0) {
+      // 橋接單天空缺：花一次寬限、不計數，繼續往前看是否還連著。
+      gracesLeft -= 1
+      pendingGrace = true
+      cur = addDays(cur, -1)
+    } else {
+      break
+    }
   }
-  return streak
+  return { streak, graceUsed }
+}
+
+/** 目前連續陪伴天數（含一天寬限）。 */
+export function computeStreak(dates: string[], today: string, grace = 1): number {
+  return computeStreakInfo(dates, today, grace).streak
 }
 
 export interface StreakArgs {
