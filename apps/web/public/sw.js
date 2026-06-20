@@ -56,7 +56,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const target = (event.notification.data && event.notification.data.url) || '/select'
+  const target = event.notification.data?.url || '/select'
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {

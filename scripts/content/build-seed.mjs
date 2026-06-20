@@ -7,7 +7,7 @@
 // 驗證所有欄位值落在 schema 允許集合內（enum + capability keys + 年齡 + 必填），
 // 任何不合法就中止並列出問題——避免把壞資料寫進 migration / 正式環境。
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -99,7 +99,7 @@ function validate(a, i) {
 // ── SQL helpers ──
 const q = (s) => `'${String(s).replace(/'/g, "''")}'`
 const qOrNull = (s) => (s == null ? 'NULL' : q(s))
-const arr = (xs) => (xs && xs.length ? `'{${xs.map((x) => `"${x}"`).join(',')}}'` : `'{}'`)
+const arr = (xs) => (xs?.length ? `'{${xs.map((x) => `"${x}"`).join(',')}}'` : `'{}'`)
 const jsonbOrNull = (xs) => (xs == null ? 'NULL' : q(JSON.stringify(xs)))
 const bool = (b) => (b ? 'TRUE' : 'FALSE')
 
