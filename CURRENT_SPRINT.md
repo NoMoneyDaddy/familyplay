@@ -65,14 +65,19 @@
 
 ---
 
-## 待手動套用 migration（CRITICAL）
+## Migration 狀態
 
-複製到 Supabase Dashboard → SQL Editor 執行：
+正式專案（`jojubbjwxdnwbrjxwytf`）已套用（2026-06-20）：
 
-- `supabase/migrations/20260619100000_set_child_capability_rpc.sql`
-  （里程碑原子寫入；未套用前 API 走退路仍可標記，但缺原子保證）
-- `supabase/migrations/20260703000000_consume_plus_ai_call_rpc.sql`
-  （Plus 託管 AI 配額 consume/refund RPC；未套用前託管生成走不通、BYO 不受影響）
+- [x] `20260619100000_set_child_capability_rpc.sql`（里程碑原子寫入）
+- [x] `20260703000000_consume_plus_ai_call_rpc.sql`（Plus 託管 AI 配額 consume/refund）
+- [x] `20260704000000_lock_down_ai_quota_rpc_grants.sql`（**資安修正**：Supabase 預設權限
+  會自動把新函式 EXECUTE 授予 anon/authenticated，使前一個 migration 的 REVOKE FROM
+  PUBLIC 失效——驗證發現 refund_plus_ai_call 仍可被任何登入者刷額。已顯式撤回 anon/
+  authenticated，refund 只留 service_role）
+
+> 託管 AI 生成（Plus）後端路徑現已可運作。下一步：交付 Plus 真實價值後拿掉 pricing 的
+> `comingSoon`、開放結帳。
 
 ---
 
