@@ -1,6 +1,6 @@
+import { type ChildReaction, LogError, logCompanion } from '@familyplay/data'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
-import { type ChildReaction, LogError, logCompanion } from '@/lib/log'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { colors } from '@/lib/theme'
 

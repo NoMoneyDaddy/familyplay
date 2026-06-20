@@ -27,6 +27,7 @@ DB migration 只能手動：複製 `supabase/migrations/` 的 SQL 到 Supabase D
 apps/web/              Next.js 15 + App Router，output: standalone（Zeabur Docker 部署）
 apps/mobile/           Expo 52 + Expo Router（iOS + Android）
 packages/core/         推薦引擎，純 TS，無外部依賴
+packages/data/         跨平台資料存取層：純編排函式 (supabase, args)，Web/行動端共用（RLS 由 client 帶 session 生效，不持金鑰）
 packages/ai/           多 AI Provider
 packages/assessment/   發展評估系統
 packages/capabilities/ 能力標籤常數

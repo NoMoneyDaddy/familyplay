@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LogError, logCompanion } from '../lib/log'
+import { LogError, logCompanion } from './log'
 
 // 最小化 mock：模擬 child_profiles / user_profiles 查詢 + companion_logs insert，
 // 驗證 household_id / caregiver_id 由 DB 推出（不信任前端），且 insert payload 正確。

@@ -1,8 +1,8 @@
 import { ALLOWED_CAPABILITY_KEYS, type CapabilityKey } from '@familyplay/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// 行動端里程碑能力：與 Web /api/capabilities 同流程，直接用行動端 Supabase client（RLS 生效）。
-// 標記後驅動推薦引擎 ZPD 評分與 Step 8 個人化。
+// 跨平台共用：里程碑能力讀／寫。標記走原子 RPC（set_child_capability，含缺檔自我修復），
+// RPC 尚未部署時退回讀-改-寫。標記後驅動推薦引擎 ZPD 評分與 Step 8。
 
 const ALLOWED = new Set<string>(ALLOWED_CAPABILITY_KEYS)
 
@@ -19,7 +19,6 @@ export function pickAchieved(raw: Record<string, unknown> | null | undefined): A
   return out
 }
 
-/** 讀取孩子已達成能力 map。 */
 export async function fetchAchievedCapabilities(
   supabase: SupabaseClient,
   childId: string,
@@ -33,10 +32,6 @@ export async function fetchAchievedCapabilities(
   return pickAchieved(data?.capabilities as Record<string, unknown> | null)
 }
 
-/**
- * 標記「會了 / 還沒」單一能力。優先用原子 RPC（set_child_capability，含缺檔自我修復）；
- * RPC 尚未部署時退回讀-改-寫。與 Web PATCH 同邏輯。失敗丟 CapabilityError。
- */
 export async function setChildCapability(
   supabase: SupabaseClient,
   childId: string,

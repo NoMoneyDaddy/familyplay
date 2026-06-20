@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// 行動端陪伴歷史：與 Web /api/logs 同流程，直接用行動端 Supabase client（RLS 生效）。
-// 完成「推薦 → 做了 → 記錄 → 回顧」的可視閉環。
+// 跨平台共用：陪伴歷史查詢。
 
 export interface HistoryEntry {
   id: string

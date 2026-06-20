@@ -16,6 +16,7 @@
     "@familyplay/ai": "workspace:*",
     "@familyplay/assessment": "workspace:*",
     "@familyplay/core": "workspace:*",
+    "@familyplay/data": "workspace:*",
     "@familyplay/db": "workspace:*",
     "@sentry/nextjs": "^10.0.0",
     "@supabase/ssr": "^0.12.0",

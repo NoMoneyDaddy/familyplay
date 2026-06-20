@@ -12,9 +12,9 @@ import {
 } from '@familyplay/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// 行動端的推薦編排：與 Web 的 /api/recommendations 同一套流程，但直接用行動端
-// Supabase client（帶 session → RLS 自動生效），呼叫 packages/core 的引擎。
-// 不經 Web API（cookie 驗證讀不到 mobile 的 bearer token），改在端上編排查詢。
+// 跨平台共用的推薦編排：與七步引擎（packages/core）搭配，用呼叫端傳入的 Supabase
+// client 查詢（帶 session → RLS 自動生效）。Web（server，cookie）與行動端（native，
+// SecureStore session）各自建立 client 後共用同一份編排，消除兩端重複。
 
 export interface RecommendInputs {
   parentEnergy: ParentEnergy
@@ -61,6 +61,23 @@ export interface ActivityRow {
 const ACTIVITY_COLUMNS =
   'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active'
 
+// 區分錯誤類型，讓 Web 路由能對應到正確的 HTTP 狀態碼（行動端只取 message 顯示）。
+export type RecommendErrorCode =
+  | 'child_not_found'
+  | 'age_incomplete'
+  | 'age_invalid'
+  | 'age_future'
+  | 'activities_failed'
+
+export class RecommendError extends Error {
+  code: RecommendErrorCode
+  constructor(code: RecommendErrorCode, message: string) {
+    super(message)
+    this.name = 'RecommendError'
+    this.code = code
+  }
+}
+
 /** DB 列（snake_case）→ 引擎 Activity（camelCase）。抽出以便單元測試。 */
 export function mapActivityRow(a: ActivityRow): Activity {
   return {
@@ -90,10 +107,8 @@ export function acquiredFrom(
   return new Set(Object.keys(capabilities || {}).filter((k) => capabilities?.[k] === true))
 }
 
-export class RecommendError extends Error {}
-
 /**
- * 取得推薦活動（七步演算法）。失敗丟 RecommendError，畫面負責顯示。
+ * 取得推薦活動（七步 + Step 8 反應自適應）。失敗丟 RecommendError（含 code）。
  */
 export async function fetchRecommendations(
   supabase: SupabaseClient,
@@ -109,7 +124,6 @@ export async function fetchRecommendations(
     excludeIds = [],
   } = inputs
 
-  // 取得孩子（RLS 過濾；查不到＝無權限或不存在）
   const { data: child, error: childError } = await supabase
     .from('child_profiles')
     .select('id,birth_year_month,stage_key')
@@ -117,20 +131,20 @@ export async function fetchRecommendations(
     .single()
 
   if (childError || !child) {
-    throw new RecommendError('找不到孩子資料')
+    throw new RecommendError('child_not_found', '找不到孩子資料')
   }
   if (!child.birth_year_month) {
-    throw new RecommendError('孩子的年齡資料不完整，請先補上出生年月')
+    throw new RecommendError('age_incomplete', '孩子的年齡資料不完整，請先補上出生年月')
   }
 
   let ageMonths: number
   try {
     ageMonths = getAgeMonths(child.birth_year_month)
   } catch {
-    throw new RecommendError('孩子的出生年月格式不正確')
+    throw new RecommendError('age_invalid', '孩子的出生年月格式不正確')
   }
   if (ageMonths < 0) {
-    throw new RecommendError('孩子的出生年月不能在未來')
+    throw new RecommendError('age_future', '孩子的出生年月不能在未來')
   }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -165,15 +179,17 @@ export async function fetchRecommendations(
     ])
 
   if (activitiesResult.error) {
-    throw new RecommendError('無法載入活動資料')
+    throw new RecommendError('activities_failed', '無法載入活動資料')
   }
   const rows = (activitiesResult.data || []) as ActivityRow[]
 
   const recentActivityIds = new Set(
-    (recentLogsResult.data || []).map((l) => l.activity_id).filter(Boolean) as string[],
+    ((recentLogsResult.data || []) as { activity_id: string | null }[])
+      .map((l) => l.activity_id)
+      .filter(Boolean) as string[],
   )
   const acquiredCapabilities = acquiredFrom(
-    capProfileResult.data?.capabilities as Record<string, unknown> | null,
+    (capProfileResult.data?.capabilities as Record<string, unknown> | null) ?? null,
   )
   // 反應自適應統計；無資料時為空 Map → 引擎略過 Step 8
   const reactionStats = buildReactionStats(

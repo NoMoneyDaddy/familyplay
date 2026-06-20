@@ -1,6 +1,6 @@
 import { ALLOWED_CAPABILITY_KEYS } from '@familyplay/core'
 import { describe, expect, it } from 'vitest'
-import { pickAchieved } from '../lib/capabilities'
+import { pickAchieved } from './capabilities'
 
 const KNOWN = ALLOWED_CAPABILITY_KEYS[0] // 一定在白名單內
 

@@ -5,16 +5,16 @@ import {
   MILESTONES,
 } from '@familyplay/assessment'
 import { ALLOWED_CAPABILITY_KEYS, type CapabilityKey } from '@familyplay/core'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   type AchievedMap,
   CapabilityError,
   fetchAchievedCapabilities,
   setChildCapability,
-} from '@/lib/capabilities'
+} from '@familyplay/data'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type LogRow, mapLogRow } from '../lib/history'
+import { type LogRow, mapLogRow } from './history'
 
 const base: LogRow = {
   id: 'l1',

@@ -1,8 +1,8 @@
+import { fetchHistory, type HistoryEntry } from '@familyplay/data'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { fetchHistory, type HistoryEntry } from '@/lib/history'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
 

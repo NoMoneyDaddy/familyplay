@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type ActivityRow, acquiredFrom, mapActivityRow } from '../lib/recommend'
+import { type ActivityRow, acquiredFrom, mapActivityRow } from './recommend'
 
 const baseRow: ActivityRow = {
   id: 'a1',

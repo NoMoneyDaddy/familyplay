@@ -2,6 +2,11 @@
 
 ## [Unreleased] — Web UI、發展評估、AI 生成（BYO key）
 
+### 抽 `packages/data` 去重 Web/行動端資料存取
+- 新增 `@familyplay/data`：純編排函式（簽名 `(supabase, args)`）——`fetchRecommendations`（七步＋Step 8）、`logCompanion`、`fetchAchievedCapabilities`/`setChildCapability`、`fetchHistory`。RLS 由呼叫端 client 帶 session 生效，此層不持金鑰。
+- Web `/api/recommendations`、`/api/log` 與行動端四個畫面改為共用此層；刪除行動端 `lib/{recommend,log,capabilities,history}.ts`（含測試一併移入 `packages/data`）。`RecommendError` 帶 `code`，Web 據此對應 HTTP 狀態。
+- 消除「查詢編排在 web route 與 mobile lib 各寫一次」的重複；17 個單元測試隨之集中於 `packages/data`。
+
 ### 推薦引擎反應自適應（Step 8）＋ Playwright 修復
 - 競品研究（Puffling／Tovi）：減少選擇＋從反應自適應是留存關鍵。引擎新增 Step 8（加分層、不改 7 步順序）：用 `companion_logs` 近 60 天孩子反應微調排序——喜歡的加分、明確不喜歡的（≥2 次負向且 0 正向）強力降分「換別的」；加法計分、淨值上限 ±3（影響 ±6 分）。向後相容（無 `reactionStats` 即略過）。
 - `buildReactionStats` 正負反應分類抽到 core（Web/行動端單一真實來源），Web `/api/recommendations` 與行動端 `lib/recommend.ts` 都帶入；6 個新單元測試。

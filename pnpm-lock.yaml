@@ -36,6 +36,9 @@ importers:
       '@familyplay/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@familyplay/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@react-navigation/native':
         specifier: ^7.0.0
         version: 7.3.3(react-native@0.85.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.2.3))(react@19.2.3)
@@ -139,6 +142,9 @@ importers:
       '@familyplay/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@familyplay/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@familyplay/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -262,6 +268,28 @@ importers:
         version: 6.0.3
 
   packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^25.9.3
+        version: 25.9.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^7.0.0
+        version: 7.3.5(@types/node@25.9.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(vite@7.3.5(@types/node@25.9.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  packages/data:
+    dependencies:
+      '@familyplay/core':
+        specifier: workspace:*
+        version: link:../core
+      '@supabase/supabase-js':
+        specifier: ^2.46.0
+        version: 2.108.2
     devDependencies:
       '@types/node':
         specifier: ^25.9.3
