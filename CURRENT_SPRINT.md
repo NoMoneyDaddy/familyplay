@@ -6,6 +6,16 @@
 
 ## 最近完成
 
+### 全維度審計 + Phase 1 止血 + 護欄（依 `ULTIMATE_PROJECT_STRATEGY.md`）
+- [x] 四象限全維度審計白皮書 `ULTIMATE_PROJECT_STRATEGY.md`（風險登記簿 + ROI 矩陣 + Phase 1–3 路線圖）
+- [x] 修 `.env.example`：PostHog 變數名不一致（admin 指標必壞的真 bug）+ 補齊 13 個缺漏 env
+- [x] 可觀測性止血（風險 A）：`reportError` 帶 userId/childId/requestId scope（Sentry setUser/tag）+ 補齊靜默吞錯端點（logs / logs/[id] / children/list / children/[id]）
+- [x] 推薦 `load()` 防競態（風險 D1）：reqSeq 序號丟棄亂序回應
+- [x] `/now` 記錄後 streak 火苗 + 本週次數回饋（留存 H1 / H3-lite，零後端）
+- [x] `/api/try` 共用 `mapActivityRow` + 移除死碼 `/api/recommend`（D2/F1）
+- [x] API route 整合測試護欄（風險 B）：`/api/recommendations`、`/api/revenuecat/webhook`、`/api/ai/activity` 三大核心 route + vitest `@` 別名（web 45 測試）
+- [ ] 仍待手動：套用 2 個 migration（解鎖 Plus 託管 AI，見下方）
+
 ### 導覽 / 版面 / 易讀性
 - [x] 活動詳情頁返回鍵 + 全站次級頁一致返回（共用 `useGoBack`，防跳出站外）
 - [x] 首頁 `/now` 品牌（波波 + 站名）、間距收緊、底部導覽瘦身
