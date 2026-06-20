@@ -14,6 +14,7 @@ export type ChildErrorCode =
   | 'profile_failed'
   | 'household_failed'
   | 'create_failed'
+  | 'fetch_failed'
 
 export class ChildError extends Error {
   code: ChildErrorCode
@@ -148,4 +149,46 @@ export async function createChild(
     )
   }
   return child.id as string
+}
+
+export interface ChildSummary {
+  id: string
+  nickname: string | null
+  birthYearMonth: string | null
+  stageKey: string | null
+  createdAt: string | null
+}
+
+export interface ChildRow {
+  id: string
+  nickname: string | null
+  birth_year_month: string | null
+  stage_key: string | null
+  created_at: string | null
+}
+
+/** DB 列 → ChildSummary。抽出以便單元測試。 */
+export function mapChildRow(row: ChildRow): ChildSummary {
+  return {
+    id: row.id,
+    nickname: row.nickname,
+    birthYearMonth: row.birth_year_month,
+    stageKey: row.stage_key,
+    createdAt: row.created_at,
+  }
+}
+
+/**
+ * 列出當前使用者可見的孩子（新到舊）。直接查 child_profiles，交給 RLS 依
+ * household 成員身分過濾——受邀的次要成員（caregiver/viewer）也看得到共用的孩子。
+ * 跨平台共用：Web（API route）與行動端共用，消除兩端各自手刻查詢/映射的漂移。
+ */
+export async function fetchChildren(supabase: SupabaseClient): Promise<ChildSummary[]> {
+  const { data, error } = await supabase
+    .from('child_profiles')
+    .select('id,nickname,birth_year_month,stage_key,created_at')
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (error) throw new ChildError('fetch_failed', '無法載入孩子資料', error)
+  return ((data || []) as ChildRow[]).map(mapChildRow)
 }
