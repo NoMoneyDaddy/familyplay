@@ -63,9 +63,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { childId, ...inputs } = requestSchema.parse(body)
+    const args = requestSchema.parse(body)
     // 編排（查詢 + 七步引擎 + Step 8）共用 @familyplay/data，與行動端同一份。
-    const recommendations = await fetchRecommendations(supabase, childId, inputs)
+    const recommendations = await fetchRecommendations(supabase, args)
     return Response.json({ recommendations })
   } catch (error) {
     if (error instanceof z.ZodError) {

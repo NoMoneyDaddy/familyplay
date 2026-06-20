@@ -55,7 +55,8 @@ export default function RecommendationsScreen() {
     setError('')
     try {
       const supabase = createMobileClient()
-      const result = await fetchRecommendations(supabase, childId, {
+      const result = await fetchRecommendations(supabase, {
+        childId,
         parentEnergy: energy,
         context,
         availableSpace: 'anywhere',

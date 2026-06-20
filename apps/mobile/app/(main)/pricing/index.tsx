@@ -60,16 +60,17 @@ export default function PricingScreen() {
   useEffect(() => {
     if (!isPurchasesAvailable()) return
     let cancelled = false
-    getPlanPackages()
-      .then((pkgs) => {
+    const loadPackages = async () => {
+      try {
+        const pkgs = await getPlanPackages()
         if (!cancelled) setPackages(pkgs)
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setPackages([])
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false)
-      })
+      }
+    }
+    loadPackages()
     return () => {
       cancelled = true
     }

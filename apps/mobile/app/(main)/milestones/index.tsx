@@ -57,17 +57,23 @@ export default function MilestonesScreen() {
       return
     }
     let cancelled = false
-    setLoading(true)
-    fetchAchievedCapabilities(createMobileClient(), childId)
-      .then((map) => {
+    const load = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const map = await fetchAchievedCapabilities(createMobileClient(), childId)
         if (!cancelled) setAchieved(map)
-      })
-      .catch(() => {
-        if (!cancelled) setAchieved({})
-      })
-      .finally(() => {
+      } catch (err) {
+        // 失敗時設錯誤狀態，避免顯示「0 已達成」誤導為「什麼都還沒會」
+        if (!cancelled) {
+          setAchieved({})
+          setError(err instanceof CapabilityError ? err.message : '無法載入能力資料')
+        }
+      } finally {
         if (!cancelled) setLoading(false)
-      })
+      }
+    }
+    load()
     return () => {
       cancelled = true
     }

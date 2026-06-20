@@ -105,6 +105,11 @@ describe('Step 8 — reaction-driven affinity', () => {
     expect(scoreOf(recs, 'disliked')).toBeLessThan(scoreOf(recs, 'plain') as number)
     expect(recs[0].id).toBe('plain')
     expect(recs.find((r) => r.id === 'disliked')?.reasons).toContain('上次玩得不太順，先換別的')
+    // 鎖定強負反饋降幅邊界（與加分上限同界 ±6），防 Step 8 權重回歸
+    const plain = getRecommendations([makeActivity('disliked')], baseContext(), 5)
+    expect(
+      (scoreOf(plain, 'disliked') as number) - (scoreOf(recs, 'disliked') as number),
+    ).toBeCloseTo(6, 5)
   })
 
   it('caps the boost so a single hit cannot dominate safety/ZPD ordering wildly', () => {

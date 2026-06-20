@@ -26,6 +26,11 @@ export interface RecommendInputs {
   excludeIds?: string[]
 }
 
+// 資料層統一簽名 (supabase, args)：args 內含 childId 與其餘輸入。
+export interface RecommendArgs extends RecommendInputs {
+  childId: string
+}
+
 export interface RecommendedActivity {
   id: string
   title: string
@@ -112,17 +117,17 @@ export function acquiredFrom(
  */
 export async function fetchRecommendations(
   supabase: SupabaseClient,
-  childId: string,
-  inputs: RecommendInputs,
+  args: RecommendArgs,
 ): Promise<RecommendedActivity[]> {
   const {
+    childId,
     parentEnergy,
     context,
     availableSpace,
     availableResources = [],
     maxDurationMinutes = 30,
     excludeIds = [],
-  } = inputs
+  } = args
 
   const { data: child, error: childError } = await supabase
     .from('child_profiles')
@@ -163,6 +168,7 @@ export async function fetchRecommendations(
         .select('activity_id')
         .eq('child_id', childId)
         .gt('created_at', sevenDaysAgo)
+        .order('created_at', { ascending: false })
         .limit(500),
       supabase
         .from('child_capability_profiles')
@@ -175,6 +181,7 @@ export async function fetchRecommendations(
         .eq('child_id', childId)
         .not('child_reaction', 'is', null)
         .gt('created_at', sixtyDaysAgo)
+        .order('created_at', { ascending: false })
         .limit(500),
     ])
 

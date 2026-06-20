@@ -68,101 +68,109 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Processing error' }, { status: 500 })
     }
 
-    // 處理失敗時釋放 dedupe 列，否則此事件被永久標記已處理 → 升級永遠補不上。
-    const releaseDedupe = () =>
-      supabase
+    // 釋放剛 claim 的 dedupe 列（並回報刪除失敗），否則事件被永久標記已處理 → 升級永遠補不上。
+    const releaseDedupe = async () => {
+      const { error } = await supabase
         .from('processed_webhooks')
         .delete()
         .eq('provider', 'revenuecat')
         .eq('event_id', eventId)
-
-    if (action === 'ignore') {
-      // 已記錄但不需動作（例如 CANCELLATION：關閉續訂、仍可用到到期）
-      return NextResponse.json({ success: true })
+      if (error) reportError(error, { route: '/api/revenuecat/webhook', phase: 'release_dedupe' })
     }
 
-    // app_user_id 在設定 SDK 時設為 user_profile_id；缺漏無法對應 → 釋放並回 400。
-    const userProfileId = event.app_user_id
-    if (!userProfileId) {
-      await releaseDedupe()
-      return NextResponse.json({ error: 'Missing app_user_id' }, { status: 400 })
-    }
+    // claim 之後的處理一律包進 try/finally：只要不是「成功處理」（含未預期例外），
+    // 都釋放 dedupe 列，避免殘留導致後續重試走 deduped 直接 200、entitlements 永不更新。
+    let completed = false
+    try {
+      if (action === 'ignore') {
+        // 已記錄但不需動作（例如 CANCELLATION：關閉續訂、仍可用到到期）
+        completed = true
+        return NextResponse.json({ success: true })
+      }
 
-    const now = new Date()
+      // app_user_id 在設定 SDK 時設為 user_profile_id；缺漏無法對應 → 釋放並回 400。
+      const userProfileId = event.app_user_id
+      if (!userProfileId) {
+        return NextResponse.json({ error: 'Missing app_user_id' }, { status: 400 })
+      }
 
-    // ── 撤銷（EXPIRATION）→ 回 free，清空所有方案欄位 ──
-    if (action === 'deactivate') {
-      const { error } = await supabase
-        .from('entitlements')
-        .update({
-          plan: 'free',
-          plus_ai_calls_remaining: 0,
-          plus_ai_calls_reset_at: null,
-          plus_started_at: null,
-          plus_ends_at: null,
-          supporter_purchased_at: null,
+      const now = new Date()
+
+      // ── 撤銷（EXPIRATION）→ 回 free，清空所有方案欄位 ──
+      if (action === 'deactivate') {
+        const { error } = await supabase
+          .from('entitlements')
+          .update({
+            plan: 'free',
+            plus_ai_calls_remaining: 0,
+            plus_ai_calls_reset_at: null,
+            plus_started_at: null,
+            plus_ends_at: null,
+            supporter_purchased_at: null,
+            updated_at: now.toISOString(),
+          })
+          .eq('user_profile_id', userProfileId)
+        if (error) {
+          reportError(error, { route: '/api/revenuecat/webhook' })
+          return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
+        }
+        completed = true
+        return NextResponse.json({ success: true })
+      }
+
+      // ── 啟用 ──
+      const config: PlanConfig = {
+        supporterEntitlement: process.env.REVENUECAT_SUPPORTER_ENTITLEMENT || 'supporter',
+        plusEntitlement: process.env.REVENUECAT_PLUS_ENTITLEMENT || 'plus',
+        supporterProductIds: (process.env.REVENUECAT_SUPPORTER_PRODUCT_IDS || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+        plusProductIds: (process.env.REVENUECAT_PLUS_PRODUCT_IDS || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      }
+      const plan = planFromEvent(event, config)
+      if (!plan) {
+        console.error(`RevenueCat webhook: cannot map event to plan (${event.product_id})`)
+        return NextResponse.json({ error: 'Unknown product/entitlement' }, { status: 400 })
+      }
+
+      const plusEndsAt = resolveExpiry(event.expiration_at_ms)
+      // upsert：行動端 IAP 不經我們的 checkout 端點，entitlements 列可能尚未存在。
+      const { error } = await supabase.from('entitlements').upsert(
+        {
+          user_profile_id: userProfileId,
+          plan,
+          revenuecat_customer_id: event.original_app_user_id || userProfileId,
+          ...(plan === 'supporter' && {
+            supporter_purchased_at: now.toISOString(),
+            plus_started_at: null,
+            plus_ends_at: null,
+            plus_ai_calls_remaining: 0,
+            plus_ai_calls_reset_at: null,
+          }),
+          ...(plan === 'plus' && {
+            supporter_purchased_at: null,
+            plus_started_at: now.toISOString(),
+            plus_ends_at: plusEndsAt.toISOString(),
+            plus_ai_calls_remaining: 100,
+            plus_ai_calls_reset_at: plusEndsAt.toISOString(),
+          }),
           updated_at: now.toISOString(),
-        })
-        .eq('user_profile_id', userProfileId)
+        },
+        { onConflict: 'user_profile_id' },
+      )
       if (error) {
         reportError(error, { route: '/api/revenuecat/webhook' })
-        await releaseDedupe()
         return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
       }
+      completed = true
       return NextResponse.json({ success: true })
+    } finally {
+      if (!completed) await releaseDedupe()
     }
-
-    // ── 啟用 ──
-    const config: PlanConfig = {
-      supporterEntitlement: process.env.REVENUECAT_SUPPORTER_ENTITLEMENT || 'supporter',
-      plusEntitlement: process.env.REVENUECAT_PLUS_ENTITLEMENT || 'plus',
-      supporterProductIds: (process.env.REVENUECAT_SUPPORTER_PRODUCT_IDS || '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
-      plusProductIds: (process.env.REVENUECAT_PLUS_PRODUCT_IDS || '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
-    }
-    const plan = planFromEvent(event, config)
-    if (!plan) {
-      console.error(`RevenueCat webhook: cannot map event to plan (${event.product_id})`)
-      await releaseDedupe()
-      return NextResponse.json({ error: 'Unknown product/entitlement' }, { status: 400 })
-    }
-
-    const plusEndsAt = resolveExpiry(event.expiration_at_ms)
-    // upsert：行動端 IAP 不經我們的 checkout 端點，entitlements 列可能尚未存在。
-    const { error } = await supabase.from('entitlements').upsert(
-      {
-        user_profile_id: userProfileId,
-        plan,
-        revenuecat_customer_id: event.original_app_user_id || userProfileId,
-        ...(plan === 'supporter' && {
-          supporter_purchased_at: now.toISOString(),
-          plus_started_at: null,
-          plus_ends_at: null,
-          plus_ai_calls_remaining: 0,
-          plus_ai_calls_reset_at: null,
-        }),
-        ...(plan === 'plus' && {
-          supporter_purchased_at: null,
-          plus_started_at: now.toISOString(),
-          plus_ends_at: plusEndsAt.toISOString(),
-          plus_ai_calls_remaining: 100,
-          plus_ai_calls_reset_at: plusEndsAt.toISOString(),
-        }),
-        updated_at: now.toISOString(),
-      },
-      { onConflict: 'user_profile_id' },
-    )
-    if (error) {
-      reportError(error, { route: '/api/revenuecat/webhook' })
-      await releaseDedupe()
-      return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
-    }
-    return NextResponse.json({ success: true })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })

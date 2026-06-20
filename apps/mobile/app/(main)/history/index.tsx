@@ -37,20 +37,27 @@ export default function HistoryScreen() {
 
   useEffect(() => {
     if (!childId) {
+      setEntries([])
+      setError('')
       setLoading(false)
       return
     }
     let cancelled = false
-    fetchHistory(createMobileClient(), childId)
-      .then((rows) => {
+    const run = async () => {
+      // childId 變更時先清空，避免舊孩子的資料殘留或與新錯誤並存
+      setLoading(true)
+      setError('')
+      setEntries([])
+      try {
+        const rows = await fetchHistory(createMobileClient(), childId)
         if (!cancelled) setEntries(rows)
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setError('無法載入陪伴紀錄')
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false)
-      })
+      }
+    }
+    run()
     return () => {
       cancelled = true
     }

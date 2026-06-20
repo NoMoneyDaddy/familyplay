@@ -216,7 +216,8 @@ function applyRecencyPenalty(
 // reactionStats is supplied; otherwise a no-op (backward compatible).
 const AFFINITY_POINTS_PER_NET = 2 // 每淨喜歡 +2 分
 const AFFINITY_NET_CAP = 3 // 淨值上下限 ±3 → 影響上限 ±6 分
-const STRONG_DISLIKE_PENALTY = 8 // 明確不喜歡（≥2 次負向且 0 正向）：直接重校準離開
+// 明確不喜歡（≥2 次負向且 0 正向）：直接給最大降幅。與加分上限同界（±6），維持加法計分一致。
+const STRONG_DISLIKE_PENALTY = AFFINITY_POINTS_PER_NET * AFFINITY_NET_CAP // 6
 
 function applyReactionAffinity(
   activities: ScoredActivity[],
