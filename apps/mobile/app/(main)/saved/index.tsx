@@ -14,7 +14,7 @@ const FOCUS_LABELS: Record<string, string> = {
   social_cognitive: '社交認知',
   emotional: '情緒',
 }
-const STIM_LABELS: Record<string, string> = { low: '低刺激', medium: '中刺激', high: '高刺激' }
+const STIM_LABELS: Record<string, string> = { low: '安靜', medium: '適中', high: '活潑' }
 
 /** 我的收藏：之後想再找回喜歡的活動。收藏讀寫走 @familyplay/data（RLS 生效）。 */
 export default function SavedScreen() {

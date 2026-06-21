@@ -35,7 +35,7 @@ const FOCUS_LABELS: Record<string, string> = {
   social_cognitive: '社交認知',
   emotional: '情緒',
 }
-const STIM_LABELS: Record<string, string> = { low: '低刺激', medium: '中刺激', high: '高刺激' }
+const STIM_LABELS: Record<string, string> = { low: '安靜', medium: '適中', high: '活潑' }
 
 const REASON_FRIENDLY: Record<string, string> = {
   發展中能力加分: '正好練到他正在發展的能力',

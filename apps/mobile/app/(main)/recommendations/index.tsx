@@ -38,7 +38,7 @@ const FOCUS_LABELS: Record<string, string> = {
   emotional: '情緒',
 }
 
-const STIM_LABELS: Record<string, string> = { low: '低刺激', medium: '中刺激', high: '高刺激' }
+const STIM_LABELS: Record<string, string> = { low: '安靜', medium: '適中', high: '活潑' }
 
 // 引擎內部評分 reason 對家長沒意義，白名單轉白話、其餘（優先度調整/降分等）丟掉（與 Web 一致）。
 const REASON_FRIENDLY: Record<string, string> = {
