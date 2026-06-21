@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://familyplay.zeabur.app'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://family.nomoneydaddy.app'
 
 // 只列公開、可索引的頁面，加速搜尋引擎發現（與 robots 的 disallow 一致）。
 export default function sitemap(): MetadataRoute.Sitemap {

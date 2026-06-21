@@ -19,7 +19,7 @@ export type SendEmailResult =
 
 function fromAddress(): string {
   // 寄件人需為 Resend 已驗證網域；未設時用站點預設（開通前不會真的送出）。
-  return process.env.EMAIL_FROM || 'FamilyPlay <noreply@familyplay.zeabur.app>'
+  return process.env.EMAIL_FROM || 'FamilyPlay <noreply@family.nomoneydaddy.app>'
 }
 
 /** 寄一封 email。未設 RESEND_API_KEY 即休眠（不送、回 dormant）。 */
