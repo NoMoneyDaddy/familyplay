@@ -90,7 +90,13 @@
   方案、換一個、一鍵記錄；直接接共用 `packages/data`（無 Next API route，RLS 由帶 session
   的 mobile client 生效），驗證共用層在 RN 跑通；登入後入口導向 `/now`（#194）
 - [x] 方案頁改「完全免費」、移除 RevenueCat 死碼（免費轉向，#195/#196）
-- [ ] 孩子管理畫面（多孩子）；可選抽更多查詢到 `packages/data` 去重 web/mobile
+- [x] 多孩子支援（#199–#201）：`/children` 孩子管理頁（列出/切換/新增）+ `useActiveChild`
+  store（SecureStore 持久化、失效 id 自我修正）；`/now` 用選定孩子並顯示「切換/管理」入口；
+  新增孩子後設為目前並進 `/now`；解析收斂成純函式 `resolveActiveChild` + 單元測試；
+  `handoff` 共用 `lib/stage-labels`
+- [x] `(main)` 群組 `_layout` 隱藏原生 header，消除雙標題/小寫路由名（#202）
+- [ ] AI 客製活動（BYO key，金鑰存 SecureStore）；推送通知；離線回放；可選抽更多查詢到
+  `packages/data` 去重 web/mobile
 
 ---
 
@@ -122,7 +128,7 @@
 
 ## 下一步候選
 
-- 行動端（Expo）UI（`apps/mobile`）：續補其餘畫面（孩子管理/多孩子、AI BYO 設定…）重用 `packages/*`；之後若要連 UI 都共用，再漸進評估 Tamagui+Solito
+- 行動端（Expo）UI（`apps/mobile`）：多孩子管理已上線（#199–#201）；續補 AI BYO 設定、推送通知、離線回放等畫面重用 `packages/*`；之後若要連 UI 都共用，再漸進評估 Tamagui+Solito
 - ~~付費整合 UI~~：**已廢止**——改為免費＋廣告（見上方「商業模式轉向」）。下方 Plus 上線 checklist 一併停用
 - [x] 交接摘要 AI 強化（AI2 完成）：`/api/ai/handoff` + `buildHandoffPrompt`/
   `sanitizeHandoffSummary`，把規則式現況交給 AI 寫成 2–3 句溫暖短評；輸入沿用與活動生成

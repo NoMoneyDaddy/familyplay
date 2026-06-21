@@ -177,8 +177,8 @@ perf: 性能優化
 - 首次三步導覽提示、陪伴紀錄「誰陪的」、交接小卡 `/handoff`、里程碑「下一步」建議
 
 ### 待實現 🚧
-- Mobile UI（Expo，`apps/mobile`）：續補孩子管理/多孩子、AI BYO 設定等畫面
-- 推送通知、本地化、離線強化
+- Mobile UI（Expo，`apps/mobile`）：多孩子管理已上線；續補 AI BYO 設定、推送通知、離線回放
+- 本地化、離線強化
 
 > 註：商業模式已轉向**免費＋低干擾廣告**（Google AdSense），不再收費。付費／訂閱／App 內購的
 > 對外入口已下架（見 `CURRENT_SPRINT.md`「商業模式轉向」）；後端 webhook/entitlements 與 Plus 配額 RPC 暫留無 UI。
