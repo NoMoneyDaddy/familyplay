@@ -42,9 +42,19 @@ describe('buildActivityPrompt', () => {
   })
 
   it('不含任何個資欄位（暱稱/生日）', () => {
-    const p = buildActivityPrompt(base)
+    const p = buildActivityPrompt({ ...base, ageMonths: 18 })
     const blob = `${p.system}\n${p.user}`
+    // 即使帶了去識別化年齡，也不得出現暱稱/生日/姓名等個資字樣
     expect(blob).not.toMatch(/暱稱|生日|姓名/)
+  })
+
+  it('帶 ageMonths 時放入去識別化的精確年齡', () => {
+    expect(buildActivityPrompt({ ...base, ageMonths: 18 }).user).toContain('1 歲 6 個月')
+    expect(buildActivityPrompt({ ...base, ageMonths: 5 }).user).toContain('5 個月大')
+  })
+
+  it('未帶 ageMonths 時不加年齡描述', () => {
+    expect(buildActivityPrompt(base).user).not.toMatch(/個月大|歲/)
   })
 })
 

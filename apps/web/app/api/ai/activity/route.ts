@@ -10,7 +10,12 @@ import {
   parseGeneratedActivity,
 } from '@familyplay/ai'
 import { CAPABILITY_LABELS, getZpdTargets } from '@familyplay/assessment'
-import { type CapabilityKey, getAgeMonths, getStageKey } from '@familyplay/core'
+import {
+  type CapabilityKey,
+  getAgeMonths,
+  getAgeMonthsFromDate,
+  getStageKey,
+} from '@familyplay/core'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -187,6 +192,21 @@ async function handlePost(request: Request) {
   if (ageMonths < 0) {
     return NextResponse.json({ error: '出生年月不能在未來' }, { status: 400 })
   }
+  // 生日精確到日（若有）：用完整生日算更準的月齡送給 AI（去識別化：只送月齡數字，
+  // 不送原始生日字串、不送姓名）。best-effort：欄位不存在/未填則維持年月推出的月齡。
+  const { data: bd } = await supabase
+    .from('child_profiles')
+    .select('birth_date')
+    .eq('id', input.childId)
+    .maybeSingle()
+  if (bd?.birth_date && typeof bd.birth_date === 'string') {
+    try {
+      const precise = getAgeMonthsFromDate(bd.birth_date)
+      if (precise >= 0) ageMonths = precise
+    } catch {
+      // 生日格式異常 → 維持年月推出的月齡
+    }
+  }
   const stageKey = getStageKey(ageMonths)
 
   const { data: capProfile, error: capError } = await supabase
@@ -207,6 +227,7 @@ async function handlePost(request: Request) {
     spaceContext: input.spaceContext as AIInput['spaceContext'],
     companionType: input.companionType as AIInput['companionType'],
     availableResources: input.availableResources as AIInput['availableResources'],
+    ageMonths,
   }
 
   const provider = getProvider(providerName, {

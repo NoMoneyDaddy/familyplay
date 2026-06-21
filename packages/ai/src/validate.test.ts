@@ -43,4 +43,14 @@ describe('validateAIInput', () => {
     expect(validateAIInput(null).valid).toBe(false)
     expect(validateAIInput('nope').valid).toBe(false)
   })
+
+  it('accepts a valid de-identified ageMonths', () => {
+    expect(validateAIInput({ ...validInput, ageMonths: 18 }).valid).toBe(true)
+  })
+
+  it('rejects an out-of-range or non-integer ageMonths', () => {
+    expect(validateAIInput({ ...validInput, ageMonths: -1 }).valid).toBe(false)
+    expect(validateAIInput({ ...validInput, ageMonths: 200 }).valid).toBe(false)
+    expect(validateAIInput({ ...validInput, ageMonths: 12.5 as never }).valid).toBe(false)
+  })
 })

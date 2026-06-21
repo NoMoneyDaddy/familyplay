@@ -18,8 +18,9 @@ export interface ValidationResult {
  * an AI request (CLAUDE.md AI safety rule #1). Rejects any value not present in
  * the corresponding allow-list. Never trusts caller-supplied strings.
  *
- * Note: AIInput intentionally contains NO child nickname or birthday — those
- * must never reach an AI provider (rule #5).
+ * Note: AIInput may carry a DE-IDENTIFIED precise age (ageMonths) derived from
+ * the child's birthday, but never the child's nickname or the raw birthdate
+ * string (rule #5). ageMonths, when present, is bounded-validated here.
  */
 export function validateAIInput(input: unknown): ValidationResult {
   const errors: string[] = []
@@ -63,6 +64,13 @@ export function validateAIInput(input: unknown): ValidationResult {
       if (!ALLOWED_RESOURCE_KEYS.includes(r)) {
         errors.push(`invalid resource: ${String(r)}`)
       }
+    }
+  }
+
+  // ageMonths 選填；給了就必須是 0–144（0–12 歲）區間內的整數，擋掉異常/注入值。
+  if (i.ageMonths !== undefined) {
+    if (!Number.isInteger(i.ageMonths) || i.ageMonths < 0 || i.ageMonths > 144) {
+      errors.push(`invalid ageMonths: ${String(i.ageMonths)}`)
     }
   }
 

@@ -3,9 +3,17 @@ import type { AIInput } from './types'
 
 // 由白名單驗證過的 AIInput 組出 AI 提示。
 //
-// 安全（CLAUDE.md）：AIInput 本身不含孩子暱稱/生日，這裡也絕不加入任何個資。
-// 輸出要求嚴格 JSON，方便後端解析；系統提示明確禁止醫療診斷、危險素材、外部連結，
-// 並要求繁體中文、語氣溫暖、步驟可立即執行。
+// 安全（CLAUDE.md）：可加入「去識別化的精確年齡（月齡）」讓活動更貼合，但絕不加入
+// 孩子姓名或原始出生日期字串。輸出要求嚴格 JSON，方便後端解析；系統提示明確禁止
+// 醫療診斷、危險素材、外部連結，並要求繁體中文、語氣溫暖、步驟可立即執行。
+
+// 月齡 → 自然語年齡描述（去識別化，不含生日）。
+function agePhrase(months: number): string {
+  if (months < 12) return `${months} 個月大`
+  const y = Math.floor(months / 12)
+  const m = months % 12
+  return m === 0 ? `${y} 歲` : `${y} 歲 ${m} 個月`
+}
 
 const STAGE_DESC: Record<string, string> = {
   newborn: '新生兒（0–3 個月）',
@@ -162,7 +170,9 @@ export function buildHandoffPrompt(input: AIInput): {
       : '目前沒有特別標記的發展能力。'
 
   const user = [
-    `孩子的發展階段：${STAGE_DESC[input.stageKey] ?? input.stageKey}。`,
+    input.ageMonths !== undefined
+      ? `孩子的發展階段：${STAGE_DESC[input.stageKey] ?? input.stageKey}，目前約 ${agePhrase(input.ageMonths)}。`
+      : `孩子的發展階段：${STAGE_DESC[input.stageKey] ?? input.stageKey}。`,
     developing,
     '請寫一段溫暖的交接現況短評，讓接手的家人安心、知道現在可以多陪孩子練什麼。',
   ].join('\n')
@@ -198,7 +208,9 @@ export function buildActivityPrompt(input: AIInput): {
       : '目前沒有特別標記的發展能力，給通用的適齡活動即可。'
 
   const user = [
-    `孩子發展階段：${STAGE_DESC[input.stageKey] ?? input.stageKey}。`,
+    input.ageMonths !== undefined
+      ? `孩子發展階段：${STAGE_DESC[input.stageKey] ?? input.stageKey}，目前約 ${agePhrase(input.ageMonths)}。`
+      : `孩子發展階段：${STAGE_DESC[input.stageKey] ?? input.stageKey}。`,
     `家長現在的狀態：${ENERGY_DESC[input.parentEnergy]}。`,
     `想要的陪伴類型：${COMPANION_DESC[input.companionType] ?? input.companionType}。`,
     `地點：${SPACE_DESC[input.spaceContext] ?? input.spaceContext}。`,
