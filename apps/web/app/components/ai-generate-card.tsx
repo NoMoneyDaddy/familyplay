@@ -23,9 +23,8 @@ function timeCompanionType(): string {
 }
 
 /**
- * 「都看過了」出口：請 AI 生一個全新活動。
- * Plus 會員用伺服器託管金鑰（免設定、計月配額）；其餘用家長自帶金鑰(BYO)。
- * 都沒有時引導去設定／升級；任何失敗都安靜給溫和訊息（後端已降回規則式，不洩漏細節）。
+ * 「都看過了」出口：請 AI 生一個全新活動。免費、自帶金鑰(BYO)——金鑰只存裝置、用完即丟。
+ * 沒設金鑰時引導去設定；任何失敗都安靜給溫和訊息（後端已降回規則式，不洩漏細節）。
  */
 export function AIGenerateCard({ childId }: { childId: string }) {
   const [activity, setActivity] = useState<GeneratedActivity | null>(null)
@@ -45,45 +44,16 @@ export function AIGenerateCard({ childId }: { childId: string }) {
     }
   }, [])
 
-  // Plus 會員可用「託管金鑰」免設定生成；查方案決定要不要直接給生成按鈕。
-  // 方案讀不到（網路/DB 錯誤、planStatus:'unknown'）時不要把入口藏掉——寧可顯示按鈕，
-  // 後端仍以配額把關（非 Plus 會安靜降回）。回到分頁時重讀，升級/掉訂後即時反映。
-  const [allowManaged, setAllowManaged] = useState(false)
-  // Plus 會員本月託管 AI 生成剩餘次數（null = 非 Plus 或讀不到，不顯示）
-  const [plusRemaining, setPlusRemaining] = useState<number | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    const refresh = () => {
-      fetch('/api/profile')
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => {
-          if (cancelled) return
-          // 讀失敗或狀態未知 → 視為可嘗試（不藏入口）；讀到明確方案才依 plan 判斷
-          if (!d || d.planStatus === 'unknown') setAllowManaged(true)
-          else setAllowManaged(d.plan === 'plus')
-          setPlusRemaining(
-            d && d.plan === 'plus' && typeof d.plusAiCallsRemaining === 'number'
-              ? d.plusAiCallsRemaining
-              : null,
-          )
-        })
-        .catch(() => {
-          if (!cancelled) setAllowManaged(true)
-        })
-    }
-    refresh()
-    window.addEventListener('focus', refresh)
-    return () => {
-      cancelled = true
-      window.removeEventListener('focus', refresh)
-    }
-  }, [])
-
   const generate = async () => {
     if (loading) return // 重入保護：避免快速連點觸發多個並發請求
-    // 有自帶金鑰(BYO)就帶上；沒有則不帶 provider → 伺服器走 Plus 託管金鑰並計配額。
-    // 非 Plus／未配置託管時伺服器回 ok:false，前端統一給溫和訊息。
+    // 自帶金鑰(BYO) 才生成。用 hasAIKey() 做完整性檢查（擋掉「選了 provider 但 apiKey 空」
+    // 的半套設定，ollama 免 key 例外），比僅檢查 readAIKey() 非 null 嚴謹。
+    if (!hasAIKey()) {
+      setError('請先到設定加上你的 AI 金鑰。')
+      return
+    }
     const key = readAIKey()
+    if (!key) return
     setLoading(true)
     setError(null)
     try {
@@ -98,7 +68,8 @@ export function AIGenerateCard({ childId }: { childId: string }) {
             companionType: timeCompanionType(),
             spaceContext: 'anywhere',
             availableResources: [],
-            ...(key ? { provider: key.provider, apiKey: key.apiKey } : {}),
+            provider: key.provider,
+            apiKey: key.apiKey,
           }),
         },
         20000,
@@ -110,11 +81,9 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           ...(data.activity as GeneratedActivity),
           targetedSkills: Array.isArray(data.targetedSkills) ? data.targetedSkills : undefined,
         })
-        // 託管模式（無 BYO key）成功會扣 1 次配額，本地同步遞減顯示
-        if (!key && plusRemaining != null) setPlusRemaining(Math.max(0, plusRemaining - 1))
       } else {
-        // ok:false（金鑰無效/額度用盡/安全擋下/解析失敗…）一律給同一句溫和訊息
-        setError('這次沒生成成功，可能是金鑰或額度問題，稍後再試或換個服務。')
+        // ok:false（金鑰無效/安全擋下/解析失敗…）一律給同一句溫和訊息
+        setError('這次沒生成成功，可能是金鑰問題，稍後再試或換個服務。')
       }
     } catch {
       setError('網路不太穩，等一下再試一次。')
@@ -182,9 +151,6 @@ export function AIGenerateCard({ childId }: { childId: string }) {
             {error}
           </p>
         )}
-        {plusRemaining != null && (
-          <p className="text-center text-xs text-muted">本月 Plus AI 生成還剩 {plusRemaining} 次</p>
-        )}
         <Button variant="secondary" size="md" icon="refresh" loading={loading} onClick={generate}>
           再生一個
         </Button>
@@ -200,42 +166,25 @@ export function AIGenerateCard({ childId }: { childId: string }) {
       <div className="space-y-1">
         <p className="font-semibold text-text">都看過了？請 AI 生一個</p>
         <p className="text-sm text-muted">
-          {allowManaged && !configured
-            ? 'Plus 免設定，依孩子的程度生一個。'
-            : '依孩子的程度，現場生一個全新的小活動。'}
+          依孩子的程度，現場生一個全新的小活動（自帶金鑰、免費）。
         </p>
-        {plusRemaining != null && (
-          <p className="text-xs text-muted">本月 Plus AI 生成還剩 {plusRemaining} 次</p>
-        )}
       </div>
       {error && (
         <p className="rounded-lg bg-warning-tint px-3 py-2 text-xs text-warning" role="status">
           {error}
         </p>
       )}
-      {configured || allowManaged ? (
-        <>
-          <Button size="lg" icon="sparkle" loading={loading} onClick={generate} className="w-full">
-            請 AI 生一個
-          </Button>
-          {/* Plus 用託管金鑰、免自帶；非 Plus 才需要自帶金鑰 */}
-          {!configured && (
-            <Link
-              href="/settings"
-              className="inline-flex items-center justify-center gap-1 text-xs text-muted transition-opacity hover:opacity-70"
-            >
-              <Icon name="settings" className="h-[14px] w-[14px]" />
-              設定 AI 金鑰
-            </Link>
-          )}
-        </>
+      {configured ? (
+        <Button size="lg" icon="sparkle" loading={loading} onClick={generate} className="w-full">
+          請 AI 生一個
+        </Button>
       ) : (
         <Link
           href="/settings"
           className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-brand transition-opacity hover:opacity-70"
         >
           <Icon name="settings" className="h-[16px] w-[16px]" />
-          先到設定加上你的 AI 金鑰（或升級 Plus 免設定）
+          先到設定加上你的 AI 金鑰
         </Link>
       )}
     </Card>
