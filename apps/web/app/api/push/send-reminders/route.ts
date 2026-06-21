@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
   // VAPID subject 為 push 服務識別用（非使用者可見）；用站點 URL，避免依賴聯絡信箱
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || 'https://familyplay.zeabur.app',
+    process.env.VAPID_SUBJECT || 'https://family.nomoneydaddy.app',
     vapidPublic,
     vapidPrivate,
   )

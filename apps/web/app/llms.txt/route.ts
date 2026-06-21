@@ -1,7 +1,7 @@
 // /llms.txt — 給 LLM／AI 代理的網站導覽（llms.txt 規範）。
 // 用簡潔 Markdown 說明「FamilyPlay 是什麼、給誰、有哪些公開頁」，
 // 讓 AI 助理能正確介紹本產品並連到正確頁面。只列公開頁（與 robots/sitemap 一致）。
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://familyplay.zeabur.app'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://family.nomoneydaddy.app'
 
 // 純靜態內容，建置期產出即可
 export const dynamic = 'force-static'
