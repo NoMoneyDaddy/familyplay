@@ -60,11 +60,11 @@ afterEach(() => {
 describe('GET /api/profile', () => {
   it('未登入 → 401', async () => {
     h.user = null
-    expect((await GET()).status).toBe(401)
+    expect((await GET(new Request('http://localhost'))).status).toBe(401)
   })
 
   it('無 entitlements 列 → plan=free、planStatus=ok、配額 null', async () => {
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.plan).toBe('free')
     expect(json.planStatus).toBe('ok')
     expect(json.plusAiCallsRemaining).toBeNull()
@@ -73,7 +73,7 @@ describe('GET /api/profile', () => {
 
   it('entitlements 查詢錯誤 → plan=null、planStatus=unknown 並上報（前端不藏 Plus 入口）', async () => {
     h.entError = { message: 'rls boom' }
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.plan).toBeNull()
     expect(json.planStatus).toBe('unknown')
     expect(h.reportError).toHaveBeenCalled()
@@ -81,21 +81,21 @@ describe('GET /api/profile', () => {
 
   it('Plus 會員 → 回傳 plusAiCallsRemaining 數字', async () => {
     h.entitlements = { plan: 'plus', plus_ends_at: null, plus_ai_calls_remaining: 42 }
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.plan).toBe('plus')
     expect(json.plusAiCallsRemaining).toBe(42)
   })
 
   it('非 Plus（supporter）→ plusAiCallsRemaining 為 null', async () => {
     h.entitlements = { plan: 'supporter', plus_ai_calls_remaining: 99 }
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.plan).toBe('supporter')
     expect(json.plusAiCallsRemaining).toBeNull()
   })
 
   it('找不到 user_profile → 仍回預設 free 檔（不 500）', async () => {
     h.profile = null
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.userProfileId).toBeNull()
     expect(json.plan).toBe('free')
   })

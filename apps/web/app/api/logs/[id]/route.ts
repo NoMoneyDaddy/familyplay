@@ -1,3 +1,4 @@
+import { CHILD_REACTIONS } from '@familyplay/core'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -10,9 +11,7 @@ import { checkRateLimit } from '@/lib/ratelimit'
 const patchSchema = z
   .object({
     outcome: z.enum(['completed', 'tried', 'abandoned']).optional(),
-    childReaction: z
-      .enum(['happy', 'engaged', 'neutral', 'leaving', 'disinterested', 'calmed'])
-      .optional(),
+    childReaction: z.enum(CHILD_REACTIONS).optional(),
     durationSecs: z.number().int().positive().nullable().optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: '至少需要一個欄位' })

@@ -1,25 +1,16 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 const schema = z.object({
   code: z.string().min(1),
 })
 
 export async function POST(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user } = auth
 
   // 邀請碼為 8 碼、30 天有效；節流以防暴力猜碼（猜中即加入他人家庭、看到孩子 PII）。
   const rl = await checkRateLimit(`invite-accept:${user.id}`, 5)

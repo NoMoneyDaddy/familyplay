@@ -1,3 +1,4 @@
+import { POSITIVE_REACTIONS } from '@familyplay/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { todayLocal, toLocalDate } from './streak'
 
@@ -5,7 +6,6 @@ import { todayLocal, toLocalDate } from './streak'
 // 純聚合（可單元測試），用既有 companion_logs，雙平台共用。
 
 const DEFAULT_TZ = 'Asia/Taipei'
-const POSITIVE_REACTIONS: ReadonlySet<string> = new Set(['happy', 'engaged', 'calmed'])
 
 export class InsightsError extends Error {}
 

@@ -1,8 +1,8 @@
 import { fetchStreak, fetchWeeklyInsights, type WeeklyInsights } from '@familyplay/data'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 /**
  * GET /api/insights?childId=...
@@ -12,18 +12,9 @@ import { getApiSupabase } from '@/lib/supabase/api'
 const querySchema = z.object({ childId: z.string().uuid() })
 
 export async function GET(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, requestId } = auth
 
   const parsed = querySchema.safeParse({
     childId: new URL(request.url).searchParams.get('childId'),
@@ -35,11 +26,11 @@ export async function GET(request: Request) {
   const { childId } = parsed.data
   const [streak, weekly] = await Promise.all([
     fetchStreak(supabase, { childId }).catch((e) => {
-      reportError(e, { route: '/api/insights#streak' })
+      reportError(e, { route: '/api/insights#streak', requestId })
       return 0
     }),
     fetchWeeklyInsights(supabase, { childId }).catch((e): WeeklyInsights | null => {
-      reportError(e, { route: '/api/insights#weekly' })
+      reportError(e, { route: '/api/insights#weekly', requestId })
       return null
     }),
   ])

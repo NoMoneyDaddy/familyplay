@@ -42,12 +42,12 @@ afterEach(() => {
 describe('GET /api/children/list', () => {
   it('未登入 → 401', async () => {
     h.user = null
-    expect((await GET()).status).toBe(401)
+    expect((await GET(new Request('http://localhost'))).status).toBe(401)
   })
 
   it('超出限流 → 429', async () => {
     h.rl = false
-    expect((await GET()).status).toBe(429)
+    expect((await GET(new Request('http://localhost'))).status).toBe(429)
   })
 
   it('成功 → 200 回 camelCase 清單', async () => {
@@ -60,7 +60,7 @@ describe('GET /api/children/list', () => {
         created_at: 't',
       },
     ]
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.children[0]).toEqual({
       id: 'c1',
       nickname: '波波',
@@ -73,7 +73,7 @@ describe('GET /api/children/list', () => {
 
   it('DB 失敗（ChildError）→ 500 並上報', async () => {
     h.error = { message: 'boom' }
-    expect((await GET()).status).toBe(500)
+    expect((await GET(new Request('http://localhost'))).status).toBe(500)
     expect(h.reportError).toHaveBeenCalled()
   })
 })

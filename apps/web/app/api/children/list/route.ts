@@ -1,22 +1,13 @@
 import { ChildError, fetchChildren } from '@familyplay/data'
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getApiSupabase } from '@/lib/supabase/api'
 
-export async function GET() {
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export async function GET(request: Request) {
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`children-list:${user.id}`, 30)
   if (!rl.success) {
@@ -30,10 +21,10 @@ export async function GET() {
     return NextResponse.json({ children })
   } catch (error) {
     if (error instanceof ChildError) {
-      reportError(error, { route: '/api/children/list', userId: user.id })
+      reportError(error, { route: '/api/children/list', userId: user.id, requestId })
       return NextResponse.json({ error: 'Failed to fetch children' }, { status: 500 })
     }
-    reportError(error, { route: '/api/children/list', userId: user.id })
+    reportError(error, { route: '/api/children/list', userId: user.id, requestId })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

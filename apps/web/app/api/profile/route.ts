@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
-import { getApiSupabase } from '@/lib/supabase/api'
 
-export async function GET() {
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export async function GET(request: Request) {
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   const { data: profile } = await supabase
     .from('user_profiles')
@@ -52,7 +43,7 @@ export async function GET() {
     .select('plan,plus_ends_at,plus_ai_calls_remaining,revenuecat_customer_id')
     .eq('user_profile_id', profile.id)
     .maybeSingle()
-  if (entError) reportError(entError, { route: '/api/profile#entitlements' })
+  if (entError) reportError(entError, { route: '/api/profile#entitlements', requestId })
 
   return NextResponse.json({
     // RevenueCat Web Billing 的 appUserId 用此值（= entitlements.user_profile_id，webhook 對應）。非機密。

@@ -1,9 +1,9 @@
 import { fetchRecommendations, RecommendError } from '@familyplay/data'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getRequestId } from '@/lib/request-id'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 const requestSchema = z.object({
   childId: z.string().uuid(),
@@ -28,19 +28,9 @@ const ERROR_STATUS: Record<string, number> = {
 }
 
 export async function POST(request: Request) {
-  const requestId = getRequestId(request)
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return Response.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   // Rate limit: 30 recommendation requests per user per minute
   const rl = await checkRateLimit(`recommend:${user.id}`, 30)

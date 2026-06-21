@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 const schema = z.object({
   householdId: z.string().uuid(),
@@ -27,18 +27,9 @@ function generateInviteToken(): string {
 }
 
 export async function POST(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user } = auth
 
   const rl = await checkRateLimit(`invite-generate:${user.id}`, 10)
   if (!rl.success) {

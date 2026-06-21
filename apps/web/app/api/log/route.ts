@@ -1,3 +1,4 @@
+import { CHILD_REACTIONS } from '@familyplay/core'
 import { LogError, logCompanion } from '@familyplay/data'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -10,7 +11,7 @@ const logSchema = z.object({
   childId: z.string().uuid(),
   activityId: z.string().uuid(),
   outcome: z.enum(['completed', 'tried', 'abandoned']),
-  childReaction: z.enum(['happy', 'engaged', 'neutral', 'leaving', 'disinterested', 'calmed']),
+  childReaction: z.enum(CHILD_REACTIONS),
   durationSecs: z.number().int().positive().optional(),
 })
 

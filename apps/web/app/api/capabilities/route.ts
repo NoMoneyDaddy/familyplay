@@ -2,10 +2,9 @@ import { ALLOWED_CAPABILITY_KEYS } from '@familyplay/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getRequestId } from '@/lib/request-id'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 // 能力 key 為 camelCase 值（canRoll…）。白名單避免寫入/回傳任意鍵污染 JSONB。
 const ALLOWED = new Set<string>(ALLOWED_CAPABILITY_KEYS)
@@ -29,18 +28,9 @@ const patchSchema = z.object({
 // GET /api/capabilities?childId=...
 // 回傳該孩子「已達成能力」camelCase→true 對照表，給里程碑評估頁標記目前狀態。
 export async function GET(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`capabilities-read:${user.id}`, 60)
   if (!rl.success) {
@@ -50,7 +40,6 @@ export async function GET(request: Request) {
   const parsed = getSchema.safeParse({
     childId: new URL(request.url).searchParams.get('childId'),
   })
-  const requestId = getRequestId(request)
   if (!parsed.success) {
     return NextResponse.json({ error: 'childId 不合法' }, { status: 400 })
   }
@@ -75,18 +64,9 @@ export async function GET(request: Request) {
 // 家長標記孩子「會了 / 還沒」某個里程碑能力 → 寫入 child_capability_profiles.capabilities。
 // 推薦引擎的 ZPD 評分依此真正生效（先前能力檔永遠空、ZPD 形同沒作用）。
 export async function PATCH(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`capabilities-write:${user.id}`, 30)
   if (!rl.success) {
@@ -104,7 +84,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: '輸入不合法', details: parsed.error.errors }, { status: 400 })
   }
   const { childId, capabilityKey, achieved } = parsed.data
-  const requestId = getRequestId(request)
 
   // 原子更新單一鍵（DB 端 JSONB 合併/刪除），避免並發 read-modify-write 互相覆蓋；
   // RPC 內含缺檔自我修復。RLS 仍在 RPC 內生效（SECURITY INVOKER）。

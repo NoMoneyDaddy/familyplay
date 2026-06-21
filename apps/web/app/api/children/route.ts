@@ -1,10 +1,9 @@
 import { ChildError, createChild } from '@familyplay/data'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getRequestId } from '@/lib/request-id'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 // ChildError code → HTTP 狀態
 const STATUS_BY_CODE: Record<string, number> = {
@@ -31,20 +30,9 @@ const schema = z
   })
 
 export async function POST(request: Request) {
-  const requestId = getRequestId(request)
-
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`children-create:${user.id}`, 10)
   if (!rl.success) {

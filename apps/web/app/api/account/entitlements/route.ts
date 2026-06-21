@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getApiSupabase } from '@/lib/supabase/api'
+import { requireAuth } from '@/lib/api/auth'
 
 const entitlementsSchema = z.object({
   plan: z.enum(['free', 'supporter', 'plus']),
@@ -11,20 +11,11 @@ const entitlementsSchema = z.object({
   plusAiCallsResetAt: z.string().datetime().nullable(),
 })
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const supabase = await getApiSupabase()
-    if (!supabase) {
-      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-    }
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAuth(request)
+    if (auth instanceof NextResponse) return auth
+    const { supabase, user } = auth
 
     // Get user profile
     const { data: profile } = await supabase
