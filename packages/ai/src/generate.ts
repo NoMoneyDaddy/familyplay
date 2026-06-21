@@ -18,8 +18,9 @@ export type GenerateSafeResult =
  *   On any failure the caller MUST fall back to the rule-based engine.
  *
  * The prompt builder is injected so this stays provider-agnostic and unit
- * testable with a mock provider. The builder must never include child nickname
- * or birthday (rule #5).
+ * testable with a mock provider. The builder may include a de-identified precise
+ * age (ageMonths), but must never include the child's nickname or raw birthdate
+ * (rule #5).
  */
 export async function generateSafe(
   provider: AIProvider,

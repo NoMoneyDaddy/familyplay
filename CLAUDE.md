@@ -94,7 +94,8 @@ export const STAGE_KEYS = {
 2. Safety Filter 在所有 AI 輸出後執行，失敗降回規則式推薦
 3. AI Key 不寫 Log、不存資料庫、Request 結束立即釋放
 4. 每用戶每分鐘限制 10 次 AI 請求（Upstash Redis）
-5. 絕對不傳孩子暱稱或生日給 AI API
+5. 絕對不傳孩子**暱稱**或**原始出生日期字串**給 AI API；可傳「去識別化的精確年齡（月齡，
+   由完整生日推出）」讓活動更貼合（whitelist 驗證 ageMonths 在 0–144）
 
 ---
 

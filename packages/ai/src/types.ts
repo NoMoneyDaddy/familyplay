@@ -30,6 +30,9 @@ export interface AIInput {
   spaceContext: SpaceContext
   companionType: CompanionType
   availableResources: ResourceKey[]
+  // 去識別化的精確年齡（滿幾個月），由完整生日推出。讓 AI 更貼合月齡，
+  // 但仍「不」傳孩子姓名或原始出生日期字串（去敏感化）。選填、向後相容。
+  ageMonths?: number
 }
 
 export type SpaceContext =
