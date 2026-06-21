@@ -75,7 +75,7 @@ function RecommendationsPageInner() {
   const load = useCallback(
     async (excludeIds: string[], mode: 'initial' | 'shuffle') => {
       if (!childId || !parentEnergy || !context) {
-        setError('缺少必要的參數')
+        setError('資料不齊，請重新選一次狀態')
         setLoading(false)
         return
       }
@@ -186,7 +186,7 @@ function RecommendationsPageInner() {
     return (
       <PageShell>
         <div className="space-y-4 py-12 text-center" role="alert">
-          <p className="text-danger">錯誤：{error}</p>
+          <p className="text-danger">{error}</p>
           <LinkButton href="/select" variant="secondary" size="lg" icon="refresh">
             重新選擇狀態
           </LinkButton>
@@ -338,7 +338,7 @@ export default function RecommendationsPage() {
       fallback={
         <PageShell>
           <p className="py-12 text-center text-muted" role="status">
-            載入推薦中...
+            正在幫你找…
           </p>
         </PageShell>
       }

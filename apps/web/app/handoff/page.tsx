@@ -247,7 +247,7 @@ export default function HandoffPage() {
 
       {!hasHydrated ? (
         <div className="text-center text-muted" role="status">
-          加載中...
+          載入中…
         </div>
       ) : !selectedChildId ? (
         <EmptyState
@@ -276,7 +276,7 @@ export default function HandoffPage() {
               </div>
             </div>
           ))}
-          <span className="sr-only">加載中...</span>
+          <span className="sr-only">載入中…</span>
         </div>
       ) : loadError ? (
         // 失敗時明確報錯並提供重試，避免把載入失敗誤顯示成空小卡、甚至被分享
@@ -313,7 +313,7 @@ export default function HandoffPage() {
                 <div className="rounded-xl bg-brand-tint px-3.5 py-3">
                   <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-brand-strong">
                     <Icon name="sparkle" className="h-[14px] w-[14px]" />
-                    AI 暖場白
+                    給家人的話
                   </p>
                   <p className="text-sm leading-relaxed text-text">{aiSummary}</p>
                 </div>
@@ -387,7 +387,7 @@ export default function HandoffPage() {
               className="w-full"
               onClick={handleAiPolish}
             >
-              {aiSummary ? '重新用 AI 潤色' : '用 AI 潤色（自帶金鑰）'}
+              {aiSummary ? '再讓 AI 寫一次' : '讓 AI 幫你寫得更暖（用自己的 AI 帳號）'}
             </Button>
             {/* 沒自帶金鑰時，就近給「去設定加金鑰」捷徑 */}
             {!hasKey && (

@@ -234,7 +234,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
           返回
         </button>
         <p className="py-12 text-center text-danger" role="alert">
-          活動不存在或暫時讀取失敗
+          找不到這個活動，或一時打不開，請返回再試
         </p>
       </PageShell>
     )
@@ -303,7 +303,7 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
 
           {activity.followUpQuestions.length > 0 && (
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold text-text">跟進問題</h2>
+              <h2 className="text-sm font-semibold text-text">玩完可以問問</h2>
               <ul className="space-y-1">
                 {activity.followUpQuestions.map((q, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: Follow-up questions are static and ordered

@@ -10,8 +10,8 @@ import { Button, Callout, Card, Field, Select, TextInput } from './ui'
 const PROVIDER_OPTIONS: { value: AIProviderChoice; label: string; needsKey: boolean }[] = [
   { value: 'gemini', label: 'Google Gemini（有免費額度）', needsKey: true },
   { value: 'groq', label: 'Groq（有免費額度）', needsKey: true },
-  { value: 'openai', label: 'OpenAI', needsKey: true },
-  { value: 'ollama', label: 'Ollama（本地，免金鑰）', needsKey: false },
+  { value: 'openai', label: 'OpenAI（ChatGPT 的公司）', needsKey: true },
+  { value: 'ollama', label: 'Ollama（裝在自己電腦，免申請）', needsKey: false },
 ]
 
 export function AIKeySettings() {
@@ -38,7 +38,9 @@ export function AIKeySettings() {
     // 依實際寫入結果更新狀態：隱私模式/封鎖儲存時 saveAIKey 回 false，別假報「已儲存」
     const ok = saveAIKey({ provider, apiKey: needsKey ? apiKey.trim() : undefined })
     setSaved(ok)
-    setSaveError(ok ? null : '這個瀏覽器分頁無法儲存金鑰（可能是隱私模式或停用了儲存空間）。')
+    setSaveError(
+      ok ? null : '這個瀏覽器沒辦法幫你記住，可能開了無痕模式。換個瀏覽器或關掉無痕再試一次。',
+    )
   }
 
   const handleClear = () => {
@@ -53,13 +55,14 @@ export function AIKeySettings() {
   return (
     <Card className="space-y-3">
       <div>
-        <h3 className="font-semibold text-text">AI 客製活動（自帶金鑰）</h3>
+        <h3 className="font-semibold text-text">AI 客製活動（用你自己的 AI 帳號）</h3>
         <p className="mt-1 text-xs text-muted">
-          活動都看過了時，可請 AI 依孩子的程度生一個全新的。免費版用你自己的 AI 金鑰。
+          活動都玩過了，可以請 AI 依孩子的程度想一個全新的。免費功能，用你自己在 AI
+          網站申請的金鑰即可。
         </p>
       </div>
 
-      <Field label="AI 服務" htmlFor="ai-provider">
+      <Field label="選一個 AI 服務" htmlFor="ai-provider">
         <Select
           id="ai-provider"
           value={provider}
@@ -77,7 +80,7 @@ export function AIKeySettings() {
       </Field>
 
       {needsKey && (
-        <Field label="API 金鑰" htmlFor="ai-key">
+        <Field label="AI 金鑰（像密碼一樣的一串字）" htmlFor="ai-key">
           <TextInput
             id="ai-key"
             type="password"
@@ -89,6 +92,9 @@ export function AIKeySettings() {
               setSaved(false)
             }}
           />
+          <p className="mt-1.5 text-xs text-muted">
+            到上面選的 AI 服務網站（如 Google Gemini）免費申請，複製那串金鑰貼上即可。
+          </p>
         </Field>
       )}
 

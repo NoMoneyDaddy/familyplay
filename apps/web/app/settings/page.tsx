@@ -75,7 +75,7 @@ export default function SettingsPage() {
 
       {loading ? (
         <div className="text-center text-muted" role="status">
-          加載中...
+          載入中…
         </div>
       ) : (
         <div className="space-y-4">
@@ -96,7 +96,7 @@ export default function SettingsPage() {
             </span>
             <div className="min-w-0 space-y-0.5">
               <p className="truncate font-semibold text-text">{user?.displayName || '我的帳號'}</p>
-              <p className="text-xs text-muted">FamilyPlay MVP v0.1</p>
+              <p className="text-xs text-muted">FamilyPlay 早期版本</p>
             </div>
           </Card>
 
@@ -126,7 +126,7 @@ export default function SettingsPage() {
           </Button>
 
           <Callout tone="tip" title="提示">
-            你的資料已加密保存在 Supabase，符合隱私標準。
+            你的資料都已加密保存，安全又隱私。
           </Callout>
 
           {/* 危險區：刪除帳號（兩步確認） */}

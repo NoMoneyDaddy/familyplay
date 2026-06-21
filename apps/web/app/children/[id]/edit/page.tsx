@@ -63,7 +63,7 @@ export default function EditChildPage() {
           <div className="h-12 w-full rounded-lg bg-bg" />
         </div>
         <span className="sr-only" role="status">
-          加載中...
+          載入中…
         </span>
       </PageShell>
     )
