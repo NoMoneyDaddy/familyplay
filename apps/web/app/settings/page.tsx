@@ -22,9 +22,10 @@ interface UserProfile {
   avatarUrl?: string
 }
 
-// 本 App 免費、由低干擾廣告支持，不提供付費方案 → 不顯示訂閱入口。
+// 本 App 免費、由低干擾廣告支持，不提供付費方案。「完全免費」頁誠實說明商業模式（非付費入口）。
 const LINKS: { href: string; label: string; icon: IconName }[] = [
   { href: '/settings/invite', label: '家庭成員', icon: 'family' },
+  { href: '/pricing', label: '完全免費', icon: 'heart' },
 ]
 
 export default function SettingsPage() {
