@@ -15,7 +15,7 @@ export default function HomeScreen() {
   const { session, isLoading } = useAuthStore()
 
   useEffect(() => {
-    if (!isLoading && session) router.replace('/select')
+    if (!isLoading && session) router.replace('/now')
   }, [isLoading, session, router])
 
   // 還原 session 中，或已登入（即將導向）→ 顯示載入，不閃動歡迎畫面
