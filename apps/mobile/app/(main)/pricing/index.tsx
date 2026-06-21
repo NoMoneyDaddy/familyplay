@@ -1,269 +1,79 @@
-import { AccountError, fetchAccount } from '@familyplay/data'
 import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
-import type { PurchasesPackage } from 'react-native-purchases'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import {
-  getPlanPackages,
-  identifyPurchaser,
-  isPurchasesAvailable,
-  PurchaseError,
-  purchase,
-  restorePurchases,
-} from '@/lib/purchases'
-import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
 
-interface Plan {
-  name: string
-  price: string
-  period: string
-  tagline: string
-  features: string[]
-  highlight?: boolean
-}
-
-// 靜態方案（RevenueCat 未設定時的展示後備）。價格以 store 實際定價為準。
-const PLANS: Plan[] = [
-  {
-    name: '免費',
-    price: 'NT$0',
-    period: '永久',
-    tagline: '大部分功能免費，僅少量不干擾的廣告',
-    features: ['30 秒個人化陪伴方案', '完整親子活動庫', '發展里程碑與能力追蹤'],
-  },
-  {
-    name: '支持者',
-    price: 'NT$90',
-    period: '/月',
-    tagline: '移除廣告、解鎖便利，一起支持開發',
-    features: ['移除廣告', '家庭成員共享', '完整活動歷史'],
-  },
-  {
-    name: 'Plus',
-    price: 'NT$170',
-    period: '/月',
-    tagline: '進階陪伴，AI 為你客製',
-    highlight: true,
-    features: ['AI 客製化活動生成', '每月 100 次 AI 生成', '交接摘要'],
-  },
+// 本 App 不收費：所有功能免費，靠少量、低干擾的廣告維持營運。
+// 與 Web /pricing 對齊——純資訊頁，無任何付費／升級／App 內購入口。
+const FEATURES = [
+  '核心「30 秒陪伴方案」與完整活動庫，永久免費',
+  '發展里程碑、成長紀錄、陪伴日誌與歷史，免費',
+  '家庭共享與交接小卡，免費',
+  'AI 客製活動：自帶 AI 金鑰即可用（金鑰只存在你的裝置，用完即丟）',
 ]
 
-/** 行動端方案頁：RevenueCat 已設定 → 顯示 App 內購方案並可購買；否則顯示靜態後備。 */
+/** 行動端「方案」頁：誠實說明免費＋低干擾廣告的商業模式，無付費牆。 */
 export default function PricingScreen() {
   const router = useRouter()
-  const [packages, setPackages] = useState<PurchasesPackage[] | null>(null)
-  const [loading, setLoading] = useState(isPurchasesAvailable())
-  const [purchasingId, setPurchasingId] = useState<string | null>(null)
-  const [error, setError] = useState('')
-  const [purchased, setPurchased] = useState(false)
-  const [restoring, setRestoring] = useState(false)
-
-  useEffect(() => {
-    if (!isPurchasesAvailable()) return
-    let cancelled = false
-    const loadPackages = async () => {
-      try {
-        const pkgs = await getPlanPackages()
-        if (!cancelled) setPackages(pkgs)
-      } catch {
-        if (!cancelled) setPackages([])
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    loadPackages()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  // appUserID 必須等於 user_profiles.id，webhook 才能正確對應權益。識別後才購買/恢復。
-  // 帳號解析收斂到 @familyplay/data 的 fetchAccount（與其他端共用）。
-  const identifyOrRedirect = async (): Promise<boolean> => {
-    let account: Awaited<ReturnType<typeof fetchAccount>>
-    try {
-      account = await fetchAccount(createMobileClient())
-    } catch (err) {
-      if (err instanceof AccountError && err.code === 'unauthorized') {
-        router.replace('/auth/login')
-        return false
-      }
-      throw err instanceof AccountError ? new PurchaseError('找不到帳號資料') : err
-    }
-    await identifyPurchaser(account.profileId)
-    return true
-  }
-
-  const handleBuy = async (pkg: PurchasesPackage) => {
-    if (purchasingId) return
-    setPurchasingId(pkg.identifier)
-    setError('')
-    try {
-      if (!(await identifyOrRedirect())) return
-      const ok = await purchase(pkg)
-      if (ok) setPurchased(true)
-    } catch (err) {
-      setError(err instanceof PurchaseError ? err.message : '購買失敗，請稍後再試')
-    } finally {
-      setPurchasingId(null)
-    }
-  }
-
-  // 恢復購買（App Store / Play 政策要求）。換機/重裝後找回既有訂閱。
-  const handleRestore = async () => {
-    if (restoring) return
-    setRestoring(true)
-    setError('')
-    try {
-      if (!(await identifyOrRedirect())) return
-      const ok = await restorePurchases()
-      if (ok) setPurchased(true)
-      else setError('找不到可恢復的購買')
-    } catch (err) {
-      setError(err instanceof PurchaseError ? err.message : '恢復失敗，請稍後再試')
-    } finally {
-      setRestoring(false)
-    }
-  }
-
-  const showStorePackages = isPurchasesAvailable() && packages && packages.length > 0
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }}>
         <View className="mb-2 flex-row items-center justify-between">
           <Text className="text-3xl font-bold" style={{ color: colors.text }}>
-            方案與支持
+            完全免費
           </Text>
-          <Pressable onPress={() => router.back()} className="active:opacity-70">
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="返回"
+            className="active:opacity-70"
+          >
             <Text className="text-sm" style={{ color: colors.muted }}>
               返回
             </Text>
           </Pressable>
         </View>
         <Text className="mb-5 text-sm" style={{ color: colors.muted }}>
-          大部分功能免費；付費可移除廣告並解鎖進階。
+          由少量、低干擾的廣告支持，沒有付費牆。
         </Text>
 
-        {purchased ? (
-          <View className="mb-6 rounded-2xl p-4" style={{ backgroundColor: colors.successTint }}>
-            <Text className="text-sm font-semibold" style={{ color: colors.success }}>
-              訂閱成功 ✓ 方案同步中，稍候即會更新。
-            </Text>
-          </View>
-        ) : null}
+        {/* 簽名區：暖色說明帶 */}
+        <View
+          className="mb-5 rounded-2xl p-5"
+          style={{ backgroundColor: colors.brandTint, ...clayCard }}
+        >
+          <Text className="mb-1 text-base font-bold" style={{ color: colors.text }}>
+            所有功能都免費
+          </Text>
+          <Text className="text-sm leading-relaxed" style={{ color: colors.muted }}>
+            一鍵陪伴、發展里程碑、成長紀錄、陪伴日誌、家庭共享、交接小卡——全部不收費，
+            也沒有任何訂閱或解鎖。我們靠頁面上少量、非干擾式的廣告維持營運。
+          </Text>
+        </View>
 
-        {error ? (
-          <View className="mb-4 rounded-xl p-4" style={{ backgroundColor: colors.dangerTint }}>
-            <Text className="text-sm" style={{ color: colors.danger }}>
-              {error}
-            </Text>
-          </View>
-        ) : null}
-
-        {loading ? (
-          <ActivityIndicator color={colors.brand} />
-        ) : showStorePackages ? (
-          // ── RevenueCat App 內購方案 ──
-          packages?.map((pkg) => (
-            <View
-              key={pkg.identifier}
-              className="mb-4 rounded-2xl p-6"
-              style={{
-                backgroundColor: colors.card,
-                borderWidth: 1,
-                borderColor: colors.brand,
-                ...clayCard,
-              }}
-            >
-              <Text className="text-xl font-bold" style={{ color: colors.text }}>
-                {pkg.product.title}
+        <View className="mb-5 gap-2.5">
+          {FEATURES.map((line) => (
+            <View key={line} className="flex-row items-start gap-2.5">
+              <Text className="text-sm" style={{ color: colors.success }}>
+                ✓
               </Text>
-              {pkg.product.description ? (
-                <Text className="mb-2 text-sm" style={{ color: colors.muted }}>
-                  {pkg.product.description}
-                </Text>
-              ) : null}
-              <Text className="mb-4 text-3xl font-bold" style={{ color: colors.brand }}>
-                {pkg.product.priceString}
-              </Text>
-              <Pressable
-                onPress={() => handleBuy(pkg)}
-                disabled={purchasingId !== null}
-                accessibilityRole="button"
-                className="items-center rounded-2xl py-4 active:opacity-90"
-                style={{ backgroundColor: colors.brand, opacity: purchasingId ? 0.6 : 1 }}
-              >
-                {purchasingId === pkg.identifier ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text className="font-bold text-white">訂閱</Text>
-                )}
-              </Pressable>
-            </View>
-          ))
-        ) : (
-          // ── 後備：RevenueCat 未設定時的靜態展示 ──
-          <>
-            <View className="mb-6 rounded-2xl p-4" style={{ backgroundColor: colors.infoTint }}>
-              <Text className="text-sm" style={{ color: colors.info }}>
-                App 內訂閱即將推出。目前可先在網頁版訂閱，方案會同步到這裡。
+              <Text className="flex-1 text-sm" style={{ color: colors.text }}>
+                {line}
               </Text>
             </View>
-            {PLANS.map((plan) => (
-              <View
-                key={plan.name}
-                className="mb-4 rounded-2xl p-6"
-                style={{
-                  backgroundColor: colors.card,
-                  borderWidth: 1,
-                  borderColor: plan.highlight ? colors.brand : colors.border,
-                  ...clayCard,
-                }}
-              >
-                <Text className="text-xl font-bold" style={{ color: colors.text }}>
-                  {plan.name}
-                </Text>
-                <Text className="mb-2 text-sm" style={{ color: colors.muted }}>
-                  {plan.tagline}
-                </Text>
-                <View className="mb-4 flex-row items-baseline gap-1">
-                  <Text className="text-3xl font-bold" style={{ color: colors.brand }}>
-                    {plan.price}
-                  </Text>
-                  <Text style={{ color: colors.muted }}>{plan.period}</Text>
-                </View>
-                <View className="gap-2">
-                  {plan.features.map((f) => (
-                    <Text key={f} className="text-sm" style={{ color: colors.text }}>
-                      ✓ {f}
-                    </Text>
-                  ))}
-                </View>
-              </View>
-            ))}
-          </>
-        )}
+          ))}
+        </View>
 
-        {/* 恢復購買（App Store / Play 政策要求）：換機或重裝後找回既有訂閱 */}
-        {isPurchasesAvailable() && (
-          <Pressable
-            onPress={handleRestore}
-            disabled={restoring}
-            accessibilityRole="button"
-            className="mt-2 items-center py-3 active:opacity-70"
-          >
-            {restoring ? (
-              <ActivityIndicator color={colors.muted} />
-            ) : (
-              <Text className="text-sm font-medium" style={{ color: colors.muted }}>
-                恢復購買
-              </Text>
-            )}
-          </Pressable>
-        )}
+        <View className="rounded-2xl p-4" style={{ backgroundColor: colors.infoTint }}>
+          <Text className="mb-1 text-sm font-semibold" style={{ color: colors.info }}>
+            關於廣告
+          </Text>
+          <Text className="text-sm leading-relaxed" style={{ color: colors.info }}>
+            廣告只出現在瀏覽型頁面（如紀錄、收藏）的底部，不會打斷你和孩子的陪伴流程，
+            也不會用到孩子的個人資料。
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   )

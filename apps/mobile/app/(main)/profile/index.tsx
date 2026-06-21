@@ -12,18 +12,11 @@ interface ProfileData {
   avatarUrl: string | null
 }
 
-const PLAN_LABELS: Record<string, string> = {
-  free: '免費',
-  supporter: '支持者',
-  plus: 'Plus',
-}
-
-/** 帳號頁：顯示基本資料、目前方案、訂閱入口、登出。繁中 + 暖色主題（與全 App 一致）。 */
+/** 帳號頁：顯示基本資料、免費說明、登出。繁中 + 暖色主題（與全 App 一致）。 */
 export default function ProfileScreen() {
   const router = useRouter()
   const { session } = useAuthStore()
   const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [plan, setPlan] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -38,10 +31,9 @@ export default function ProfileScreen() {
           setError('無法載入帳號資料')
           return
         }
-        // 收斂到 @familyplay/data 的 fetchAccount（與其他端共用）：profile + 方案一次取齊。
+        // 收斂到 @familyplay/data 的 fetchAccount（與其他端共用）。
         const account = await fetchAccount(createMobileClient())
         setProfile({ displayName: account.displayName ?? '', avatarUrl: account.avatarUrl })
-        setPlan(account.plan)
       } catch (err) {
         console.error('Failed to fetch profile:', err)
         setError('無法載入帳號資料')
@@ -107,16 +99,14 @@ export default function ProfileScreen() {
           <Text className="mt-2 text-sm" style={{ color: colors.muted }}>
             {session?.user?.email || '—'}
           </Text>
-          {plan ? (
-            <View className="mt-4 flex-row items-center justify-between border-t border-border pt-4">
-              <Text className="text-sm" style={{ color: colors.muted }}>
-                目前方案
-              </Text>
-              <Text className="text-sm font-bold" style={{ color: colors.brand }}>
-                {PLAN_LABELS[plan] ?? plan}
-              </Text>
-            </View>
-          ) : null}
+          <View className="mt-4 flex-row items-center justify-between border-t border-border pt-4">
+            <Text className="text-sm" style={{ color: colors.muted }}>
+              方案
+            </Text>
+            <Text className="text-sm font-bold" style={{ color: colors.brand }}>
+              完全免費
+            </Text>
+          </View>
         </View>
 
         <Pressable
@@ -126,7 +116,7 @@ export default function ProfileScreen() {
           style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}
         >
           <Text className="text-base font-medium" style={{ color: colors.text }}>
-            訂閱方案
+            免費與廣告說明
           </Text>
           <Text className="text-base" style={{ color: colors.muted }}>
             ›
