@@ -2,6 +2,7 @@
 
 import type { SavedEntry } from '@familyplay/data'
 import { useEffect, useState } from 'react'
+import { AdSlot } from '@/app/components/ad-slot'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import {
   ActivityMeta,
@@ -121,6 +122,8 @@ export default function SavedPage() {
           </ul>
         </div>
       )}
+      {/* 輕度廣告（瀏覽型頁面底部、非干擾）：只對免費/未登入顯示，付費隱藏，未設定則休眠 */}
+      <AdSlot className="mt-4" />
     </PageShell>
   )
 }
