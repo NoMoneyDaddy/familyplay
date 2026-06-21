@@ -5,24 +5,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { stageLabel } from '@/lib/stage-labels'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
 
 // 交接小卡（行動端）：把「孩子現在到哪了 + 最近陪了什麼 + 接下來在發展什麼」濃縮成一張
 // 可分享的卡，給接手的家人 30 秒進入狀況。純唯讀、用既有資料層即時組，不寫 DB、不送 AI、
 // 不含生日等敏感資料（暱稱由家長自填、屬可分享範圍）。
-
-const STAGE_LABELS: Record<string, string> = {
-  newborn: '新生兒 · 0–3 個月',
-  early_infant: '翻身期 · 3–6 個月',
-  sitting_baby: '坐立期 · 6–9 個月',
-  crawler: '爬行期 · 9–12 個月',
-  early_walker: '學步期 · 12–18 個月',
-  toddler_talker: '學語期 · 18–24 個月',
-  toddler_player: '探索期 · 24–36 個月',
-  preschooler: '學齡前 · 36–48 個月',
-  preschooler_plus: '學齡前 · 48–60 個月',
-}
 
 const OUTCOME_LABEL: Record<string, string> = {
   completed: '完成',
@@ -35,7 +24,7 @@ const RECENT_COUNT = 3
 function stageLabelFromBirth(birth: string | null | undefined): string | null {
   if (!birth || !/^\d{4}-\d{2}$/.test(birth)) return null
   try {
-    return STAGE_LABELS[getStageKey(getAgeMonths(birth))] ?? null
+    return stageLabel(getStageKey(getAgeMonths(birth)))
   } catch {
     return null
   }
