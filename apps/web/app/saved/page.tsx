@@ -36,7 +36,7 @@ function SavedSkeleton() {
           <div className="h-10 w-full rounded-lg bg-bg" />
         </li>
       ))}
-      <span className="sr-only">加載中...</span>
+      <span className="sr-only">載入中…</span>
     </ul>
   )
 }

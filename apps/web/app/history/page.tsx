@@ -87,7 +87,7 @@ function HistorySkeleton() {
           <div className="mt-3 h-3 w-1/2 rounded-full bg-bg" />
         </div>
       ))}
-      <span className="sr-only">加載中...</span>
+      <span className="sr-only">載入中…</span>
     </div>
   )
 }
@@ -312,7 +312,7 @@ export default function HistoryPage() {
 
       {!hasHydrated ? (
         <div className="text-center text-muted" role="status">
-          加載中...
+          載入中…
         </div>
       ) : !selectedChildId ? (
         <EmptyState

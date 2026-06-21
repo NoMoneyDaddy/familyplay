@@ -144,7 +144,9 @@ export function AIGenerateCard({ childId }: { childId: string }) {
             </div>
           </div>
         )}
-        <p className="text-xs text-faint">AI 生成、未經編審；請依現場狀況斟酌安全。</p>
+        <p className="text-xs text-faint">
+          這是 AI 即時想的，沒有人工檢查過，請依現場狀況注意安全。
+        </p>
         {/* 再生失敗時也要顯示訊息，避免靜默無回饋 */}
         {error && (
           <p className="rounded-lg bg-warning-tint px-3 py-2 text-xs text-warning" role="status">
@@ -166,7 +168,7 @@ export function AIGenerateCard({ childId }: { childId: string }) {
       <div className="space-y-1">
         <p className="font-semibold text-text">都看過了？請 AI 生一個</p>
         <p className="text-sm text-muted">
-          依孩子的程度，現場生一個全新的小活動（自帶金鑰、免費）。
+          依孩子的程度，現場想一個全新的小活動（用你自己的 AI 帳號、免費）。
         </p>
       </div>
       {error && (

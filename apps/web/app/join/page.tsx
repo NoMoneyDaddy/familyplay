@@ -77,12 +77,12 @@ function JoinPageInner() {
 
   return (
     <PageShell withNav={false}>
-      <PageHeader title="加入家庭" subtitle="使用邀請碼加入家庭陪伴計畫" align="center" />
+      <PageHeader title="加入家庭" subtitle="用邀請碼，加入家人的陪伴" align="center" />
 
       {success ? (
         // Success State
-        <Callout tone="success" title="邀請已接受">
-          歡迎加入家庭！正在重新導向...
+        <Callout tone="success" title="加入成功">
+          歡迎加入家庭！正在帶你進去…
         </Callout>
       ) : (
         // Input State
@@ -96,7 +96,7 @@ function JoinPageInner() {
             <p className="text-sm leading-relaxed text-muted">輸入家人給你的邀請碼，一起照顧寶寶</p>
           </div>
 
-          <Field label="邀請碼（8 碼英數）" htmlFor="code">
+          <Field label="邀請碼（8 個英文或數字）" htmlFor="code">
             <TextInput
               id="code"
               type="text"

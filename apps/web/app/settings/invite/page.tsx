@@ -23,7 +23,7 @@ interface GeneratedInvite {
 const ROLE_LABEL: Record<HouseholdMember['role'], string> = {
   owner: '家庭擁有者',
   caregiver: '照顧者',
-  viewer: '檢視者',
+  viewer: '只看的人',
 }
 
 export default function InvitePage() {
@@ -172,7 +172,7 @@ export default function InvitePage() {
           <div className="h-5 w-1/3 rounded-full bg-bg" />
           <div className="h-12 w-full rounded-lg bg-bg" />
           <div className="h-12 w-full rounded-lg bg-bg" />
-          <span className="sr-only">加載中...</span>
+          <span className="sr-only">載入中…</span>
         </div>
       ) : (
         <>
@@ -188,8 +188,8 @@ export default function InvitePage() {
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as 'caregiver' | 'viewer')}
                 >
-                  <option value="caregiver">照顧者 (可以記錄和建議)</option>
-                  <option value="viewer">檢視者 (只可查看)</option>
+                  <option value="caregiver">照顧者（可以記錄陪伴、給建議）</option>
+                  <option value="viewer">只看的人（只能查看，不能修改）</option>
                 </Select>
               </Field>
 
@@ -242,7 +242,7 @@ export default function InvitePage() {
               )}
             </Card>
           ) : (
-            <Callout tone="warning" title="權限不足">
+            <Callout tone="warning" title="只有家長能邀請">
               只有家庭擁有者和照顧者才能邀請成員。
             </Callout>
           )}
@@ -252,7 +252,7 @@ export default function InvitePage() {
             <h2 className="font-semibold text-text">家庭成員 ({members.length})</h2>
 
             {members.length === 0 ? (
-              <p className="text-sm text-muted">暫無其他成員</p>
+              <p className="text-sm text-muted">目前還沒有其他人</p>
             ) : (
               <div className="space-y-2">
                 {members.map((member) => (
@@ -289,7 +289,7 @@ export default function InvitePage() {
                 <strong>照顧者：</strong>查看孩子、記錄陪伴、建議活動
               </li>
               <li>
-                <strong>檢視者：</strong>只能查看孩子資訊和陪伴紀錄
+                <strong>只看的人：</strong>只能查看孩子資訊和陪伴紀錄，不能修改
               </li>
             </ul>
           </Callout>

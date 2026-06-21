@@ -264,7 +264,7 @@ export default function CapabilitiesPage() {
 
       {!hasHydrated ? (
         <div className="text-center text-muted" role="status">
-          加載中...
+          載入中…
         </div>
       ) : !selectedChildId ? (
         <EmptyState
@@ -287,7 +287,7 @@ export default function CapabilitiesPage() {
             />
           ))}
           <span className="sr-only" role="status">
-            加載中...
+            載入中…
           </span>
         </div>
       ) : (
