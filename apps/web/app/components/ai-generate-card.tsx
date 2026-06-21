@@ -46,12 +46,14 @@ export function AIGenerateCard({ childId }: { childId: string }) {
 
   const generate = async () => {
     if (loading) return // 重入保護：避免快速連點觸發多個並發請求
-    // 自帶金鑰(BYO) 才生成（按鈕已只在有金鑰時顯示）；無金鑰直接引導去設定。
-    const key = readAIKey()
-    if (!key) {
+    // 自帶金鑰(BYO) 才生成。用 hasAIKey() 做完整性檢查（擋掉「選了 provider 但 apiKey 空」
+    // 的半套設定，ollama 免 key 例外），比僅檢查 readAIKey() 非 null 嚴謹。
+    if (!hasAIKey()) {
       setError('請先到設定加上你的 AI 金鑰。')
       return
     }
+    const key = readAIKey()
+    if (!key) return
     setLoading(true)
     setError(null)
     try {
