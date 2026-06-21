@@ -72,8 +72,10 @@ export default function ChildrenScreen() {
     )
   }
 
-  // 目前選定者：以 store 為準，沒有就視第一個為預設（與 /now 的解析一致）。
-  const selectedId = activeChildId ?? children?.[0]?.id ?? null
+  // 目前選定者：store 的 id 存在於清單才用它，否則退回第一個（與 /now 的解析與自我修正一致），
+  // 避免失效 id（孩子在他裝置被刪）導致清單中沒有任何一個被標示為「目前」。
+  const hasActiveChild = children?.some((c) => c.id === activeChildId)
+  const selectedId = hasActiveChild ? activeChildId : (children?.[0]?.id ?? null)
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>

@@ -57,6 +57,8 @@ export default function NowScreen() {
   const [childId, setChildId] = useState<string | null>(null)
   const [childName, setChildName] = useState<string | null>(null)
   const [childCount, setChildCount] = useState(0)
+  // 已載入過的孩子 id：首次 null→解析後會 setActiveChild 再觸發本 effect，靠它短路避免重複打 API。
+  const loadedChildIdRef = useRef<string | undefined>(undefined)
   const [rec, setRec] = useState<RecommendedActivity | null>(null)
   const [loading, setLoading] = useState(true)
   const [shuffling, setShuffling] = useState(false)
@@ -120,6 +122,8 @@ export default function NowScreen() {
   // 等 store 還原完（hydrated）才解析，確保用的是上次記住的孩子而非總是第一個。
   useEffect(() => {
     if (!session || !hydrated) return
+    // 已為目前選定孩子載過就不重複打 API（首次 null→解析後 setActiveChild 會再觸發本 effect）。
+    if (loadedChildIdRef.current && loadedChildIdRef.current === activeChildId) return
     let cancelled = false
     ;(async () => {
       try {
@@ -132,6 +136,7 @@ export default function NowScreen() {
         }
         // 選定者存在於清單就用它，否則退回第一個並持久化（修掉孩子被刪/換裝置的失效 id）。
         const chosen = children.find((c) => c.id === activeChildId) ?? children[0]
+        loadedChildIdRef.current = chosen.id
         if (chosen.id !== activeChildId) setActiveChild(chosen.id)
         setChildId(chosen.id)
         setChildName(chosen.nickname)
