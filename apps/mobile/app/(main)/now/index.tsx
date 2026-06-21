@@ -59,6 +59,14 @@ export default function NowScreen() {
   const [exhausted, setExhausted] = useState(false)
   const [error, setError] = useState('')
   const seen = useRef<Set<string>>(new Set())
+  // 卸載後不再 setState，避免非同步回來時對已卸載組件更新狀態的警告。
+  const isMounted = useRef(true)
+  useEffect(() => {
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
 
   // 未登入 → 登入頁
   useEffect(() => {
@@ -78,6 +86,7 @@ export default function NowScreen() {
         availableSpace: 'anywhere',
         excludeIds,
       })
+      if (!isMounted.current) return
       if (shuffle && allRecommendationsSeen(result, excludeIds)) {
         setExhausted(true)
         return
@@ -89,10 +98,12 @@ export default function NowScreen() {
         setExhausted(false)
       }
     } catch {
-      setError('系統忙線或網路不穩，請稍後再試。')
+      if (isMounted.current) setError('系統忙線或網路不穩，請稍後再試。')
     } finally {
-      setLoading(false)
-      setShuffling(false)
+      if (isMounted.current) {
+        setLoading(false)
+        setShuffling(false)
+      }
     }
   }, [])
 
