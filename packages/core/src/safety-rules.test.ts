@@ -6,6 +6,11 @@ describe('isUnder3', () => {
     expect(isUnder3('crawler')).toBe(true)
   })
 
+  it('marks 18–36 月學步幼兒 as under 3（窒息高風險，對齊 0–3 歲規格）', () => {
+    expect(isUnder3('toddler_talker')).toBe(true)
+    expect(isUnder3('toddler_player')).toBe(true)
+  })
+
   it('marks preschooler as NOT under 3', () => {
     expect(isUnder3('preschooler')).toBe(false)
   })
@@ -14,6 +19,10 @@ describe('isUnder3', () => {
 describe('containsBlockedMaterial', () => {
   it('blocks coin mention for under-3 stage', () => {
     expect(containsBlockedMaterial('用硬幣排排看', 'crawler')).toBe(true)
+  })
+
+  it('blocks 小零件 for 2 歲（toddler_player）—— 先前漏擋的窒息風險', () => {
+    expect(containsBlockedMaterial('用鈕扣玩分類', 'toddler_player')).toBe(true)
   })
 
   it('allows coin mention for preschooler', () => {
