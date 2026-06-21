@@ -124,6 +124,12 @@
 - [x] `20260706000000_child_growth_measurements.sql`（成長紀錄表 + RLS：成員可讀、
   caregiver/owner 可寫、viewer 唯讀；合理範圍 CHECK）。
 
+尚未套用（請複製到 Supabase Dashboard → SQL Editor 執行）：
+
+- [ ] `20260710000000_seed_activity_library_supplement_1.sql`（**內容補充批次 1**：12 條新活動，
+  補較薄的較大階段語言/情緒與精細動作；由 `scripts/content/activities-supplement-1.mjs` 經
+  build-seed schema 驗證產生，純 INSERT、標題皆不撞既有庫）。
+
 ---
 
 ## 下一步候選
