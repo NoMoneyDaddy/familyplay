@@ -92,12 +92,13 @@
 
 ### 待手動套用（複製到 Supabase Dashboard → SQL Editor 執行）
 
-- [ ] `20260705000000_child_birth_date.sql`（生日精確到日：`child_profiles` 新增 `birth_date date`
-  選填欄位）。**未套用前 App 仍可運作**：`fetchChildren` 偵測欄位不存在會自動退回不含
-  `birth_date` 的查詢；建立孩子的補寫 `birth_date` 失敗會被吞掉（年月已落地）。套用後「日」才會真正儲存。
-- [ ] `20260706000000_child_growth_measurements.sql`（成長紀錄：新增 `child_growth_measurements`
-  時間序列表 + RLS：家庭成員可讀、caregiver/owner 可寫、viewer 唯讀；含合理範圍 CHECK）。
-  **未套用前**：`/capabilities` 的「成長紀錄」讀取回空、新增會收到 4xx（表未建），其餘功能不受影響。
+已於 2026-06-21 透過工具套用至正式專案（`jojubbjwxdnwbrjxwytf`）並驗證：
+
+- [x] `restrict_writes_to_caregivers`（**資安修補**：新增 `my_writeable_household_ids()`，
+  把寫入型 RLS 改限 owner/caregiver，擋 viewer 越權寫入。先前正式環境遺漏，補上）。
+- [x] `20260705000000_child_birth_date.sql`（`child_profiles` 新增 `birth_date date`）。
+- [x] `20260706000000_child_growth_measurements.sql`（成長紀錄表 + RLS：成員可讀、
+  caregiver/owner 可寫、viewer 唯讀；合理範圍 CHECK）。
 
 ---
 

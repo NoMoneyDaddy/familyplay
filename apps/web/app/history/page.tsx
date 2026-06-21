@@ -3,6 +3,7 @@
 import type { WeeklyInsights } from '@familyplay/data'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { AdSlot } from '@/app/components/ad-slot'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { Mascot } from '@/app/components/mascot'
 import {
@@ -482,6 +483,8 @@ export default function HistoryPage() {
           </ul>
         </div>
       )}
+      {/* 輕度廣告（瀏覽型頁面底部、非干擾）：只對免費/未登入顯示，付費隱藏，未設定則休眠 */}
+      <AdSlot className="mt-4" />
     </PageShell>
   )
 }
