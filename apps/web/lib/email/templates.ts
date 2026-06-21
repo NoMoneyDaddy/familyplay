@@ -26,7 +26,8 @@ export interface WeeklyRecapData {
  */
 export function weeklyRecapEmail(data: WeeklyRecapData): EmailMessage {
   const { to, weeklySessions, streak } = data
-  const appUrl = data.appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://family.nomoneydaddy.app'
+  const appUrl =
+    data.appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://familyplay.nomoneydaddy.app'
 
   const headline =
     weeklySessions > 0 ? `這週你陪了 ${weeklySessions} 次 💛` : '這週還沒開始，沒關係 🌱'

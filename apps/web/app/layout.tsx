@@ -10,7 +10,7 @@ import './globals.css'
 const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
 
 // 站台基底 URL：給 OG/Twitter/robots/sitemap 產生絕對網址用。
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://family.nomoneydaddy.app'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://familyplay.nomoneydaddy.app'
 
 const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],

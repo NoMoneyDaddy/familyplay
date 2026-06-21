@@ -1,7 +1,7 @@
 // 結構化資料（JSON-LD / schema.org）：讓搜尋引擎與 AI/LLM 正確理解
 // 「FamilyPlay 是什麼、給誰、做什麼」。全為靜態自有內容（無使用者輸入），
 // 故用 <script> 的字串 children 渲染，避免 dangerouslySetInnerHTML（符合 CLAUDE.md）。
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://family.nomoneydaddy.app'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://familyplay.nomoneydaddy.app'
 
 const graph = {
   '@context': 'https://schema.org',

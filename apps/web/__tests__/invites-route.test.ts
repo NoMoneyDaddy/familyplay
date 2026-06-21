@@ -70,7 +70,7 @@ beforeEach(() => {
   h.inviteError = null
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost')
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'anon')
-  vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://family.nomoneydaddy.app')
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://familyplay.nomoneydaddy.app')
 })
 
 afterEach(() => {
@@ -147,6 +147,6 @@ describe('POST /api/households/invites/generate', () => {
   it('成功 → 200，邀請連結用可信 APP_URL（防偽造 host 釣魚）', async () => {
     const json = await (await GENERATE(genReq({ householdId: HH, role: 'caregiver' }))).json()
     expect(json.code).toBe('ABCD1234')
-    expect(json.inviteLink).toBe('https://family.nomoneydaddy.app/join?code=ABCD1234')
+    expect(json.inviteLink).toBe('https://familyplay.nomoneydaddy.app/join?code=ABCD1234')
   })
 })
