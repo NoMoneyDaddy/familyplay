@@ -11,6 +11,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ActivityLogControl } from '@/components/ActivityLogControl'
 import { Mascot } from '@/components/Mascot'
+import { resolveActiveChild } from '@/lib/resolve-active-child'
 import { useActiveChildStore } from '@/lib/stores/useActiveChild'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
@@ -135,7 +136,8 @@ export default function NowScreen() {
           return
         }
         // 選定者存在於清單就用它，否則退回第一個並持久化（修掉孩子被刪/換裝置的失效 id）。
-        const chosen = children.find((c) => c.id === activeChildId) ?? children[0]
+        // children 已非空（上面擋掉 length===0），resolveActiveChild 必回非 null。
+        const chosen = resolveActiveChild(children, activeChildId) as (typeof children)[number]
         loadedChildIdRef.current = chosen.id
         if (chosen.id !== activeChildId) setActiveChild(chosen.id)
         setChildId(chosen.id)
