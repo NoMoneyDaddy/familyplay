@@ -1,0 +1,110 @@
+-- ============================================================================
+-- Seed（自動產生，請勿手改；改 scripts/content/activities-supplement-1.mjs 後重跑 build-seed.mjs）
+-- 批次：20260710000000_seed_activity_library_supplement_1
+-- 共 12 筆。所有欄位值已通過 schema 允許集合驗證。
+-- ============================================================================
+
+INSERT INTO public.companion_activities (
+  title, description, opening_line, steps, follow_up_questions, safety_notes, ending_line,
+  min_age_months, max_age_months,
+  required_capabilities, optional_capabilities, zpd_targets, developmental_focus,
+  stimulation_level, play_type, required_resources, space_requirement,
+  min_duration_minutes, max_duration_minutes,
+  is_bedtime_safe, is_sick_day_safe, elderly_friendly,
+  companion_type, is_fallback, is_active
+) VALUES
+('身體部位在這裡', '邊碰寶寶的手腳邊命名，建立語言輸入與身體覺察。', '我們來找找小手在哪裡～', '["抱著或讓寶寶躺著，面對面","輕碰他的手說「這是手～」","再碰腳、肚子、鼻子，各停一下讓他看你的嘴型","重複幾次，語調誇張一點"]', '["他會看向你碰的地方嗎？","聽到哪個部位最有反應？"]', '動作輕柔，避免搔癢過度刺激。', '你的小手小腳都好棒，抱一個！',
+ 6, 12,
+ '{}', '{"respondsToName"}', '{"meaningfulBabble"}', '{"language"}',
+ 'low', 'solitary', '{}', 'anywhere',
+ 3, 8,
+ TRUE, TRUE, TRUE,
+ 'talk', FALSE, TRUE),
+
+('翻找小毯下的玩具', '把玩具藏在薄毯下讓寶寶翻找，練習物體恆存與主動探索。', '玩具不見了？藏在哪裡呢～', '["讓寶寶坐穩或趴著，拿一個他喜歡的大玩具","當著他的面把玩具用薄毯蓋一半","問「在哪裡呀？」鼓勵他伸手掀開","找到就一起歡呼，再玩一次"]', '["他會主動掀毯子嗎？","蓋全部和蓋一半，哪個他比較會找？"]', '用透氣薄布、玩具夠大不可吞食，全程看顧勿蓋住口鼻。', '你找到了！眼睛和小手都好厲害。',
+ 7, 12,
+ '{}', '{"canSitUnsupported"}', '{"objectPermanence"}', '{"social_cognitive"}',
+ 'medium', 'solitary', '{}', 'living_room',
+ 3, 8,
+ FALSE, TRUE, TRUE,
+ 'play', FALSE, TRUE),
+
+('踮腳拿氣球', '把氣球舉高一點點，鼓勵孩子踮腳伸手，練習平衡與大動作。', '氣球飛高高，我們踮腳拿得到嗎？', '["拿著氣球或軟球，舉到孩子伸手剛好碰得到的高度","鼓勵他踮腳、伸手去拍","拍到就往上一點點，但別太高造成挫折","玩幾次後讓他輕鬆拍到結束"]', '["他踮腳時站得穩嗎？","比較喜歡拍還是抱住氣球？"]', '清開周圍障礙與尖角，氣球破掉碎片立刻收走（窒息風險）。', '你跳起來拿到了，好棒的小腳！',
+ 12, 20,
+ '{}', '{"canWalkIndependently"}', '{"canJumpBothFeet"}', '{"gross_motor"}',
+ 'medium', 'solitary', '{}', 'living_room',
+ 3, 10,
+ FALSE, FALSE, FALSE,
+ 'play', FALSE, TRUE),
+
+('這是誰的聲音', '模仿動物或交通工具聲音，讓孩子指認或跟著發聲，擴充語言。', '汪汪～是誰在叫呀？', '["指著繪本或玩具裡的動物，發出牠的聲音","問「這是誰？牠怎麼叫？」","等他指或發聲，給他時間回應","換下一個，誇張一點更有趣"]', '["他會跟著發聲嗎？","最愛模仿哪一種聲音？"]', '坐穩、避免拿太小的玩具。', '你學得好像喔，我們下次再玩！',
+ 12, 24,
+ '{}', '{"imitatesActions"}', '{"hasVocabulary10"}', '{"language"}',
+ 'low', 'solitary', '{}', 'anywhere',
+ 3, 10,
+ TRUE, TRUE, TRUE,
+ 'talk', FALSE, TRUE),
+
+('輪流敲小鼓', '你一下我一下地敲，建立「輪流」概念與專注聽。', '換我囉～咚！換你～', '["用鼓或鍋子當鼓，你先敲一下說「換你」","等孩子敲，再說「換我」","慢慢加入節奏：兩下、三下換手","一起敲一段大合奏收尾"]', '["他能等到輪到自己嗎？","喜歡快節奏還是慢節奏？"]', '用安全無尖角的器具，注意音量別過大。', '我們輪流得好好，合奏真好聽！',
+ 18, 36,
+ '{}', '{"imitatesActions"}', '{"canTakeTurns"}', '{"social_cognitive"}',
+ 'medium', 'cooperative', '{}', 'living_room',
+ 5, 12,
+ FALSE, TRUE, TRUE,
+ 'music', FALSE, TRUE),
+
+('吹蠟燭深呼吸', '假裝吹生日蠟燭的慢吐氣，教孩子用呼吸平靜下來。', '我們來吹好多好多蠟燭，呼～', '["伸出手指當蠟燭，請孩子深吸一口氣","慢慢吹氣把「蠟燭」吹熄","一根一根吹，吹一次就慢一點","吹完問問身體有沒有比較鬆鬆的"]', '["他吹完是不是比較平靜？","生氣或睡前都可以試試？"]', '不用真的火，純想像。', '深呼吸好棒，心情慢慢變平靜了。',
+ 24, 60,
+ '{}', '{}', '{"selfSoothing"}', '{"emotional"}',
+ 'low', 'cooperative', '{}', 'anywhere',
+ 2, 8,
+ TRUE, TRUE, TRUE,
+ 'calm_down', FALSE, TRUE),
+
+('大盒子裡裝什麼', '把家中大物件放進大盒、再一一拿出命名，練手眼與詞彙。', '盒子裡有寶藏，我們拿出來看看！', '["準備一個大盒子和幾樣安全的大物件（毛巾、塑膠碗、絨毛玩具）","請孩子一次拿一樣出來，你說出名稱","再一起放回去，邊放邊數","問他最喜歡哪一樣"]', '["他會說出物件名稱嗎？","裝進倒出哪個他更愛？"]', '物件須夠大不可吞食、無尖角。', '收得好整齊，你好會幫忙！',
+ 18, 36,
+ '{}', '{"canGrasp"}', '{"usesTwoWordPhrases"}', '{"language"}',
+ 'low', 'parallel', '{}', 'living_room',
+ 5, 12,
+ FALSE, TRUE, TRUE,
+ 'play', FALSE, TRUE),
+
+('情緒溫度計', '用手比高低表示情緒強度，幫孩子覺察與表達感受。', '現在你的心情有多大？我們用手比比看～', '["解釋：手放很低是平靜，舉很高是很強烈","問「你現在覺得怎麼樣？」請他用手比高度","幫他把感受命名：開心、生氣、緊張…","一起想一個能讓溫度降一點的小方法"]', '["他能說出感受的名字嗎？","什麼方法能幫他降溫？"]', '接納所有情緒，不評價對錯。', '謝謝你告訴我你的心情，我們一起面對。',
+ 36, 60,
+ '{}', '{"usesSentences"}', '{"toleratesFrustration"}', '{"emotional"}',
+ 'low', 'cooperative', '{}', 'anywhere',
+ 5, 12,
+ TRUE, TRUE, TRUE,
+ 'talk', FALSE, TRUE),
+
+('故事接龍你一句', '輪流各說一句，共同編一個故事，練敘事與輪流。', '從前從前，有一隻小熊…換你接！', '["你先起頭一句","請孩子接下一句，不論多天馬行空都接受","輪流往下，偶爾問「然後呢？」","一起想一個結局，複述整個故事"]', '["他能接出有關聯的句子嗎？","故事裡誰是主角？"]', '安靜共處活動，無特別風險。', '我們一起編了好棒的故事，明天再續集！',
+ 42, 66,
+ '{}', '{"usesSentences"}', '{"canDescribeEvents"}', '{"language"}',
+ 'low', 'cooperative', '{}', 'anywhere',
+ 5, 15,
+ TRUE, TRUE, TRUE,
+ 'talk', FALSE, TRUE),
+
+('夾棉球比賽', '用夾子把棉球夾到碗裡，練習手指力量與專注。', '夾子變小手，我們把棉球搬回家！', '["準備兒童安全夾子、幾顆大棉球、兩個碗","示範夾起棉球放進另一個碗","請孩子試試，慢慢來不求快","數數夾了幾顆，給他鼓勵"]', '["他夾得起來嗎？","哪一手比較順？"]', '棉球須夠大不可放入口；全程看顧，避免戳到臉。', '你的手指好有力，搬好多回家！',
+ 42, 66,
+ '{}', '{"canPincerGrip"}', '{"canUseScissors"}', '{"fine_motor"}',
+ 'low', 'solitary', '{}', 'kitchen',
+ 5, 12,
+ FALSE, TRUE, TRUE,
+ 'creative', FALSE, TRUE),
+
+('我是不倒翁', '單腳站與緩慢轉身的平衡挑戰，練習大動作控制。', '我們來當不倒翁，搖搖卻不會倒！', '["一起站好，先雙腳穩穩站","試著抬起一隻腳數到三","換腳再來，搖晃也沒關係","最後慢慢轉一圈當作謝幕"]', '["他單腳站得住嗎？","哪隻腳比較穩？"]', '在防滑地面、旁邊留可扶的家具，避免跌倒。', '你平衡得好棒，像厲害的不倒翁！',
+ 42, 66,
+ '{}', '{"canWalkIndependently"}', '{"canHopOneFoot"}', '{"gross_motor"}',
+ 'medium', 'parallel', '{}', 'living_room',
+ 4, 10,
+ FALSE, FALSE, FALSE,
+ 'play', FALSE, TRUE),
+
+('睡前星空想像', '閉眼想像溫柔畫面的引導放鬆，幫助孩子平靜入睡。', '閉上眼睛，我們一起飛到星空裡～', '["躺好、關小燈，請孩子閉上眼","用緩慢輕柔的聲音描述：軟軟的雲、亮亮的星星","帶他慢慢深呼吸幾次","輕聲說晚安，讓他帶著畫面入睡"]', '["他想像得到畫面嗎？","哪個畫面最讓他放鬆？"]', '睡前低刺激活動，保持環境安靜昏暗。', '晚安，帶著星星的夢，好好睡。',
+ 36, 66,
+ '{}', '{}', '{"selfSoothing"}', '{"emotional"}',
+ 'low', 'cooperative', '{}', 'bedroom',
+ 5, 12,
+ TRUE, TRUE, TRUE,
+ 'calm_down', FALSE, TRUE);
