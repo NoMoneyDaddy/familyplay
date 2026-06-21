@@ -84,8 +84,6 @@
     /* 平滑捲動（reduced-motion 下方會關閉）；iOS 點擊不留灰色高亮（更精緻的觸感） */
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
-    /* 文字渲染品質 */
-    text-rendering: optimizeLegibility;
   }
 
   body {
