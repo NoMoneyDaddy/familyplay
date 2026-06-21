@@ -14,6 +14,7 @@ import {
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { GrowthTracker } from '@/app/components/growth-tracker'
 import { type Celebration, MilestoneCelebration } from '@/app/components/milestone-celebration'
 import {
   Callout,
@@ -257,6 +258,9 @@ export default function CapabilitiesPage() {
           </div>
         </div>
       )}
+
+      {/* 成長紀錄（身高/體重/頭圍）：發展評估的量化面，與里程碑互補 */}
+      {hasHydrated && selectedChildId && <GrowthTracker childId={selectedChildId} />}
 
       {!hasHydrated ? (
         <div className="text-center text-muted" role="status">
