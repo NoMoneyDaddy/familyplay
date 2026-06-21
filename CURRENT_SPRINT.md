@@ -90,6 +90,12 @@
 > 託管 AI 生成（Plus）後端路徑現已可運作。下一步：交付 Plus 真實價值後拿掉 pricing 的
 > `comingSoon`、開放結帳。
 
+### 待手動套用（複製到 Supabase Dashboard → SQL Editor 執行）
+
+- [ ] `20260705000000_child_birth_date.sql`（生日精確到日：`child_profiles` 新增 `birth_date date`
+  選填欄位）。**未套用前 App 仍可運作**：`fetchChildren` 偵測欄位不存在會自動退回不含
+  `birth_date` 的查詢；建立孩子的補寫 `birth_date` 失敗會被吞掉（年月已落地）。套用後「日」才會真正儲存。
+
 ---
 
 ## 下一步候選

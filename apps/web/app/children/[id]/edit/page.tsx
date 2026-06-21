@@ -9,6 +9,7 @@ interface Child {
   id: string
   nickname: string
   birthYearMonth?: string
+  birthDate?: string | null
 }
 
 export default function EditChildPage() {
@@ -87,6 +88,8 @@ export default function EditChildPage() {
   }
 
   const [year, month] = (child.birthYearMonth || '').split('-')
+  // 有完整生日就帶出「日」當預設；否則留空（只到月）
+  const day = child.birthDate ? child.birthDate.split('-')[2] : ''
 
   const handleSuccess = () => {
     router.push('/children')
@@ -101,6 +104,7 @@ export default function EditChildPage() {
         initialNickname={child.nickname}
         initialBirthYear={year || ''}
         initialBirthMonth={month || ''}
+        initialBirthDay={day ? String(Number(day)) : ''}
         onSuccess={handleSuccess}
       />
     </PageShell>

@@ -209,9 +209,14 @@ describe('mapChildRow', () => {
       id: 'c1',
       nickname: '波波',
       birthYearMonth: '2024-01',
+      birthDate: null,
       stageKey: 'toddler_player',
       createdAt: '2026-06-20T00:00:00Z',
     })
+  })
+
+  it('有 birth_date 時映射為 birthDate', () => {
+    expect(mapChildRow({ ...childRow, birth_date: '2024-01-15' }).birthDate).toBe('2024-01-15')
   })
 })
 
@@ -232,6 +237,7 @@ describe('fetchChildren', () => {
         id: 'c1',
         nickname: '波波',
         birthYearMonth: '2024-01',
+        birthDate: null,
         stageKey: 'toddler_player',
         createdAt: '2026-06-20T00:00:00Z',
       },

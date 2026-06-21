@@ -18,6 +18,7 @@ interface Child {
   id: string
   nickname: string
   birthYearMonth?: string
+  birthDate?: string | null
   stageKey?: string
   createdAt: string
 }
@@ -135,8 +136,10 @@ export default function ChildrenPage() {
                         {stageLabel(child.stageKey)}
                       </span>
                     ) : (
-                      child.birthYearMonth && (
-                        <p className="text-sm text-muted">出生：{child.birthYearMonth}</p>
+                      (child.birthDate || child.birthYearMonth) && (
+                        <p className="text-sm text-muted">
+                          出生：{child.birthDate || child.birthYearMonth}
+                        </p>
                       )
                     )}
                   </div>

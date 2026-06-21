@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getAgeMonths, getStageKey, STAGE_KEYS } from './stage-keys'
+import { getAgeMonths, getAgeMonthsFromDate, getStageKey, STAGE_KEYS } from './stage-keys'
 
 describe('getStageKey', () => {
   it('returns newborn for 0 months', () => {
@@ -58,5 +58,26 @@ describe('getAgeMonths', () => {
   it('throws on an out-of-range month', () => {
     expect(() => getAgeMonths('2024-13')).toThrow()
     expect(() => getAgeMonths('2024-00')).toThrow()
+  })
+})
+
+describe('getAgeMonthsFromDate', () => {
+  it('精確到日：尚未過當月「日」則不計該月', () => {
+    const now = new Date()
+    const y = now.getFullYear() - 1
+    const mm = String(now.getMonth() + 1).padStart(2, '0')
+    // 出生「日」比今天大 → 這個月還沒過完，應為 11 個月而非 12
+    const laterDay = String(Math.min(now.getDate() + 1, 28)).padStart(2, '0')
+    if (now.getDate() + 1 <= 28) {
+      expect(getAgeMonthsFromDate(`${y}-${mm}-${laterDay}`)).toBe(11)
+    }
+    // 出生「日」是 1 號（多半已過）→ 滿 12 個月
+    expect(getAgeMonthsFromDate(`${y}-${mm}-01`)).toBe(12)
+  })
+
+  it('格式錯誤丟錯（非 NaN）', () => {
+    expect(() => getAgeMonthsFromDate('2024-01')).toThrow()
+    expect(() => getAgeMonthsFromDate('2024/01/01')).toThrow()
+    expect(() => getAgeMonthsFromDate('')).toThrow()
   })
 })
