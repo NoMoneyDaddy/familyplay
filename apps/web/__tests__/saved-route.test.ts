@@ -97,17 +97,17 @@ afterEach(() => {
 describe('GET /api/saved', () => {
   it('未登入 → 401', async () => {
     h.user = null
-    expect((await GET()).status).toBe(401)
+    expect((await GET(new Request('http://localhost'))).status).toBe(401)
   })
 
   it('DB 失敗 → 500', async () => {
     h.listError = { message: 'boom' }
-    expect((await GET()).status).toBe(500)
+    expect((await GET(new Request('http://localhost'))).status).toBe(500)
   })
 
   it('成功 → 200 回 saved 陣列', async () => {
     h.listData = [{ activity_id: ACTIVITY }]
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.saved).toHaveLength(1)
   })
 })

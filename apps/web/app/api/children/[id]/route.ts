@@ -2,8 +2,8 @@ import { getAgeMonths, getStageKey } from '@familyplay/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 const updateSchema = z
   .object({
@@ -60,18 +60,9 @@ async function validateChildOwnership(
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user } = auth
 
   try {
     const { data: userProfile } = await supabase
@@ -146,21 +137,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user } = auth
 
   try {
     const { data: userProfile } = await supabase

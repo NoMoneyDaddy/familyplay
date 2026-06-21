@@ -2,8 +2,8 @@ import { fetchSaved, SavedError } from '@familyplay/data'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 const bodySchema = z.object({ activityId: z.string().uuid() })
 
@@ -19,15 +19,10 @@ async function resolveProfileId(supabase: SupabaseClient, authUserId: string) {
 
 // 列出收藏（含活動內容），新到舊。映射收斂到 @familyplay/data（fetchSaved/mapSavedRow），
 // 與行動端共用、消除前端 pickActivity 的重複關聯處理。
-export async function GET() {
-  const supabase = await getApiSupabase()
-  if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function GET(request: Request) {
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase } = auth
 
   try {
     const saved = await fetchSaved(supabase)
@@ -42,14 +37,9 @@ export async function GET() {
 
 // 收藏一個活動（重複收藏視為成功，靠 UNIQUE 去重）。
 export async function POST(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user } = auth
 
   const rl = await checkRateLimit(`saved-write:${user.id}`, 60)
   if (!rl.success) return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
@@ -76,14 +66,9 @@ export async function POST(request: Request) {
 
 // 取消收藏。RLS 已限制只能刪自己的，仍顯式比對 activity_id。
 export async function DELETE(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user } = auth
 
   const rl = await checkRateLimit(`saved-write:${user.id}`, 60)
   if (!rl.success) return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })

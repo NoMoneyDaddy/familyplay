@@ -1,30 +1,21 @@
 import { CAPABILITY_LABELS } from '@familyplay/assessment'
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 // 活動 id 是 UUID；非 UUID（空字串、合成 fallback id 等）一律當「找不到」處理，
 // 既符合「所有輸入先驗證」的規範，也避免把畸形 id 丟給 uuid 欄位查詢觸發 DB 錯誤。
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   if (!id || !UUID_RE.test(id)) {
     return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
   }
 
-  const supabase = await getApiSupabase()
-  if (!supabase) {
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  }
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase } = auth
 
   // 只取回應實際用到的欄位，別 select('*')：companion_activities 有多個大 JSONB／陣列欄
   // （description、required/optional_capabilities、season/holiday_tags…）回應根本不需要，

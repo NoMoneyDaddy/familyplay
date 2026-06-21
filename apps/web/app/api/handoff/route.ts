@@ -1,10 +1,9 @@
 import { fetchHandoffs, HandoffError, saveHandoff } from '@familyplay/data'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/api/auth'
 import { reportError } from '@/lib/observability'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { getRequestId } from '@/lib/request-id'
-import { getApiSupabase } from '@/lib/supabase/api'
 
 // 交接小卡持久化：POST 儲存一張、GET 列出某孩子近期已儲存。
 // summary_text 內容由前端即時組（不含生日等敏感資料）；household/caregiver 由 DB 推出。
@@ -15,15 +14,9 @@ const saveSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  const requestId = getRequestId(request)
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`handoff-write:${user.id}`, 20)
   if (!rl.success) {
@@ -50,15 +43,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const supabase = await getApiSupabase()
-  if (!supabase) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-  const requestId = getRequestId(request)
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+  const { supabase, user, requestId } = auth
 
   const parsed = z.string().uuid().safeParse(new URL(request.url).searchParams.get('childId'))
   if (!parsed.success) return NextResponse.json({ error: 'childId 不合法' }, { status: 400 })

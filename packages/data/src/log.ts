@@ -1,3 +1,4 @@
+import type { ChildReaction } from '@familyplay/core'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { type ProfileResolveKind, resolveProfileId } from './profile'
 
@@ -5,7 +6,8 @@ import { type ProfileResolveKind, resolveProfileId } from './profile'
 // 不信任前端傳入，避免跨戶誤記。
 
 export type Outcome = 'completed' | 'tried' | 'abandoned'
-export type ChildReaction = 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
+// ChildReaction 單一真實來源在 @familyplay/core；此處 re-export 維持既有引用路徑。
+export type { ChildReaction }
 
 export class LogError extends Error {}
 

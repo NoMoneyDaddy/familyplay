@@ -43,17 +43,17 @@ afterEach(() => {
 describe('GET /api/account/entitlements', () => {
   it('未登入 → 401', async () => {
     h.user = null
-    expect((await GET()).status).toBe(401)
+    expect((await GET(new Request('http://localhost'))).status).toBe(401)
   })
 
   it('無 profile → 200 free 預設', async () => {
     h.profile = null
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json).toMatchObject({ plan: 'free', plusAiCallsRemaining: 0 })
   })
 
   it('無 entitlements 列 → 200 free 預設', async () => {
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.plan).toBe('free')
   })
 
@@ -66,7 +66,7 @@ describe('GET /api/account/entitlements', () => {
       plus_ai_calls_remaining: 87,
       plus_ai_calls_reset_at: '2026-07-01T00:00:00.000Z',
     }
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json).toMatchObject({
       plan: 'plus',
       plusStartedAt: '2026-06-01T00:00:00.000Z',
@@ -83,7 +83,7 @@ describe('GET /api/account/entitlements', () => {
       plus_ai_calls_remaining: null,
       plus_ai_calls_reset_at: null,
     }
-    const json = await (await GET()).json()
+    const json = await (await GET(new Request('http://localhost'))).json()
     expect(json.plusAiCallsRemaining).toBe(0)
   })
 
@@ -96,6 +96,6 @@ describe('GET /api/account/entitlements', () => {
       plus_ai_calls_remaining: 0,
       plus_ai_calls_reset_at: null,
     }
-    expect((await GET()).status).toBe(500)
+    expect((await GET(new Request('http://localhost'))).status).toBe(500)
   })
 })

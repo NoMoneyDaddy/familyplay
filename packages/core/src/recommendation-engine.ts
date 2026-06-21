@@ -37,16 +37,26 @@ export interface Child {
 }
 
 // 孩子對某個活動的歷史反應統計（由 companion_logs 聚合）。
-export type ChildReaction = 'happy' | 'engaged' | 'neutral' | 'leaving' | 'disinterested' | 'calmed'
+// 反應種類——單一真實來源（型別、白名單 zod enum、正負分類皆由此衍生），
+// Web／行動端／packages 共用，避免各處硬編而漂移。
+export const CHILD_REACTIONS = [
+  'happy',
+  'engaged',
+  'neutral',
+  'leaving',
+  'disinterested',
+  'calmed',
+] as const
+export type ChildReaction = (typeof CHILD_REACTIONS)[number]
 
 export interface ActivityReactionStats {
   liked: number // happy / engaged / calmed
   disliked: number // leaving / disinterested（neutral 不計）
 }
 
-// 正向／負向反應分類——單一真實來源，Web 與行動端共用，避免兩邊各自硬編而漂移。
-const POSITIVE_REACTIONS: ReadonlySet<string> = new Set(['happy', 'engaged', 'calmed'])
-const NEGATIVE_REACTIONS: ReadonlySet<string> = new Set(['leaving', 'disinterested'])
+// 正向／負向反應分類——由 CHILD_REACTIONS 衍生的子集，單一真實來源。
+export const POSITIVE_REACTIONS: ReadonlySet<string> = new Set(['happy', 'engaged', 'calmed'])
+export const NEGATIVE_REACTIONS: ReadonlySet<string> = new Set(['leaving', 'disinterested'])
 
 /** 由原始反應紀錄聚合成 activityId → {liked, disliked}。neutral 與未知值忽略。 */
 export function buildReactionStats(
