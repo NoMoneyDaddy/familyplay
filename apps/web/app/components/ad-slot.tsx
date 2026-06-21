@@ -50,9 +50,10 @@ export function AdSlot({ slot, className }: { slot?: string; className?: string 
 
   return (
     <aside className={className} aria-label="贊助廣告">
+      {/* 保留最小高度：避免廣告載入後撐開版面造成 CLS（Core Web Vitals）。 */}
       <ins
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', minHeight: 250 }}
         data-ad-client={ADSENSE_CLIENT}
         data-ad-slot={adSlot}
         data-ad-format="auto"
