@@ -6,4 +6,7 @@
 --   受邀加入 → accept_household_invite(invite_code)
 -- 故直接移除；移除後 client 端一律不能直接寫 household_members。
 -- 已於 2026-06-21 透過工具套用至正式專案。
+-- 縱深防禦：顯式確保 RLS 已啟用（initial schema 已啟用，此處冪等再保險——
+-- 若 RLS 未啟用，刪政策也擋不住 client 直接寫入）。
+ALTER TABLE public.household_members ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "join_own_household" ON public.household_members;
