@@ -11,11 +11,12 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ActivityLogControl } from '@/components/ActivityLogControl'
 import { Mascot } from '@/components/Mascot'
+import { useActiveChildStore } from '@/lib/stores/useActiveChild'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
 import { clayCard, colors } from '@/lib/theme'
 
-// 一鍵「現在就陪」：不問年齡/精力/情境——用第一個孩子、依時段自動帶情境、精力預設「有點累」，
+// 一鍵「現在就陪」：不問年齡/精力/情境——用「目前選定的孩子」、依時段自動帶情境、精力預設「有點累」，
 // 直接給「一個」主答案。想換按「換一個」，玩完一鍵記錄。與 Web /now 對齊，直接接 packages/data
 // （RLS 由帶 session 的 mobile client 生效，無 Next API route）。
 const DEFAULT_ENERGY = 'low' as const
@@ -51,8 +52,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default function NowScreen() {
   const router = useRouter()
   const { session, isLoading } = useAuthStore()
+  const { activeChildId, setActiveChild, hydrate, hydrated } = useActiveChildStore()
 
   const [childId, setChildId] = useState<string | null>(null)
+  const [childName, setChildName] = useState<string | null>(null)
+  const [childCount, setChildCount] = useState(0)
   const [rec, setRec] = useState<RecommendedActivity | null>(null)
   const [loading, setLoading] = useState(true)
   const [shuffling, setShuffling] = useState(false)
@@ -72,6 +76,11 @@ export default function NowScreen() {
   useEffect(() => {
     if (!isLoading && !session) router.replace('/auth/login')
   }, [isLoading, session, router])
+
+  // 還原上次選定的孩子（只做一次）。等還原完才決定用哪個孩子，避免先用第一個閃一下。
+  useEffect(() => {
+    if (!hydrated) hydrate()
+  }, [hydrated, hydrate])
 
   const loadRec = useCallback(async (cid: string, excludeIds: string[], shuffle: boolean) => {
     if (shuffle) setShuffling(true)
@@ -107,9 +116,10 @@ export default function NowScreen() {
     }
   }, [])
 
-  // 初次：取第一個孩子 → 載一個方案；沒孩子先去建立
+  // 初次：取孩子清單 → 用選定的孩子（沒有就第一個並記住）→ 載一個方案；沒孩子先去建立。
+  // 等 store 還原完（hydrated）才解析，確保用的是上次記住的孩子而非總是第一個。
   useEffect(() => {
-    if (!session) return
+    if (!session || !hydrated) return
     let cancelled = false
     ;(async () => {
       try {
@@ -120,9 +130,13 @@ export default function NowScreen() {
           router.replace('/onboarding/child-info')
           return
         }
-        const cid = children[0].id
-        setChildId(cid)
-        await loadRec(cid, [], false)
+        // 選定者存在於清單就用它，否則退回第一個並持久化（修掉孩子被刪/換裝置的失效 id）。
+        const chosen = children.find((c) => c.id === activeChildId) ?? children[0]
+        if (chosen.id !== activeChildId) setActiveChild(chosen.id)
+        setChildId(chosen.id)
+        setChildName(chosen.nickname)
+        setChildCount(children.length)
+        await loadRec(chosen.id, [], false)
       } catch {
         if (!cancelled) {
           setError('載入失敗，請稍後再試')
@@ -133,7 +147,7 @@ export default function NowScreen() {
     return () => {
       cancelled = true
     }
-  }, [session, router, loadRec])
+  }, [session, hydrated, activeChildId, setActiveChild, router, loadRec])
 
   const shuffle = () => {
     if (childId) loadRec(childId, [...seen.current], true)
@@ -160,12 +174,29 @@ export default function NowScreen() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }}>
         {/* 品牌 */}
-        <View className="mb-5 flex-row items-center justify-center gap-2">
+        <View className="mb-3 flex-row items-center justify-center gap-2">
           <Mascot size={28} />
           <Text className="text-lg font-bold" style={{ color: colors.text }}>
             FamilyPlay
           </Text>
         </View>
+
+        {/* 目前陪伴的孩子 + 切換/管理入口（多孩子家庭可切換；單一也能進去新增） */}
+        {childName ? (
+          <Pressable
+            onPress={() => router.push('/children')}
+            accessibilityRole="button"
+            accessibilityLabel={`目前陪伴 ${childName}，點此切換或管理孩子`}
+            className="mb-5 flex-row items-center justify-center gap-1 active:opacity-70"
+          >
+            <Text className="text-sm font-medium" style={{ color: colors.muted }}>
+              陪伴中：{childName}
+            </Text>
+            <Text className="text-sm font-medium" style={{ color: colors.brand }}>
+              {childCount > 1 ? '· 切換 ›' : '· 管理 ›'}
+            </Text>
+          </Pressable>
+        ) : null}
 
         {error ? (
           <View className="mb-4 rounded-xl p-4" style={{ backgroundColor: colors.dangerTint }}>
