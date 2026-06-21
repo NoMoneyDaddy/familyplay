@@ -139,7 +139,7 @@ export default function LoginScreen() {
           </Pressable>
 
           <Text className="mt-4 text-center text-xs" style={{ color: colors.muted }}>
-            你的資料使用 Supabase 安全保護
+            你的資料都已加密保護，安全又隱私
           </Text>
         </View>
       </View>
