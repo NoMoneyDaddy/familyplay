@@ -387,9 +387,9 @@ export default function HandoffPage() {
               className="w-full"
               onClick={handleAiPolish}
             >
-              {aiSummary ? '重新用 AI 潤色' : '用 AI 潤色（Plus／自帶金鑰）'}
+              {aiSummary ? '重新用 AI 潤色' : '用 AI 潤色（自帶金鑰）'}
             </Button>
-            {/* 沒自帶金鑰時，就近給「去設定加金鑰」捷徑（Plus 免設定，故已有金鑰不顯示） */}
+            {/* 沒自帶金鑰時，就近給「去設定加金鑰」捷徑 */}
             {!hasKey && (
               <Link
                 href="/settings"

@@ -126,7 +126,6 @@ export default function PrivacyPage() {
             <ClauseItem>提供個人化的陪伴活動建議與發展階段參考。</ClauseItem>
             <ClauseItem>保存並呈現你的孩子檔案與陪伴紀錄。</ClauseItem>
             <ClauseItem>維護服務安全、分析使用狀況以持續改善。</ClauseItem>
-            <ClauseItem>處理付費訂閱（如你選擇付費方案）。</ClauseItem>
           </ClauseList>
         </Section>
 
@@ -152,11 +151,8 @@ export default function PrivacyPage() {
               <strong>PostHog / Sentry</strong>：使用分析與錯誤監控。
             </ClauseItem>
             <ClauseItem>
-              <strong>RevenueCat</strong>：付費訂閱金流（行動端經 App Store／Google Play，網頁經
-              RevenueCat Web Billing；我們不會儲存你的信用卡資料）。
-            </ClauseItem>
-            <ClauseItem>
-              <strong>Google AdSense</strong>：免費版可能顯示少量廣告（付費後移除）。
+              <strong>Google AdSense</strong>
+              ：在瀏覽型頁面顯示少量、低干擾的廣告（本服務免費的營運來源；不會用到孩子的個人資料）。
             </ClauseItem>
           </ClauseList>
         </Section>

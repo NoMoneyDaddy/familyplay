@@ -13,7 +13,7 @@ const SECTIONS = [
   { id: 'service', label: '服務說明' },
   { id: 'account', label: '帳號與資格' },
   { id: 'acceptable-use', label: '可接受的使用' },
-  { id: 'billing', label: '付費與訂閱' },
+  { id: 'billing', label: '費用與廣告' },
   { id: 'ip', label: '智慧財產權' },
   { id: 'liability', label: '免責與責任限制' },
   { id: 'termination', label: '服務變更與終止' },
@@ -117,17 +117,17 @@ export default function TermsPage() {
           </ClauseList>
         </Section>
 
-        <Section index={4} id="billing" title="付費與訂閱">
+        <Section index={4} id="billing" title="費用與廣告">
           <ClauseList>
-            <ClauseItem>本服務大部分功能免費，並提供選擇性的付費方案。</ClauseItem>
+            <ClauseItem>本服務所有功能皆免費，沒有付費牆，也沒有任何訂閱或 App 內購。</ClauseItem>
             <ClauseItem>
-              付費訂閱透過第三方金流（RevenueCat，行動端經 App Store／Google Play，網頁經 RevenueCat
-              Web Billing）處理，並依其結帳流程進行。
+              我們靠頁面上少量、低干擾的廣告（如 Google AdSense）維持營運。廣告只出現在瀏覽型頁面，
+              不會打斷你和孩子的陪伴流程，也不會用到孩子的個人資料。
             </ClauseItem>
             <ClauseItem>
-              訂閱可隨時取消，並於當期結束後停止續扣；標示「即將推出」的功能在正式上線前不會收費。
+              AI 客製活動採「自帶金鑰」（BYO
+              key）：金鑰只暫存在你的裝置、用完即丟，我們不收費、不保存。
             </ClauseItem>
-            <ClauseItem>退款依適用法律與金流商政策辦理。</ClauseItem>
           </ClauseList>
         </Section>
 
