@@ -15,7 +15,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase } = auth
+  const { supabase, requestId } = auth
 
   // 只取回應實際用到的欄位，別 select('*')：companion_activities 有多個大 JSONB／陣列欄
   // （description、required/optional_capabilities、season/holiday_tags…）回應根本不需要，
@@ -32,7 +32,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // 用 maybeSingle 區分「查詢失敗」與「查無資料」：error 代表真的後端/RLS 故障，
   // 上報 Sentry 並回 500（別偽裝成 404 把告警吃掉）；查無資料才回 404。
   if (error) {
-    reportError(error, { route: '/api/activities/[id]' })
+    reportError(error, { route: '/api/activities/[id]', requestId })
     return NextResponse.json({ error: 'Failed to load activity' }, { status: 500 })
   }
   if (!activity) {

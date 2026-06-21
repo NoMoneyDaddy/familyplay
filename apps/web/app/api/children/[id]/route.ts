@@ -62,7 +62,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase, user } = auth
+  const { supabase, user, requestId } = auth
 
   try {
     const { data: userProfile } = await supabase
@@ -113,7 +113,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       .single()
 
     if (error) {
-      reportError(error, { route: 'PUT /api/children/[id]', userId: user.id, childId: id })
+      reportError(error, {
+        route: 'PUT /api/children/[id]',
+        userId: user.id,
+        childId: id,
+        requestId,
+      })
       return NextResponse.json({ error: 'Failed to update child profile' }, { status: 500 })
     }
 
@@ -132,7 +137,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
     }
-    reportError(error, { route: 'PUT /api/children/[id]', userId: user.id, childId: id })
+    reportError(error, { route: 'PUT /api/children/[id]', userId: user.id, childId: id, requestId })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -142,7 +147,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase, user } = auth
+  const { supabase, user, requestId } = auth
 
   try {
     const { data: userProfile } = await supabase
@@ -166,13 +171,23 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { error } = await supabase.from('child_profiles').delete().eq('id', id)
 
     if (error) {
-      reportError(error, { route: 'DELETE /api/children/[id]', userId: user.id, childId: id })
+      reportError(error, {
+        route: 'DELETE /api/children/[id]',
+        userId: user.id,
+        childId: id,
+        requestId,
+      })
       return NextResponse.json({ error: 'Failed to delete child profile' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    reportError(error, { route: 'DELETE /api/children/[id]', userId: user.id, childId: id })
+    reportError(error, {
+      route: 'DELETE /api/children/[id]',
+      userId: user.id,
+      childId: id,
+      requestId,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

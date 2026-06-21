@@ -36,7 +36,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase, user } = auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`growth-read:${user.id}`, 60)
   if (!rl.success) return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
@@ -48,7 +48,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (error instanceof GrowthError) {
       return NextResponse.json({ error: '無法載入成長紀錄' }, { status: 500 })
     }
-    reportError(error, { route: 'GET /api/children/[id]/growth', userId: user.id, childId: id })
+    reportError(error, {
+      route: 'GET /api/children/[id]/growth',
+      userId: user.id,
+      childId: id,
+      requestId,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -60,7 +65,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase, user } = auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`growth-write:${user.id}`, 30)
   if (!rl.success) return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
@@ -83,7 +88,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (error instanceof GrowthError) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
-    reportError(error, { route: 'POST /api/children/[id]/growth', userId: user.id, childId: id })
+    reportError(error, {
+      route: 'POST /api/children/[id]/growth',
+      userId: user.id,
+      childId: id,
+      requestId,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

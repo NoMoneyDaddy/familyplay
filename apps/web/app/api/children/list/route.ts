@@ -7,7 +7,7 @@ import { checkRateLimit } from '@/lib/ratelimit'
 export async function GET(request: Request) {
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase, user } = auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`children-list:${user.id}`, 30)
   if (!rl.success) {
@@ -21,10 +21,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ children })
   } catch (error) {
     if (error instanceof ChildError) {
-      reportError(error, { route: '/api/children/list', userId: user.id })
+      reportError(error, { route: '/api/children/list', userId: user.id, requestId })
       return NextResponse.json({ error: 'Failed to fetch children' }, { status: 500 })
     }
-    reportError(error, { route: '/api/children/list', userId: user.id })
+    reportError(error, { route: '/api/children/list', userId: user.id, requestId })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

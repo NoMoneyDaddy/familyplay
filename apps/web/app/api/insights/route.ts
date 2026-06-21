@@ -14,7 +14,7 @@ const querySchema = z.object({ childId: z.string().uuid() })
 export async function GET(request: Request) {
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase } = auth
+  const { supabase, requestId } = auth
 
   const parsed = querySchema.safeParse({
     childId: new URL(request.url).searchParams.get('childId'),
@@ -26,11 +26,11 @@ export async function GET(request: Request) {
   const { childId } = parsed.data
   const [streak, weekly] = await Promise.all([
     fetchStreak(supabase, { childId }).catch((e) => {
-      reportError(e, { route: '/api/insights#streak' })
+      reportError(e, { route: '/api/insights#streak', requestId })
       return 0
     }),
     fetchWeeklyInsights(supabase, { childId }).catch((e): WeeklyInsights | null => {
-      reportError(e, { route: '/api/insights#weekly' })
+      reportError(e, { route: '/api/insights#weekly', requestId })
       return null
     }),
   ])

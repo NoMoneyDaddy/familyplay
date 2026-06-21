@@ -26,7 +26,7 @@ function pickTitle(rel: ActivityRel): string | null {
 export async function GET(request: Request) {
   const auth = await requireAuth(request)
   if (auth instanceof NextResponse) return auth
-  const { supabase, user } = auth
+  const { supabase, user, requestId } = auth
 
   const rl = await checkRateLimit(`logs-read:${user.id}`, 30)
   if (!rl.success) {
@@ -71,7 +71,12 @@ export async function GET(request: Request) {
     const { data: logs, error } = logsResult
 
     if (error) {
-      reportError(error, { route: '/api/logs', userId: user.id, childId: validatedChildId })
+      reportError(error, {
+        route: '/api/logs',
+        userId: user.id,
+        childId: validatedChildId,
+        requestId,
+      })
       return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 })
     }
 
@@ -125,7 +130,7 @@ export async function GET(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid request', details: error.errors }, { status: 400 })
     }
-    reportError(error, { route: '/api/logs', userId: user.id })
+    reportError(error, { route: '/api/logs', userId: user.id, requestId })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
