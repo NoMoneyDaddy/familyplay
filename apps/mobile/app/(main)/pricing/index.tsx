@@ -24,7 +24,7 @@ export default function PricingScreen() {
             完全免費
           </Text>
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
             accessibilityRole="button"
             accessibilityLabel="返回"
             className="active:opacity-70"

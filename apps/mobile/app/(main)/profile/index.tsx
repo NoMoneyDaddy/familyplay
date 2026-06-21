@@ -74,7 +74,10 @@ export default function ProfileScreen() {
           <Text className="text-3xl font-bold" style={{ color: colors.text }}>
             帳號
           </Text>
-          <Pressable onPress={() => router.back()} className="active:opacity-70">
+          <Pressable
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+            className="active:opacity-70"
+          >
             <Text className="text-sm" style={{ color: colors.muted }}>
               返回
             </Text>
