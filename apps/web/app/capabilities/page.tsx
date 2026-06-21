@@ -12,8 +12,9 @@ import {
   type CapabilityProfile,
 } from '@familyplay/core'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { type Celebration, MilestoneCelebration } from '@/app/components/milestone-celebration'
 import {
   Callout,
   EmptyState,
@@ -45,6 +46,25 @@ const MILESTONES_BY_DOMAIN = DOMAIN_ORDER.map((domain) => ({
 
 const TOTAL = MILESTONES.length
 
+// 「成就型里程碑」：在逐顆能力之上，標出值得慶祝的關鍵時刻——
+// 第一顆、各領域全達成、全部達成。第一次達成時觸發慶祝特效（見下方 localStorage 去重）。
+function buildAchievements(achieved: CapabilityProfile): Celebration[] {
+  const out: Celebration[] = []
+  const count = Object.values(achieved).filter(Boolean).length
+  if (count >= 1) {
+    out.push({ id: 'first', title: '解鎖第一個里程碑！', subtitle: '標記孩子會的，推薦會更貼近他' })
+  }
+  for (const { domain, label, items } of MILESTONES_BY_DOMAIN) {
+    if (items.length > 0 && items.every((m) => achieved[m.key])) {
+      out.push({ id: `domain:${domain}`, title: `${label}全部會了！`, subtitle: '又長大了一些' })
+    }
+  }
+  if (TOTAL > 0 && count === TOTAL) {
+    out.push({ id: 'all', title: '所有里程碑都達成了！', subtitle: '你陪他走了好長一段路' })
+  }
+  return out
+}
+
 export default function CapabilitiesPage() {
   const { selectedChildId, hasHydrated } = useChildStore()
   const goBack = useGoBack('/history')
@@ -54,6 +74,79 @@ export default function CapabilitiesPage() {
   // 正在送出的 key（避免重複點擊；逐顆顯示 pending）
   const [pending, setPending] = useState<Set<CapabilityKey>>(new Set())
   const [error, setError] = useState<string | null>(null)
+
+  // 慶祝特效佇列：一次顯示一個，消失後取下一個。
+  const [celebrationQueue, setCelebrationQueue] = useState<Celebration[]>([])
+  const [currentCelebration, setCurrentCelebration] = useState<Celebration | null>(null)
+  // 已慶祝過的成就 id（每孩子一份，存 localStorage，確保「只在第一次達成時」觸發）
+  const celebratedRef = useRef<Set<string>>(new Set())
+  const seededChildRef = useRef<string | null>(null)
+
+  // 偵測新達成的成就型里程碑並排入慶祝佇列。首次載入某孩子時以「目前已達成」為基準
+  // 靜默建檔（不為先前就會的東西放彩帶），之後新達成的才慶祝。
+  const detectMilestones = useCallback(
+    (map: CapabilityProfile) => {
+      const cid = selectedChildId
+      if (!cid) return
+      const storageKey = `fp_milestone_celebrated:${cid}`
+      const met = buildAchievements(map)
+      const enqueue = (fresh: Celebration[]) => {
+        if (!fresh.length) return
+        for (const c of fresh) celebratedRef.current.add(c.id)
+        try {
+          localStorage.setItem(storageKey, JSON.stringify([...celebratedRef.current]))
+        } catch {
+          // localStorage 不可用：仍在本次 session 內去重（celebratedRef），不影響流程
+        }
+        setCelebrationQueue((q) => [...q, ...fresh])
+      }
+
+      if (seededChildRef.current !== cid) {
+        // 換到（或首次處理）這個孩子：載入已慶祝集合
+        let stored: string[] | null = null
+        try {
+          const raw = localStorage.getItem(storageKey)
+          stored = raw ? (JSON.parse(raw) as string[]) : null
+        } catch {
+          stored = null
+        }
+        seededChildRef.current = cid
+        if (stored == null) {
+          // 從未追蹤過：以現況為基準靜默建檔，不放彩帶
+          celebratedRef.current = new Set(met.map((m) => m.id))
+          try {
+            localStorage.setItem(storageKey, JSON.stringify([...celebratedRef.current]))
+          } catch {
+            // 同上，可忽略
+          }
+          return
+        }
+        celebratedRef.current = new Set(stored)
+        enqueue(met.filter((m) => !celebratedRef.current.has(m.id)))
+        return
+      }
+      // 同一孩子的後續變動（勾選）：新達成的才慶祝
+      enqueue(met.filter((m) => !celebratedRef.current.has(m.id)))
+    },
+    [selectedChildId],
+  )
+
+  // 資料就緒後（載入完成或勾選後 achieved 變動）偵測里程碑。loading 中略過，
+  // 避免換孩子時用上一個孩子的暫存資料誤判。
+  useEffect(() => {
+    if (loading) return
+    detectMilestones(achieved)
+  }, [achieved, loading, detectMilestones])
+
+  // 佇列推進：目前沒有正在顯示的就取下一個
+  useEffect(() => {
+    if (!currentCelebration && celebrationQueue.length > 0) {
+      setCurrentCelebration(celebrationQueue[0])
+      setCelebrationQueue((q) => q.slice(1))
+    }
+  }, [celebrationQueue, currentCelebration])
+
+  const dismissCelebration = useCallback(() => setCurrentCelebration(null), [])
 
   useEffect(() => {
     if (!selectedChildId) {
@@ -131,6 +224,8 @@ export default function CapabilitiesPage() {
 
   return (
     <PageShell>
+      {/* 里程碑慶祝特效：達成「成就型里程碑」時短暫飄彩帶（reduced-motion 安全） */}
+      <MilestoneCelebration celebration={currentCelebration} onDone={dismissCelebration} />
       {/* ChildSwitcher 一律掛載：它負責抓孩子清單並設定當前孩子 */}
       <ChildSwitcher />
       <PageHeader title="發展里程碑" subtitle="標記孩子已經會的，推薦會更貼近他" onBack={goBack} />
