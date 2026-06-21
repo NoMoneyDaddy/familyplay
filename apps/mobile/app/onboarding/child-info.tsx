@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useActiveChildStore } from '@/lib/stores/useActiveChild'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
 
@@ -12,6 +13,7 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
 export default function ChildInfoScreen() {
   const router = useRouter()
   const { session } = useAuthStore()
+  const { setActiveChild } = useActiveChildStore()
 
   const [nickname, setNickname] = useState('')
   const [birthYear, setBirthYear] = useState('')
@@ -30,11 +32,13 @@ export default function ChildInfoScreen() {
     try {
       // 家庭歸屬（household_id，NOT NULL）與能力檔由 @familyplay/data 統一推出，
       // 不可直接 insert（child_profiles 無 user_id 欄位、且需建立能力檔）。
-      await createChild(createMobileClient(), {
+      const newChildId = await createChild(createMobileClient(), {
         nickname,
         birthYearMonth: `${birthYear}-${String(birthMonth).padStart(2, '0')}`,
       })
-      router.replace('/select')
+      // 剛建立的孩子設為「目前選定」→ 直接進一鍵陪伴，方案立刻是這個孩子的（多孩子也合理）。
+      setActiveChild(newChildId)
+      router.replace('/now')
     } catch (err) {
       setError(err instanceof ChildError ? err.message : '建立失敗，請重試')
     } finally {
