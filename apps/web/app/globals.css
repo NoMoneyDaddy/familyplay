@@ -81,6 +81,11 @@
     color: var(--color-text);
     /* System font scaling — use rem everywhere */
     font-size: 16px;
+    /* 平滑捲動（reduced-motion 下方會關閉）；iOS 點擊不留灰色高亮（更精緻的觸感） */
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    /* 文字渲染品質 */
+    text-rendering: optimizeLegibility;
   }
 
   body {
@@ -106,8 +111,22 @@
     text-wrap: balance;
   }
 
+  /* 內文用 pretty 換行：避免段尾孤字、斷句更自然（DESIGN_PRINCIPLES 排版實踐）。 */
+  p {
+    text-wrap: pretty;
+  }
+
+  /* 品牌色文字選取：暖橘淡底，取代生硬的系統藍。 */
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-brand) 22%, transparent);
+    color: var(--color-text);
+  }
+
   /* Respect system animation preference */
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
     *,
     *::before,
     *::after {
@@ -121,10 +140,12 @@
   }
 }
 
-/* 品牌字／大數字用圓潤 display 字體（拉丁字才生效，中文落回 Noto） */
+/* 品牌字／大數字用圓潤 display 字體（拉丁字才生效，中文落回 Noto）。
+   tabular-nums：數字等寬，連續天數/統計/價格變動時不抖版（DESIGN_PRINCIPLES）。 */
 .font-display {
   font-family: var(--font-display);
   font-feature-settings: "ss01";
+  font-variant-numeric: tabular-nums;
 }
 
 /* 黏土調性的柔和飄移氛圍球（僅在使用者未要求減少動態時緩慢漂浮） */
