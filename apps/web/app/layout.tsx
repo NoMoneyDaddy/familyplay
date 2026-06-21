@@ -3,6 +3,7 @@ import { Baloo_2, Noto_Sans_TC } from 'next/font/google'
 import Script from 'next/script'
 import { BottomNav } from './components/bottom-nav'
 import { InstallPrompt } from './components/install-prompt'
+import { StructuredData } from './components/structured-data'
 import { ServiceWorkerRegister } from './components/sw-register'
 import './globals.css'
 
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           跳到主內容
         </a>
+        <StructuredData />
         <ServiceWorkerRegister />
         {/* mobile-first 聚焦欄：手機滿版；平板/桌機置中並加環境陰影，框成「被設計過的 App」 */}
         <div className="relative mx-auto min-h-dvh w-full max-w-[480px] bg-bg shadow-none sm:shadow-[0_0_90px_-28px_rgba(74,49,28,0.3)]">
