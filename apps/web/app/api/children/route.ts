@@ -15,10 +15,20 @@ const STATUS_BY_CODE: Record<string, number> = {
   create_failed: 500,
 }
 
-const schema = z.object({
-  nickname: z.string().min(1),
-  birthYearMonth: z.string().regex(/^\d{4}-\d{2}$/),
-})
+const schema = z
+  .object({
+    nickname: z.string().min(1),
+    birthYearMonth: z.string().regex(/^\d{4}-\d{2}$/),
+    // 生日精確到日（選填）。給了就必須與年月一致，避免不一致資料。
+    birthDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+  })
+  .refine((d) => !d.birthDate || d.birthDate.startsWith(`${d.birthYearMonth}-`), {
+    message: 'birthDate 與 birthYearMonth 不一致',
+    path: ['birthDate'],
+  })
 
 export async function POST(request: Request) {
   const requestId = getRequestId(request)
@@ -49,12 +59,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { nickname, birthYearMonth } = schema.parse(body)
+    const { nickname, birthYearMonth, birthDate } = schema.parse(body)
 
     // 家庭歸屬解析（擁有→加入→新建）、原子 RPC＋兩段式退路、能力檔與回滾全在
     // @familyplay/data 統一處理；Web 與行動端共用同一份編排（RLS 由 client session 生效）。
     // 已驗過 user，直接傳入避免 createChild 內再打一次 supabase.auth.getUser()。
-    const childId = await createChild(supabase, { nickname, birthYearMonth, user })
+    const childId = await createChild(supabase, { nickname, birthYearMonth, birthDate, user })
     return NextResponse.json({ childId })
   } catch (error) {
     if (error instanceof z.ZodError) {

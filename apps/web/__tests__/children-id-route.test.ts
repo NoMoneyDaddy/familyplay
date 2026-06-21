@@ -123,6 +123,7 @@ describe('PUT /api/children/[id]', () => {
       id: 'c1',
       nickname: '波波',
       birthYearMonth: '2024-01',
+      birthDate: null,
       stageKey: 'toddler_player',
     })
   })

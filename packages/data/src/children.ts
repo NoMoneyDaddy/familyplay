@@ -79,9 +79,9 @@ async function resolveHouseholdId(
  */
 export async function createChild(
   supabase: SupabaseClient,
-  args: { nickname: string; birthYearMonth: string; user?: User },
+  args: { nickname: string; birthYearMonth: string; birthDate?: string; user?: User },
 ): Promise<string> {
-  const { nickname, birthYearMonth } = args
+  const { nickname, birthYearMonth, birthDate } = args
 
   // 呼叫端（Web route）已驗過身分時可傳入 user，避免對 Supabase Auth 多打一次網路請求。
   let user = args.user
@@ -109,6 +109,14 @@ export async function createChild(
 
   const stageKey = getStageKey(getAgeMonths(birthYearMonth))
 
+  // 生日精確到日（選填）：建立後補寫 birth_date。RLS 僅本家庭成員可更新；
+  // 失敗不阻斷建立（年月已落地，精確日為加值），故 update 不檢查錯誤。
+  const applyBirthDate = async (id: string): Promise<string> => {
+    if (birthDate)
+      await supabase.from('child_profiles').update({ birth_date: birthDate }).eq('id', id)
+    return id
+  }
+
   // 優先用原子化 RPC（child + capability 同一交易）。
   const { data: rpcChildId, error: rpcError } = await supabase.rpc('create_child_with_capability', {
     p_household_id: householdId,
@@ -116,7 +124,7 @@ export async function createChild(
     p_birth_year_month: birthYearMonth,
     p_stage_key: stageKey,
   })
-  if (!rpcError && rpcChildId) return rpcChildId as string
+  if (!rpcError && rpcChildId) return applyBirthDate(rpcChildId as string)
 
   // 只有「函式不存在」（migration 未套用）才退回兩段式；其餘實質錯誤直接丟出。
   // （isFuncMissing 時靜默走退路：data 層不做日誌，RPC 未部署仍能建立，僅缺原子保證。）
@@ -151,13 +159,14 @@ export async function createChild(
       rollbackError ? { capError, rollbackError } : capError,
     )
   }
-  return child.id as string
+  return applyBirthDate(child.id as string)
 }
 
 export interface ChildSummary {
   id: string
   nickname: string | null
   birthYearMonth: string | null
+  birthDate: string | null
   stageKey: string | null
   createdAt: string | null
 }
@@ -166,6 +175,7 @@ export interface ChildRow {
   id: string
   nickname: string | null
   birth_year_month: string | null
+  birth_date?: string | null
   stage_key: string | null
   created_at: string | null
 }
@@ -176,6 +186,7 @@ export function mapChildRow(row: ChildRow): ChildSummary {
     id: row.id,
     nickname: row.nickname,
     birthYearMonth: row.birth_year_month,
+    birthDate: row.birth_date ?? null,
     stageKey: row.stage_key,
     createdAt: row.created_at,
   }
@@ -187,11 +198,20 @@ export function mapChildRow(row: ChildRow): ChildSummary {
  * 跨平台共用：Web（API route）與行動端共用，消除兩端各自手刻查詢/映射的漂移。
  */
 export async function fetchChildren(supabase: SupabaseClient): Promise<ChildSummary[]> {
-  const { data, error } = await supabase
-    .from('child_profiles')
-    .select('id,nickname,birth_year_month,stage_key,created_at')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw new ChildError('fetch_failed', '無法載入孩子資料', error)
-  return ((data || []) as ChildRow[]).map(mapChildRow)
+  const query = (select: string) =>
+    supabase
+      .from('child_profiles')
+      .select(select)
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+  // 優先抓含 birth_date；migration 未套用時（欄位不存在 42703）退回不含 birth_date，
+  // 確保孩子清單在過渡期仍可用（生日精確日為加值、非必要）。
+  let res = await query('id,nickname,birth_year_month,birth_date,stage_key,created_at')
+  if (res.error && (res.error.code === '42703' || /birth_date/i.test(res.error.message || ''))) {
+    res = await query('id,nickname,birth_year_month,stage_key,created_at')
+  }
+  if (res.error) throw new ChildError('fetch_failed', '無法載入孩子資料', res.error)
+  // select 字串為動態（含 birth_date 退路），Supabase 無法靜態推出列型別 → 經 unknown 轉。
+  return ((res.data || []) as unknown as ChildRow[]).map(mapChildRow)
 }

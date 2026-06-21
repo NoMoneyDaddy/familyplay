@@ -5,13 +5,23 @@ import { z } from 'zod'
 import { reportError } from '@/lib/observability'
 import { getApiSupabase } from '@/lib/supabase/api'
 
-const updateSchema = z.object({
-  nickname: z.string().min(1).optional(),
-  birthYearMonth: z
-    .string()
-    .regex(/^\d{4}-\d{2}$/)
-    .optional(),
-})
+const updateSchema = z
+  .object({
+    nickname: z.string().min(1).optional(),
+    birthYearMonth: z
+      .string()
+      .regex(/^\d{4}-\d{2}$/)
+      .optional(),
+    // 生日精確到日（選填）。空字串視為「清除」精確日，回到只到月。
+    birthDate: z.union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal('')]).optional(),
+  })
+  .refine(
+    (d) => !d.birthDate || !d.birthYearMonth || d.birthDate.startsWith(`${d.birthYearMonth}-`),
+    {
+      message: 'birthDate 與 birthYearMonth 不一致',
+      path: ['birthDate'],
+    },
+  )
 
 async function validateChildOwnership(
   supabase: SupabaseClient,
@@ -81,7 +91,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const body = await request.json()
-    const { nickname, birthYearMonth } = updateSchema.parse(body)
+    const { nickname, birthYearMonth, birthDate } = updateSchema.parse(body)
 
     // biome-ignore lint/suspicious/noExplicitAny: Dynamic field updates
     const updateData: Record<string, any> = {
@@ -97,6 +107,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       const stageKey = getStageKey(ageMonths)
       updateData.birth_year_month = birthYearMonth
       updateData.stage_key = stageKey
+    }
+
+    // 生日精確到日：有值寫入、空字串清除（回到只到月）
+    if (birthDate !== undefined) {
+      updateData.birth_date = birthDate === '' ? null : birthDate
     }
 
     const { data: updated, error } = await supabase
@@ -115,6 +130,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       id: updated.id,
       nickname: updated.nickname,
       birthYearMonth: updated.birth_year_month,
+      birthDate: updated.birth_date ?? null,
       stageKey: updated.stage_key,
     })
   } catch (error) {

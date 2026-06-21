@@ -8,6 +8,7 @@ interface Child {
   nickname: string
   stageKey?: string
   birthYearMonth?: string
+  birthDate?: string | null
 }
 
 interface ChildStore {

@@ -54,3 +54,22 @@ export function getAgeMonths(birthYearMonth: string): number {
   const now = new Date()
   return (now.getFullYear() - year) * 12 + (now.getMonth() + 1 - month)
 }
+
+/**
+ * 由完整出生日期（YYYY-MM-DD）算「滿幾個月」——精確到日：當天還沒過完該月的「日」，
+ * 則該月不計（與一般年齡認知一致）。給「生日精確到日」用，使年齡安全過濾/階段判斷更準。
+ */
+export function getAgeMonthsFromDate(birthDate: string): number {
+  if (typeof birthDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+    throw new Error(`Invalid birthDate: ${birthDate} (expected YYYY-MM-DD)`)
+  }
+  const [year, month, day] = birthDate.split('-').map(Number)
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    throw new Error(`Invalid birthDate: ${birthDate}`)
+  }
+  const now = new Date()
+  let months = (now.getFullYear() - year) * 12 + (now.getMonth() + 1 - month)
+  // 還沒到當月的「日」→ 尚未滿這個月，扣 1
+  if (now.getDate() < day) months -= 1
+  return months
+}
