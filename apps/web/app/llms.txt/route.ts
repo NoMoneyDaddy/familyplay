@@ -20,7 +20,7 @@ export function GET() {
 ## 公開頁面
 
 - [免費試用（不需註冊）](${SITE_URL}/try)：選年齡＋精力＋情境，立即看推薦。
-- [方案與支持](${SITE_URL}/pricing)：核心功能永久免費；付費可移除廣告、解鎖進階。
+- [完全免費](${SITE_URL}/pricing)：所有功能免費、無付費牆，由少量低干擾的廣告支持。
 - [隱私權政策](${SITE_URL}/privacy)
 - [服務條款](${SITE_URL}/terms)
 - [免責聲明](${SITE_URL}/disclaimer)：活動建議僅供親子陪伴參考，非醫療或專業評估，需成人全程監護。

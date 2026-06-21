@@ -22,8 +22,8 @@ interface UserProfile {
   avatarUrl?: string
 }
 
+// 本 App 免費、由低干擾廣告支持，不提供付費方案 → 不顯示訂閱入口。
 const LINKS: { href: string; label: string; icon: IconName }[] = [
-  { href: '/account/entitlements', label: '訂閱方案', icon: 'card' },
   { href: '/settings/invite', label: '家庭成員', icon: 'family' },
 ]
 
