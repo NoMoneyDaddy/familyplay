@@ -172,23 +172,25 @@ perf: 性能優化
 - 狀態選擇 → 推薦 → 活動詳情（返回、會練到什麼能力）
 - 全站一致返回導覽（`useGoBack`）
 - 發展里程碑評估 `/capabilities`（標記 → 驅動 ZPD 推薦）
-- 陪伴紀錄 / 收藏 / 孩子管理 / 設定 / 付費頁
-- AI 客製活動生成（`/api/ai/activity`）：免費版 BYO key + 設定頁 UI + `/now`「都看過了」出口
-- Plus 託管 AI 配額計次（`consume_plus_ai_call`/`refund_plus_ai_call` RPC，service-role 退還）
+- 陪伴紀錄 / 收藏 / 孩子管理 / 設定 / 「完全免費」說明頁
+- AI 客製活動生成（`/api/ai/activity`）：BYO key + 設定頁 UI + `/now`「都看過了」出口
 - 首次三步導覽提示、陪伴紀錄「誰陪的」、交接小卡 `/handoff`、里程碑「下一步」建議
 
 ### 待實現 🚧
-- Mobile UI（Expo，`apps/mobile`）
-- 付費整合 UI（統一 RevenueCat：行動端 IAP + Web Billing；webhook `/api/revenuecat/webhook`）
+- Mobile UI（Expo，`apps/mobile`）：續補孩子管理/多孩子、AI BYO 設定等畫面
 - 推送通知、本地化、離線強化
+
+> 註：商業模式已轉向**免費＋低干擾廣告**（Google AdSense），不再收費。付費／訂閱／App 內購的
+> 對外入口已下架（見 `CURRENT_SPRINT.md`「商業模式轉向」）；後端 webhook/entitlements 暫留無 UI。
+> AI 客製活動目前一律 BYO key（金鑰只存裝置、用完即丟）。
 
 ---
 
 ## MVP 狀態
 
-**✅ API 核心完成 | Web UI 主要流程＋AI 生成（BYO/Plus 託管）上線 | Mobile/付費 UI 待實現**
+**✅ API 核心完成 | Web UI 主要流程＋AI 生成（BYO key）上線 | Mobile 主要流程上線、續補中 | 免費＋廣告**
 
-Web 端已可實際操作（一鍵陪伴、里程碑評估、AI 生成後端）。詳見 `CURRENT_SPRINT.md`。
+Web 端已可實際操作（一鍵陪伴、里程碑評估、AI 生成後端）；行動端一鍵陪伴/里程碑/紀錄已上線。詳見 `CURRENT_SPRINT.md`。
 
 ---
 

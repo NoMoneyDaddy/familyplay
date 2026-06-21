@@ -4,6 +4,20 @@
 
 ---
 
+## 商業模式轉向（2026-06-21）：免費 ＋ 低干擾廣告
+
+**決策：不再收費。** 所有功能永久免費，靠頁面上少量、非干擾式廣告（Google AdSense）維持營運。
+連帶下架所有付費／訂閱／App 內購的「對外可見」入口：
+
+- [x] Web `/pricing` 改為「完全免費」資訊頁；設定頁移除訂閱入口（#193）
+- [x] Web AI 生成卡簡化為純 BYO key（移除 Plus 託管/配額前端）（#193）
+- [x] 行動端 `/pricing` 改為「完全免費」資訊頁、`/profile` 移除方案分級（#195）
+- [x] 行動端移除 RevenueCat 死碼與 `react-native-purchases` 依賴（#196）
+- [x] Web 移除孤兒付費 UI：`/account/entitlements` 頁 + `PlanComparison` 元件（#197）
+
+> 後端 `/api/revenuecat/webhook`、`/api/account/entitlements`、Plus 配額 RPC（`consume/refund_plus_ai_call`）
+> 與 `entitlements` 表暫留（不對外、無 UI 入口），待是否整批下架另行評估。AI 客製活動目前一律 BYO key。
+
 ## 最近完成
 
 ### 全維度審計 + Phase 1 止血 + 護欄（依 `ULTIMATE_PROJECT_STRATEGY.md`）
@@ -72,7 +86,11 @@
 - [x] 發展里程碑評估：`lib/capabilities.ts` + `/milestones` 畫面（分域標記、樂觀更新、ZPD 下一步），標記驅動 ZPD/Step 8；`pickAchieved` 加單元測試
 - [x] 陪伴歷史頁：`lib/history.ts` + `/history`（近 50 筆、活動/反應/結果/日期、空狀態），`mapLogRow` 加單元測試
 - [x] 帳號/方案頁繁中＋暖色主題、修好失效登出（`/auth/logout` → `signOut`）
-- [ ] 孩子管理畫面；RevenueCat 訂閱串接；可選抽 `packages/data` 去重 web/mobile 查詢
+- [x] 一鍵「現在就陪」`/now`：自動取第一個孩子、依時段帶情境、精力預設 low → 直接給「一個」
+  方案、換一個、一鍵記錄；直接接共用 `packages/data`（無 Next API route，RLS 由帶 session
+  的 mobile client 生效），驗證共用層在 RN 跑通；登入後入口導向 `/now`（#194）
+- [x] 方案頁改「完全免費」、移除 RevenueCat 死碼（免費轉向，#195/#196）
+- [ ] 孩子管理畫面（多孩子）；可選抽更多查詢到 `packages/data` 去重 web/mobile
 
 ---
 
@@ -104,8 +122,8 @@
 
 ## 下一步候選
 
-- 行動端（Expo）UI（`apps/mobile`）：把 Web 的「現在就陪」「里程碑」「紀錄」流程移植到 Expo Router（沿用 `packages/core`／`packages/assessment`，金鑰用 Secure Storage）
-- 付費整合 UI（web）已串：升級結帳＋訂閱管理入口完成；剩下 Plus 上架決策（核心交付確認後把 `plan-comparison` 的 Plus `comingSoon` 拿掉、設好 RevenueCat 商品/權益）與行動端 RevenueCat 串接
+- 行動端（Expo）UI（`apps/mobile`）：續補其餘畫面（孩子管理/多孩子、AI BYO 設定…）重用 `packages/*`；之後若要連 UI 都共用，再漸進評估 Tamagui+Solito
+- ~~付費整合 UI~~：**已廢止**——改為免費＋廣告（見上方「商業模式轉向」）。下方 Plus/RevenueCat checklist 一併停用
 - [x] 交接摘要 AI 強化（AI2 完成）：`/api/ai/handoff` + `buildHandoffPrompt`/
   `sanitizeHandoffSummary`，把規則式現況交給 AI 寫成 2–3 句溫暖短評；輸入沿用與活動生成
   完全相同的白名單（只送 stageKey + 發展中能力，零新增資料面），走 Safety Filter、
@@ -125,7 +143,7 @@
   ② **收件人同意模型**（新增 `notification_prefs`/opt-out 欄位的 migration——避免未經同意群發）；
   ③ 排程 cron 打 `/api/email/weekly-recap`（待 ② 後建，CRON_SECRET 鑑權、只寄給 opt-in 用戶）。
 
-### Plus 上線 checklist（待 RevenueCat 後台就緒＋定價確認）
+### ~~Plus 上線 checklist~~（已停用：轉向免費＋廣告，保留僅供日後若重啟付費參考）
 1. RevenueCat 後台建立 Plus 商品與 `plus` entitlement、Web Billing offering。
 2. 設環境變數：`NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY`、`NEXT_PUBLIC_REVENUECAT_PLUS_PACKAGE`、
    `REVENUECAT_PLUS_ENTITLEMENT=plus`、webhook `REVENUECAT_WEBHOOK_AUTH`。
