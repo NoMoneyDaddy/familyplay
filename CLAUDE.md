@@ -181,7 +181,7 @@ perf: 性能優化
 - 推送通知、本地化、離線強化
 
 > 註：商業模式已轉向**免費＋低干擾廣告**（Google AdSense），不再收費。付費／訂閱／App 內購的
-> 對外入口已下架（見 `CURRENT_SPRINT.md`「商業模式轉向」）；後端 webhook/entitlements 暫留無 UI。
+> 對外入口已下架（見 `CURRENT_SPRINT.md`「商業模式轉向」）；後端 webhook/entitlements 與 Plus 配額 RPC 暫留無 UI。
 > AI 客製活動目前一律 BYO key（金鑰只存裝置、用完即丟）。
 
 ---

@@ -123,7 +123,7 @@
 ## 下一步候選
 
 - 行動端（Expo）UI（`apps/mobile`）：續補其餘畫面（孩子管理/多孩子、AI BYO 設定…）重用 `packages/*`；之後若要連 UI 都共用，再漸進評估 Tamagui+Solito
-- ~~付費整合 UI~~：**已廢止**——改為免費＋廣告（見上方「商業模式轉向」）。下方 Plus/RevenueCat checklist 一併停用
+- ~~付費整合 UI~~：**已廢止**——改為免費＋廣告（見上方「商業模式轉向」）。下方 Plus 上線 checklist 一併停用
 - [x] 交接摘要 AI 強化（AI2 完成）：`/api/ai/handoff` + `buildHandoffPrompt`/
   `sanitizeHandoffSummary`，把規則式現況交給 AI 寫成 2–3 句溫暖短評；輸入沿用與活動生成
   完全相同的白名單（只送 stageKey + 發展中能力，零新增資料面），走 Safety Filter、
