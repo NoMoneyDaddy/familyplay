@@ -21,12 +21,17 @@ export const BLOCKED_CONTEXTS = {
   sick_day: ['跑跳', '戶外', '流汗', '高刺激', '複雜規則'],
 } as const
 
+// 0–3 歲（含 18–36 月學步幼兒）窒息高風險階段：禁小零件/可吞嚥物。
+// 對齊 CLAUDE.md 規格「0–3 歲禁小零件」（Step 1）＝滿 36 個月以下，
+// 故含 toddler_talker(18–24m) 與 toddler_player(24–36m)——這兩階段仍會把東西放進嘴。
 export const HIGH_RISK_STAGES: StageKey[] = [
   'newborn',
   'early_infant',
   'sitting_baby',
   'crawler',
   'early_walker',
+  'toddler_talker',
+  'toddler_player',
 ]
 
 export function isUnder3(stageKey: StageKey): boolean {
