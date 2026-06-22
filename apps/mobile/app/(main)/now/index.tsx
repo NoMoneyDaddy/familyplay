@@ -1,6 +1,7 @@
 import type { CompanionContext } from '@familyplay/core'
 import {
   allRecommendationsSeen,
+  type ChildSummary,
   fetchChildren,
   fetchRecommendations,
   type RecommendedActivity,
@@ -11,6 +12,8 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ActivityLogControl } from '@/components/ActivityLogControl'
 import { Mascot } from '@/components/Mascot'
+import { type AiActivity, generateAiActivity } from '@/lib/ai-activity'
+import { useAIKeyStore } from '@/lib/ai-key'
 import { resolveActiveChild } from '@/lib/resolve-active-child'
 import { useActiveChildStore } from '@/lib/stores/useActiveChild'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -54,10 +57,17 @@ export default function NowScreen() {
   const router = useRouter()
   const { session, isLoading } = useAuthStore()
   const { activeChildId, setActiveChild, hydrate, hydrated } = useActiveChildStore()
+  const { config: aiKey, hydrate: hydrateAi, hydrated: aiHydrated } = useAIKeyStore()
 
   const [childId, setChildId] = useState<string | null>(null)
+  const [child, setChild] = useState<ChildSummary | null>(null)
   const [childName, setChildName] = useState<string | null>(null)
   const [childCount, setChildCount] = useState(0)
+  // 「都玩過了」AI 客製活動（自帶金鑰）
+  const [aiActivity, setAiActivity] = useState<AiActivity | null>(null)
+  const [aiSkills, setAiSkills] = useState<string[]>([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState('')
   // 已載入過的孩子 id：首次 null→解析後會 setActiveChild 再觸發本 effect，靠它短路避免重複打 API。
   const loadedChildIdRef = useRef<string | undefined>(undefined)
   const [rec, setRec] = useState<RecommendedActivity | null>(null)
@@ -84,6 +94,11 @@ export default function NowScreen() {
   useEffect(() => {
     if (!hydrated) hydrate()
   }, [hydrated, hydrate])
+
+  // 還原自帶 AI 金鑰（決定「都玩過了」要顯示「請 AI 生一個」或「去設定」）
+  useEffect(() => {
+    if (!aiHydrated) hydrateAi()
+  }, [aiHydrated, hydrateAi])
 
   const loadRec = useCallback(async (cid: string, excludeIds: string[], shuffle: boolean) => {
     if (shuffle) setShuffling(true)
@@ -141,6 +156,7 @@ export default function NowScreen() {
         loadedChildIdRef.current = chosen.id
         if (chosen.id !== activeChildId) setActiveChild(chosen.id)
         setChildId(chosen.id)
+        setChild(chosen)
         setChildName(chosen.nickname)
         setChildCount(children.length)
         await loadRec(chosen.id, [], false)
@@ -158,6 +174,30 @@ export default function NowScreen() {
 
   const shuffle = () => {
     if (childId) loadRec(childId, [...seen.current], true)
+  }
+
+  const generateAi = async () => {
+    if (!child || !aiKey || aiLoading) return
+    setAiLoading(true)
+    setAiError('')
+    try {
+      const result = await generateAiActivity(createMobileClient(), child, aiKey)
+      if (!isMounted.current) return
+      if (result.ok) {
+        setAiActivity(result.activity)
+        setAiSkills(result.targetedSkills)
+      } else {
+        setAiError(
+          result.reason === 'no_model'
+            ? '還差一步：請到「用你自己的 AI 帳號」填入模型名稱。'
+            : '這次沒成功，可能是金鑰或網路問題，稍後再試。',
+        )
+      }
+    } catch {
+      if (isMounted.current) setAiError('這次沒成功，請稍後再試。')
+    } finally {
+      if (isMounted.current) setAiLoading(false)
+    }
   }
 
   if (isLoading || (loading && !rec)) {
@@ -298,6 +338,80 @@ export default function NowScreen() {
             </Text>
           )}
         </Pressable>
+
+        {/* 都玩過了 → 用自己的 AI 帳號生一個全新的 */}
+        {exhausted ? (
+          <View style={clayCard} className="mb-3 p-5">
+            <Text className="mb-1 text-base font-bold" style={{ color: colors.text }}>
+              都玩過了？讓 AI 生一個
+            </Text>
+            <Text className="mb-3 text-sm" style={{ color: colors.muted }}>
+              依孩子的程度，現場想一個全新的小活動（用你自己的 AI 帳號、免費）。
+            </Text>
+
+            {aiActivity ? (
+              <View className="mb-3 rounded-xl p-4" style={{ backgroundColor: colors.brandTint }}>
+                <Text className="mb-2 text-lg font-bold" style={{ color: colors.text }}>
+                  {aiActivity.title}
+                </Text>
+                {aiActivity.openingLine ? (
+                  <Text className="mb-2 text-sm italic" style={{ color: colors.brandStrong }}>
+                    「{aiActivity.openingLine}」
+                  </Text>
+                ) : null}
+                {aiActivity.steps.map((s, i) => (
+                  // AI 步驟無穩定 id、順序固定不重排，用 index 當 key 安全
+                  // biome-ignore lint/suspicious/noArrayIndexKey: 靜態清單、不重排
+                  <Text key={i} className="mb-1 text-sm" style={{ color: colors.text }}>
+                    {i + 1}. {s}
+                  </Text>
+                ))}
+                {aiSkills.length > 0 ? (
+                  <Text className="mt-2 text-xs" style={{ color: colors.muted }}>
+                    會練到：{aiSkills.join('、')}
+                  </Text>
+                ) : null}
+                <Text className="mt-2 text-xs" style={{ color: colors.faint }}>
+                  這是 AI 即時想的，沒有人工檢查過，請依現場狀況注意安全。
+                </Text>
+              </View>
+            ) : null}
+
+            {aiError ? (
+              <Text className="mb-2 text-sm" style={{ color: colors.danger }}>
+                {aiError}
+              </Text>
+            ) : null}
+
+            {aiKey ? (
+              <Pressable
+                onPress={generateAi}
+                disabled={aiLoading}
+                accessibilityRole="button"
+                accessibilityLabel="請 AI 想一個新活動"
+                className="items-center rounded-2xl py-3 active:opacity-90"
+                style={{ backgroundColor: colors.brand, opacity: aiLoading ? 0.6 : 1 }}
+              >
+                {aiLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text className="text-base font-bold text-white">
+                    {aiActivity ? '再想一個' : '請 AI 想一個'}
+                  </Text>
+                )}
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={() => router.push('/ai-settings')}
+                accessibilityRole="button"
+                className="items-center rounded-2xl py-3 active:opacity-90"
+                style={{ backgroundColor: colors.brand }}
+              >
+                <Text className="text-base font-bold text-white">用你自己的 AI 帳號</Text>
+              </Pressable>
+            )}
+          </View>
+        ) : null}
 
         {/* 想自己挑狀態 */}
         <Pressable

@@ -127,6 +127,20 @@ export default function ProfileScreen() {
         </Pressable>
 
         <Pressable
+          onPress={() => router.push('/ai-settings')}
+          accessibilityRole="button"
+          className="mb-3 flex-row items-center justify-between rounded-2xl p-5 active:opacity-80"
+          style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}
+        >
+          <Text className="text-base font-medium" style={{ color: colors.text }}>
+            用你自己的 AI 帳號
+          </Text>
+          <Text className="text-base" style={{ color: colors.muted }}>
+            ›
+          </Text>
+        </Pressable>
+
+        <Pressable
           onPress={() => router.push('/pricing')}
           accessibilityRole="button"
           className="mb-3 flex-row items-center justify-between rounded-2xl p-5 active:opacity-80"
