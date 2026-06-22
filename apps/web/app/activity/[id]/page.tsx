@@ -304,12 +304,10 @@ export default function ActivityPage({ params }: { params: Promise<{ id: string 
           {activity.followUpQuestions.length > 0 && (
             <div className="space-y-2">
               <h2 className="text-sm font-semibold text-text">玩完可以問問</h2>
-              <ul className="space-y-1">
+              <ul className="list-disc space-y-1 pl-5 text-sm text-muted marker:text-brand/50">
                 {activity.followUpQuestions.map((q, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: Follow-up questions are static and ordered
-                  <li key={i} className="text-sm text-muted">
-                    • {q}
-                  </li>
+                  <li key={i}>{q}</li>
                 ))}
               </ul>
             </div>

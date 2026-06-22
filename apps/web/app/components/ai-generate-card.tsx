@@ -115,12 +115,10 @@ export function AIGenerateCard({ childId }: { childId: string }) {
           ))}
         </ol>
         {Array.isArray(activity.followUpQuestions) && activity.followUpQuestions.length > 0 && (
-          <ul className="space-y-1">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted marker:text-brand/50">
             {activity.followUpQuestions.map((q, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: AI 問題靜態且有序
-              <li key={i} className="text-sm text-muted">
-                • {q}
-              </li>
+              <li key={i}>{q}</li>
             ))}
           </ul>
         )}
