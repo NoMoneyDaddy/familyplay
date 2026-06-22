@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
-import { FocusIllustration } from '@/app/components/focus-illustration'
+import { FocusBadge, FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
 import { SaveHeart } from '@/app/components/save-heart'
 import { SponsorSlot } from '@/app/components/sponsor-slot'
@@ -226,26 +226,46 @@ function RecommendationsPageInner() {
                       最適合
                     </span>
                   )}
-                  <div className="mb-4 flex items-start gap-3">
-                    {/* 領域插畫縮圖（含右下角排名徽章），仿競品卡片的配圖質感 */}
-                    <FocusIllustration
-                      focus={rec.developmentalFocus?.[0]}
-                      rank={idx + 1}
-                      isTop={isTop}
-                    />
-                    <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
-                      {rec.title}
-                    </h2>
-                    {/* 一鍵收藏主答案，不必先打開活動 */}
-                    <SaveHeart
-                      activityId={rec.id}
-                      initialSaved={savedIds.has(rec.id)}
-                      className="-mr-1"
-                    />
-                  </div>
+                  {/* 最適合卡＝主答案，採 /now hero 風：領域徽章（圖示＋字一體）＋大標題＋
+                      白話開場白。次要卡保留排名縮圖，利於清單掃讀並標示名次。 */}
+                  {isTop ? (
+                    <>
+                      <div className="mb-3 flex items-start gap-2">
+                        <FocusBadge focus={rec.developmentalFocus?.[0]} />
+                        <SaveHeart
+                          activityId={rec.id}
+                          initialSaved={savedIds.has(rec.id)}
+                          className="-mr-1 -mt-1 ml-auto"
+                        />
+                      </div>
+                      <h2 className="mb-3 text-xl font-bold leading-snug text-text">{rec.title}</h2>
+                      {isRealActivity(rec.id) && rec.openingLine && (
+                        <p className="mb-4 rounded-xl bg-brand-tint/70 px-3.5 py-2.5 text-sm leading-relaxed text-text">
+                          {rec.openingLine}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="mb-4 flex items-start gap-3">
+                      {/* 領域插畫縮圖（含右下角排名徽章），仿競品卡片的配圖質感 */}
+                      <FocusIllustration
+                        focus={rec.developmentalFocus?.[0]}
+                        rank={idx + 1}
+                        isTop={isTop}
+                      />
+                      <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
+                        {rec.title}
+                      </h2>
+                      <SaveHeart
+                        activityId={rec.id}
+                        initialSaved={savedIds.has(rec.id)}
+                        className="-mr-1"
+                      />
+                    </div>
+                  )}
 
                   <ActivityMeta
-                    developmentalFocus={rec.developmentalFocus}
+                    developmentalFocus={isTop ? undefined : rec.developmentalFocus}
                     minDurationMinutes={rec.minDurationMinutes}
                     maxDurationMinutes={rec.maxDurationMinutes}
                     stimulationLevel={rec.stimulationLevel}

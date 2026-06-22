@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { FocusIllustration } from '@/app/components/focus-illustration'
+import { FocusBadge, FocusIllustration } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
 import {
   ActivityMeta,
@@ -15,7 +15,7 @@ import {
   PageHeader,
   PageShell,
 } from '@/app/components/ui'
-import { type Recommendation, timeDefaultContext } from '@/lib/recommendation'
+import { isRealActivity, type Recommendation, timeDefaultContext } from '@/lib/recommendation'
 
 // 年齡帶 → 代表月齡（取各發展階段中段），讓年齡安全過濾正確運作
 const AGE_BANDS: { label: string; months: number }[] = [
@@ -168,18 +168,32 @@ export default function TryPage() {
                       最適合
                     </span>
                   )}
-                  <div className="mb-3 flex items-start gap-3">
-                    <FocusIllustration
-                      focus={rec.developmentalFocus?.[0]}
-                      rank={idx + 1}
-                      isTop={isTop}
-                    />
-                    <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
-                      {rec.title}
-                    </h2>
-                  </div>
+                  {/* 最適合卡＝主答案，採 /now hero 風：領域徽章＋大標題＋白話開場白。
+                      次要卡保留排名縮圖，利於清單掃讀並標示名次。 */}
+                  {isTop ? (
+                    <>
+                      <FocusBadge focus={rec.developmentalFocus?.[0]} className="mb-3" />
+                      <h2 className="mb-3 text-xl font-bold leading-snug text-text">{rec.title}</h2>
+                      {isRealActivity(rec.id) && rec.openingLine && (
+                        <p className="mb-3 rounded-xl bg-brand-tint/70 px-3.5 py-2.5 text-sm leading-relaxed text-text">
+                          {rec.openingLine}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="mb-3 flex items-start gap-3">
+                      <FocusIllustration
+                        focus={rec.developmentalFocus?.[0]}
+                        rank={idx + 1}
+                        isTop={isTop}
+                      />
+                      <h2 className="min-w-0 flex-1 pt-1.5 text-lg font-semibold leading-snug text-text">
+                        {rec.title}
+                      </h2>
+                    </div>
+                  )}
                   <ActivityMeta
-                    developmentalFocus={rec.developmentalFocus}
+                    developmentalFocus={isTop ? undefined : rec.developmentalFocus}
                     minDurationMinutes={rec.minDurationMinutes}
                     maxDurationMinutes={rec.maxDurationMinutes}
                     stimulationLevel={rec.stimulationLevel}

@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const { data: activities, error: activitiesError } = await supabase
       .from('companion_activities')
       .select(
-        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active',
+        'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active,opening_line',
       )
       .eq('is_active', true)
       .or(`min_age_months.is.null,min_age_months.lte.${ageMonths}`)
@@ -69,10 +69,14 @@ export async function POST(request: Request) {
 
     const stageKey = getStageKey(ageMonths)
 
-    // 發展領域不參與評分，另存 id→focus 對照供前端分類標籤
-    const focusById = new Map<string, string[]>(
-      (activities || []).map((a) => [a.id, a.developmental_focus || []]),
-    )
+    // 領域與開場白皆不參與評分，僅回傳給前端（領域做分類標籤、開場白顯示「怎麼開始玩」）。
+    // 單次遍歷同時建兩個對照表，省一次掃描。
+    const focusById = new Map<string, string[]>()
+    const openingById = new Map<string, string | null>()
+    for (const a of activities || []) {
+      focusById.set(a.id, a.developmental_focus || [])
+      openingById.set(a.id, (a as { opening_line?: string | null }).opening_line ?? null)
+    }
 
     const recs = getRecommendations(
       // snake_case→camelCase 映射與 /api/recommendations 共用同一份（@familyplay/data），避免漂移
@@ -105,6 +109,7 @@ export async function POST(request: Request) {
         maxDurationMinutes: r.maxDurationMinutes,
         stimulationLevel: r.stimulationLevel,
         developmentalFocus: focusById.get(r.id) || [],
+        openingLine: openingById.get(r.id) ?? null,
       })),
     })
   } catch (error) {
