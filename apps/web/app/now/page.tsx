@@ -46,6 +46,25 @@ function nowGreeting(): { title: string; subtitle: string; icon: IconName } {
   return { title: '傍晚了', subtitle: '辛苦了，陪他放鬆一下吧', icon: 'today' }
 }
 
+/** 時段問候：大波波 + 一句安撫的話，給主畫面「家」的溫度（取代先前的純站名列）。 */
+function NowGreeting() {
+  const g = nowGreeting()
+  return (
+    <div className="flex flex-col items-center gap-2 text-center">
+      <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
+        <Mascot className="h-11 w-11" />
+      </span>
+      <div>
+        <p className="flex items-center justify-center gap-1.5 font-display text-lg font-bold text-text">
+          <Icon name={g.icon} className="h-[18px] w-[18px] text-brand" />
+          {g.title}
+        </p>
+        <p className="mt-0.5 text-xs text-muted">{g.subtitle}</p>
+      </div>
+    </div>
+  )
+}
+
 export default function NowPage() {
   const router = useRouter()
   const selectedChildId = useChildStore((s) => s.selectedChildId)
@@ -279,24 +298,7 @@ export default function NowPage() {
         </div>
       ) : rec ? (
         <div className="space-y-4">
-          {/* 依時段的擬人問候：大波波 + 一句安撫的話，給主畫面「家」的溫度（取代先前的純站名列）。 */}
-          {(() => {
-            const g = nowGreeting()
-            return (
-              <div className="flex flex-col items-center gap-2 text-center">
-                <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
-                  <Mascot className="h-11 w-11" />
-                </span>
-                <div>
-                  <p className="flex items-center justify-center gap-1.5 font-display text-lg font-bold text-text">
-                    <Icon name={g.icon} className="h-[18px] w-[18px] text-brand" />
-                    {g.title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted">{g.subtitle}</p>
-                </div>
-              </div>
-            )
-          })()}
+          <NowGreeting />
 
           {stale && (
             <p
@@ -314,25 +316,22 @@ export default function NowPage() {
             {!exhausted && isRealActivity(rec.id) && (
               <>
                 <span
-                  aria-hidden
+                  aria-hidden="true"
                   className="absolute inset-x-3 -bottom-2 top-2 rounded-3xl bg-surface opacity-60 shadow-clay-sm"
                 />
                 <span
-                  aria-hidden
+                  aria-hidden="true"
                   className="absolute inset-x-1.5 -bottom-1 top-1 rounded-3xl bg-card opacity-80 shadow-clay-sm"
                 />
               </>
             )}
             <Card className="relative space-y-3.5 bg-card/85 ring-2 ring-brand/50 backdrop-blur-md">
-              {/* 領域徽章（圖示＋領域字一體，取代看不懂的縮圖）＋ 收藏愛心 */}
-              <div className="flex items-start justify-between gap-2">
-                {rec.developmentalFocus?.[0] ? (
-                  <FocusBadge focus={rec.developmentalFocus[0]} />
-                ) : (
-                  <span />
-                )}
+              {/* 領域徽章（圖示＋領域字一體，取代看不懂的縮圖）＋ 收藏愛心。
+                  愛心用 ml-auto 自動靠右，徽章不在時也不需佔位空 span。 */}
+              <div className="flex items-start gap-2">
+                {rec.developmentalFocus?.[0] && <FocusBadge focus={rec.developmentalFocus[0]} />}
                 {isRealActivity(rec.id) && (
-                  <SaveHeart activityId={rec.id} className="-mr-1 -mt-1" />
+                  <SaveHeart activityId={rec.id} className="-mr-1 -mt-1 ml-auto" />
                 )}
               </div>
 
