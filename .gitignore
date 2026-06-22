@@ -1,6 +1,8 @@
 # Claude Code local settings and artifacts (contains credentials and temporary builds)
 .claude/settings.local.json
 .claude/worktrees/
+# design-lab 暫存（變體 scratch、預覽 HTML，丟棄用，絕不進 repo/正式部署）
+.claude-design/
 
 # Dependencies
 node_modules/
