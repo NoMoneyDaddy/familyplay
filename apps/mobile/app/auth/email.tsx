@@ -1,8 +1,17 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { Pressable, Text, TextInput, View } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { createMobileClient } from '@/lib/supabase/mobile'
+import { colors } from '@/lib/theme'
 
 type EmailTab = 'login' | 'signup'
 
@@ -81,111 +90,132 @@ export default function EmailAuthScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 px-5 py-8">
-        <View className="mb-8 flex-row items-center">
-          <Pressable onPress={() => router.back()} className="mr-4 active:opacity-70">
-            <Text className="text-lg text-[#FF6B35]">← 返回</Text>
-          </Pressable>
-          <Text className="flex-1 text-xl font-bold text-[#241F1B]">Email 登入</Text>
-        </View>
-
-        <View className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-          {error && (
-            <View className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <Text className="text-sm text-red-700">{error}</Text>
-            </View>
-          )}
-
-          {success && (
-            <View className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <Text className="text-sm text-green-700">{success}</Text>
-            </View>
-          )}
-
-          <View className="flex-row gap-2 rounded-lg bg-[#F1EBE2] p-1">
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingVertical: 32 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="mb-8 flex-row items-center">
             <Pressable
-              onPress={() => {
-                setTab('login')
-                setError('')
-                setSuccess('')
-              }}
-              className={`flex-1 rounded-md py-2 ${tab === 'login' ? 'bg-white' : ''}`}
-              disabled={loading}
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/auth/login'))}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="返回"
+              className="mr-4 active:opacity-70"
             >
-              <Text
-                className={`text-center font-medium ${tab === 'login' ? 'text-[#FF6B35]' : 'text-[#241F1B]'}`}
-              >
-                登入
+              <Text className="text-lg" style={{ color: colors.brand }}>
+                ← 返回
               </Text>
             </Pressable>
-            <Pressable
-              onPress={() => {
-                setTab('signup')
-                setError('')
-                setSuccess('')
-              }}
-              className={`flex-1 rounded-md py-2 ${tab === 'signup' ? 'bg-white' : ''}`}
-              disabled={loading}
-            >
-              <Text
-                className={`text-center font-medium ${tab === 'signup' ? 'text-[#FF6B35]' : 'text-[#241F1B]'}`}
-              >
-                註冊
-              </Text>
-            </Pressable>
+            <Text className="flex-1 text-xl font-bold" style={{ color: colors.text }}>
+              Email 登入
+            </Text>
           </View>
 
-          <View>
-            <Text className="mb-2 text-sm font-semibold text-[#241F1B]">Email</Text>
-            <TextInput
-              placeholder="your@email.com"
-              value={email}
-              onChangeText={setEmail}
-              editable={!loading}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              className="rounded-lg border border-[#ECE5DB] px-4 py-3 text-[#241F1B]"
-            />
-          </View>
+          <View className="gap-4 rounded-2xl bg-white p-6 shadow-sm">
+            {error && (
+              <View className="rounded-lg border border-red-200 bg-red-50 p-4">
+                <Text className="text-sm text-red-700">{error}</Text>
+              </View>
+            )}
 
-          <View>
-            <Text className="mb-2 text-sm font-semibold text-[#241F1B]">密碼</Text>
-            <View className="flex-row items-center rounded-lg border border-[#ECE5DB]">
-              <TextInput
-                placeholder="至少 8 個字元"
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-                secureTextEntry={!showPassword}
-                className="flex-1 px-4 py-3 text-[#241F1B]"
-              />
+            {success && (
+              <View className="rounded-lg border border-green-200 bg-green-50 p-4">
+                <Text className="text-sm text-green-700">{success}</Text>
+              </View>
+            )}
+
+            <View className="flex-row gap-2 rounded-lg bg-[#F1EBE2] p-1">
               <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                className="mr-4 active:opacity-70"
+                onPress={() => {
+                  setTab('login')
+                  setError('')
+                  setSuccess('')
+                }}
+                className={`flex-1 rounded-md py-2 ${tab === 'login' ? 'bg-white' : ''}`}
                 disabled={loading}
               >
-                <Text className="text-xs text-[#6B615A]">{showPassword ? '隱藏' : '顯示'}</Text>
+                <Text
+                  className={`text-center font-medium ${tab === 'login' ? 'text-[#FF6B35]' : 'text-[#241F1B]'}`}
+                >
+                  登入
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setTab('signup')
+                  setError('')
+                  setSuccess('')
+                }}
+                className={`flex-1 rounded-md py-2 ${tab === 'signup' ? 'bg-white' : ''}`}
+                disabled={loading}
+              >
+                <Text
+                  className={`text-center font-medium ${tab === 'signup' ? 'text-[#FF6B35]' : 'text-[#241F1B]'}`}
+                >
+                  註冊
+                </Text>
               </Pressable>
             </View>
-          </View>
 
-          <Pressable
-            onPress={handleEmailAuth}
-            disabled={loading || !email || !password}
-            className="rounded-lg bg-[#FF6B35] py-3 active:opacity-80 disabled:opacity-50"
-            accessibilityRole="button"
-          >
-            <Text className="text-center font-semibold text-white">
-              {loading ? '處理中...' : tab === 'signup' ? '建立帳號' : '登入'}
+            <View>
+              <Text className="mb-2 text-sm font-semibold text-[#241F1B]">Email</Text>
+              <TextInput
+                placeholder="your@email.com"
+                value={email}
+                onChangeText={setEmail}
+                editable={!loading}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                className="rounded-lg border border-[#ECE5DB] px-4 py-3 text-[#241F1B]"
+              />
+            </View>
+
+            <View>
+              <Text className="mb-2 text-sm font-semibold text-[#241F1B]">密碼</Text>
+              <View className="flex-row items-center rounded-lg border border-[#ECE5DB]">
+                <TextInput
+                  placeholder="至少 8 個字元"
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                  secureTextEntry={!showPassword}
+                  className="flex-1 px-4 py-3 text-[#241F1B]"
+                />
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? '隱藏密碼' : '顯示密碼'}
+                  className="mr-4 active:opacity-70"
+                  disabled={loading}
+                >
+                  <Text className="text-xs text-[#6B615A]">{showPassword ? '隱藏' : '顯示'}</Text>
+                </Pressable>
+              </View>
+            </View>
+
+            <Pressable
+              onPress={handleEmailAuth}
+              disabled={loading || !email || !password}
+              className="rounded-lg bg-[#FF6B35] py-3 active:opacity-80 disabled:opacity-50"
+              accessibilityRole="button"
+            >
+              <Text className="text-center font-semibold text-white">
+                {loading ? '處理中...' : tab === 'signup' ? '建立帳號' : '登入'}
+              </Text>
+            </Pressable>
+
+            <Text className="text-center text-xs text-[#6B615A]">
+              {tab === 'signup' ? '首次登入時會自動建立帳號' : ''}
             </Text>
-          </Pressable>
-
-          <Text className="text-center text-xs text-[#6B615A]">
-            {tab === 'signup' ? '首次登入時會自動建立帳號' : ''}
-          </Text>
-        </View>
-      </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }

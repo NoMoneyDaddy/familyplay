@@ -2,7 +2,7 @@ import { type ChildSummary, fetchChildren } from '@familyplay/data'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Mascot } from '@/components/Mascot'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -55,7 +55,9 @@ export default function SelectScreen() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
-      <View className="flex-1 px-5 py-8">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingVertical: 32 }}
+      >
         <View className="mb-8 flex-row items-center justify-between">
           <Text className="text-3xl font-bold" style={{ color: colors.text }}>
             選擇孩子
@@ -63,7 +65,7 @@ export default function SelectScreen() {
           <Pressable
             onPress={() => router.push('/profile')}
             accessibilityRole="button"
-            accessibilityLabel="帳號與訂閱"
+            accessibilityLabel="帳號"
             className="active:opacity-70"
           >
             <Text className="text-sm" style={{ color: colors.muted }}>
@@ -111,7 +113,7 @@ export default function SelectScreen() {
             </Pressable>
           </View>
         ) : (
-          <View className="space-y-3">
+          <View className="gap-3">
             {children.map((child) => (
               <Pressable
                 key={child.id}
@@ -139,7 +141,7 @@ export default function SelectScreen() {
             </Pressable>
           </View>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }

@@ -69,14 +69,14 @@ export default function ChildInfoScreen() {
           </Pressable>
         </View>
 
-        <View className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+        <View className="gap-6 rounded-2xl bg-white p-6 shadow-sm">
           {error && (
             <View className="rounded-lg border border-red-200 bg-red-50 p-4">
               <Text className="text-sm text-red-700">{error}</Text>
             </View>
           )}
 
-          <View className="space-y-2">
+          <View className="gap-2">
             <Text className="text-sm font-semibold text-[#241F1B]">孩子的暱稱</Text>
             <TextInput
               placeholder="例：小寶、Amy"
@@ -87,7 +87,7 @@ export default function ChildInfoScreen() {
             />
           </View>
 
-          <View className="space-y-2">
+          <View className="gap-2">
             <Text className="text-sm font-semibold text-[#241F1B]">出生年月</Text>
 
             <View className="flex-row gap-3">

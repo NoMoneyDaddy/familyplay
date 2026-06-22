@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Mascot } from '@/components/Mascot'
 import { createMobileClient } from '@/lib/supabase/mobile'
@@ -62,7 +62,14 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg }}>
-      <View className="flex-1 justify-center px-5 py-8">
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 32,
+        }}
+      >
         {/* Hero：吉祥物徽章 + 標題 */}
         <View className="mb-10 items-center">
           <LinearGradient
@@ -142,7 +149,7 @@ export default function LoginScreen() {
             你的資料都已加密保護，安全又隱私
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }

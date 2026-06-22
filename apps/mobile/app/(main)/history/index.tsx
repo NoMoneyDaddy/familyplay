@@ -137,8 +137,8 @@ export default function HistoryScreen() {
             <Text className="mb-3 text-base font-bold" style={{ color: colors.text }}>
               本週陪伴
             </Text>
-            <View className="flex-row justify-between">
-              <View className="items-center">
+            <View className="flex-row">
+              <View className="flex-1 items-center">
                 <Text className="text-2xl font-bold" style={{ color: colors.brand }}>
                   {insights.sessions}
                 </Text>
@@ -146,7 +146,7 @@ export default function HistoryScreen() {
                   次陪伴
                 </Text>
               </View>
-              <View className="items-center">
+              <View className="flex-1 items-center">
                 <Text className="text-2xl font-bold" style={{ color: colors.brand }}>
                   {insights.activeDays}
                 </Text>
@@ -155,7 +155,7 @@ export default function HistoryScreen() {
                 </Text>
               </View>
               {insights.positiveReactionRate != null ? (
-                <View className="items-center">
+                <View className="flex-1 items-center">
                   <Text className="text-2xl font-bold" style={{ color: colors.brand }}>
                     {Math.round(insights.positiveReactionRate * 100)}%
                   </Text>
