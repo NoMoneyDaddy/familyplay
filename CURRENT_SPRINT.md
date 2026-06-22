@@ -95,7 +95,10 @@
   新增孩子後設為目前並進 `/now`；解析收斂成純函式 `resolveActiveChild` + 單元測試；
   `handoff` 共用 `lib/stage-labels`
 - [x] `(main)` 群組 `_layout` 隱藏原生 header，消除雙標題/小寫路由名（#202）
-- [x] AI 客製活動（BYO key，金鑰存 SecureStore，#208）；[x] `/now` 離線回放（#210）；[ ] 推送通知；可選抽更多查詢到
+- [x] AI 客製活動（BYO key，金鑰存 SecureStore，#208）；[x] `/now` 離線回放（#210）；
+  [x] 每日本地提醒（#212/#214，expo-notifications 裝置端排程、啟動重排）；
+  [x] 響應式/字體放大（#213，全域 maxFontSizeMultiplier + SafeAreaProvider + ScrollView）；
+  [ ] 遠端推送（需 EAS projectId＋後端發送）；可選抽更多查詢到
   `packages/data` 去重 web/mobile
 
 ---
@@ -134,7 +137,7 @@
 
 ## 下一步候選
 
-- 行動端（Expo）UI（`apps/mobile`）：多孩子管理（#199–#201）、AI 客製活動 BYO key（#208）、`/now` 離線回放（#210，SecureStore 快取畫面用欄位、網路不穩回放）已上線；續補推送通知等畫面重用 `packages/*`；之後若要連 UI 都共用，再漸進評估 Tamagui+Solito
+- 行動端（Expo）UI（`apps/mobile`）：多孩子管理（#199–#201）、AI 客製活動 BYO key（#208）、`/now` 離線回放（#210）、每日本地提醒（#212/#214）、響應式/字體放大（#213）已上線；續補遠端推送（需 EAS）；之後若要連 UI 都共用，再漸進評估 Tamagui+Solito
 - ~~付費整合 UI~~：**已廢止**——改為免費＋廣告（見上方「商業模式轉向」）。下方 Plus 上線 checklist 一併停用
 - [x] 交接摘要 AI 強化（AI2 完成）：`/api/ai/handoff` + `buildHandoffPrompt`/
   `sanitizeHandoffSummary`，把規則式現況交給 AI 寫成 2–3 句溫暖短評；輸入沿用與活動生成
