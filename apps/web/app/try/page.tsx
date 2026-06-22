@@ -254,176 +254,222 @@ export default function TryPage() {
   }
 
   // ── 輸入畫面 ──
+  // 送出區內容（錯誤訊息＋主行動＋登入連結）：手機固定在底部拇指弧、桌機嵌入右欄表單底，
+  // 同一份避免重複維護。任一斷點只會顯示其中一個容器（另一個 display:none）。
+  const submitInner = (
+    <>
+      <ErrorAlert message={error} />
+      <Button
+        size="lg"
+        icon="compass"
+        loading={loading}
+        disabled={!canSubmit}
+        onClick={handleSubmit}
+      >
+        看看推薦
+      </Button>
+      <p className="text-center text-xs text-muted">
+        已經有帳號？{' '}
+        <Link href="/auth" className="font-medium text-brand hover:underline">
+          登入
+        </Link>
+      </p>
+    </>
+  )
+
   return (
     <>
-      {/* pb-40：預留底部固定 CTA 列的高度，避免內容被遮住 */}
-      <PageShell withNav={false} className="pb-40">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
-            <Mascot className="h-11 w-11" />
-          </span>
-          <PageHeader
-            title="免費試試看"
-            subtitle="不用註冊，30 秒拿到今天的陪伴方案"
-            align="center"
-          />
-        </div>
-
-        {/* 三步進度條（簽名元素）：依序填滿，給「差一步就拿到方案」的推進感。
-            純色彩過渡、尊重 reduced-motion；rail 不可互動故 aria-hidden，
-            進度以下方文字向輔助科技播報。 */}
-        {(() => {
-          const steps = [ageMonths !== null, energy !== null, context !== null]
-          const done = steps.filter(Boolean).length
-          return (
-            <div className="space-y-2">
-              <div aria-hidden className="flex items-center gap-2">
-                {steps.map((ok, i) => (
-                  <span
-                    // biome-ignore lint/suspicious/noArrayIndexKey: 固定三步、順序穩定
-                    key={i}
-                    className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-                      ok ? 'bg-[image:var(--gradient-brand)]' : 'bg-border'
-                    }`}
-                  />
-                ))}
-              </div>
-              <p aria-live="polite" className="text-center text-xs font-medium text-muted">
-                {done < 3 ? `還差 ${3 - done} 項，就拿到今天的方案` : '三項都選好了，往下看推薦'}
+      {/* 手機：pb-40 預留底部固定 CTA；桌機：CTA 內嵌右欄、改回一般底距並加寬置中欄做雙欄著陸頁 */}
+      <PageShell withNav={false} className="pb-40 lg:pb-10" containerClassName="lg:max-w-[940px]">
+        <div className="space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-12 lg:space-y-0">
+          {/* ── 左欄／手機頂部：品牌與價值主張（hero） ── */}
+          <div className="flex flex-col items-center gap-4 text-center lg:sticky lg:top-8 lg:items-start lg:pt-2 lg:text-left">
+            <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint lg:h-20 lg:w-20">
+              <Mascot className="h-11 w-11 lg:h-14 lg:w-14" />
+            </span>
+            <div>
+              <h1 className="font-display text-3xl font-extrabold leading-tight text-text lg:text-5xl">
+                免費試試看
+              </h1>
+              <p className="mt-2 text-sm text-muted lg:text-base">
+                不用註冊，30 秒拿到今天的陪伴方案
               </p>
             </div>
-          )
-        })()}
-
-        <div className="space-y-6">
-          {/* 年齡 */}
-          <fieldset className="space-y-3">
-            <legend className="flex items-center gap-2 text-sm font-semibold text-text">
-              <StepDot n={1} done={ageMonths !== null} />
-              孩子幾歲？
-            </legend>
-            <div className="grid grid-cols-3 gap-2">
-              {AGE_BANDS.map((band) => (
-                <button
-                  key={band.months}
-                  type="button"
-                  aria-pressed={ageMonths === band.months}
-                  onClick={() => selectAge(band.months)}
-                  className={`relative rounded-xl px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
-                    ageMonths === band.months
-                      ? 'border-2 border-brand bg-brand-tint text-brand-strong shadow-clay'
-                      : 'border border-border/60 bg-card text-text'
-                  }`}
+            {/* 價值主張：桌機才展開（手機把空間留給表單，先給價值再多滑） */}
+            <ul className="hidden space-y-2.5 lg:block">
+              {[
+                '完全免費，永遠不收費',
+                '30 秒拿到能立刻做的陪伴方案',
+                '涵蓋 0–5 歲，依發展階段推薦',
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-2 text-sm text-text">
+                  <Icon name="check" className="mt-0.5 h-[17px] w-[17px] shrink-0 text-success" />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+            {/* 信任徽章：兩個斷點都顯示，輕量點出「免費／免註冊／涵蓋年齡」 */}
+            <div className="flex flex-wrap justify-center gap-1.5 lg:justify-start">
+              {['完全免費', '免註冊', '0–5 歲'].map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full bg-brand-tint px-2.5 py-1 text-[11px] font-semibold text-brand-strong"
                 >
-                  {/* 非色彩選取線索（WCAG 1.4.1）：選中時加粗框 + 角落勾 */}
-                  {ageMonths === band.months && (
-                    <span
-                      aria-hidden
-                      className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand text-white"
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* ── 右欄／手機下方：三步表單 ── */}
+          <div className="space-y-6">
+            {/* 三步進度條（簽名元素）：依序填滿，給「差一步就拿到方案」的推進感。
+                純色彩過渡、尊重 reduced-motion；rail 不可互動故 aria-hidden，
+                進度以下方文字向輔助科技播報。 */}
+            {(() => {
+              const steps = [ageMonths !== null, energy !== null, context !== null]
+              const done = steps.filter(Boolean).length
+              return (
+                <div className="space-y-2">
+                  <div aria-hidden className="flex items-center gap-2">
+                    {steps.map((ok, i) => (
+                      <span
+                        // biome-ignore lint/suspicious/noArrayIndexKey: 固定三步、順序穩定
+                        key={i}
+                        className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                          ok ? 'bg-[image:var(--gradient-brand)]' : 'bg-border'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p aria-live="polite" className="text-center text-xs font-medium text-muted">
+                    {done < 3
+                      ? `還差 ${3 - done} 項，就拿到今天的方案`
+                      : '三項都選好了，往下看推薦'}
+                  </p>
+                </div>
+              )
+            })()}
+
+            <div className="space-y-6">
+              {/* 年齡 */}
+              <fieldset className="space-y-3">
+                <legend className="flex items-center gap-2 text-sm font-semibold text-text">
+                  <StepDot n={1} done={ageMonths !== null} />
+                  孩子幾歲？
+                </legend>
+                <div className="grid grid-cols-3 gap-2">
+                  {AGE_BANDS.map((band) => (
+                    <button
+                      key={band.months}
+                      type="button"
+                      aria-pressed={ageMonths === band.months}
+                      onClick={() => selectAge(band.months)}
+                      className={`relative rounded-xl px-1 py-3 text-xs font-medium shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                        ageMonths === band.months
+                          ? 'border-2 border-brand bg-brand-tint text-brand-strong shadow-clay'
+                          : 'border border-border/60 bg-card text-text'
+                      }`}
                     >
-                      <Icon name="check" className="h-[10px] w-[10px]" />
-                    </span>
-                  )}
-                  {band.label}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+                      {/* 非色彩選取線索（WCAG 1.4.1）：選中時加粗框 + 角落勾 */}
+                      {ageMonths === band.months && (
+                        <span
+                          aria-hidden
+                          className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand text-white"
+                        >
+                          <Icon name="check" className="h-[10px] w-[10px]" />
+                        </span>
+                      )}
+                      {band.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
 
-          {/* 精力 */}
-          <fieldset className="space-y-3">
-            <legend className="flex items-center gap-2 text-sm font-semibold text-text">
-              <StepDot n={2} done={energy !== null} />
-              你現在的精力？
-              <span className="font-normal text-faint">已預選，可更改</span>
-            </legend>
-            <div className="grid grid-cols-2 gap-3">
-              {ENERGY_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  aria-pressed={energy === o.value}
-                  onClick={() => setEnergy(o.value)}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 ${
-                    energy === o.value
-                      ? 'border-2 border-brand bg-brand-tint shadow-clay'
-                      : 'border border-border/60 bg-card'
-                  }`}
-                >
-                  <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
-                    <Icon name={o.icon} className="h-[24px] w-[24px]" />
-                  </span>
-                  <span className="text-sm font-medium text-text">{o.label}</span>
-                  {/* 非色彩選取線索：選中時尾端顯示勾 */}
-                  {energy === o.value && (
-                    <span
-                      aria-hidden
-                      className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-white"
+              {/* 精力 */}
+              <fieldset className="space-y-3">
+                <legend className="flex items-center gap-2 text-sm font-semibold text-text">
+                  <StepDot n={2} done={energy !== null} />
+                  你現在的精力？
+                  <span className="font-normal text-faint">已預選，可更改</span>
+                </legend>
+                <div className="grid grid-cols-2 gap-3">
+                  {ENERGY_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      aria-pressed={energy === o.value}
+                      onClick={() => setEnergy(o.value)}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3.5 shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                        energy === o.value
+                          ? 'border-2 border-brand bg-brand-tint shadow-clay'
+                          : 'border border-border/60 bg-card'
+                      }`}
                     >
-                      <Icon name="check" className="h-[13px] w-[13px]" />
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+                      <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                        <Icon name={o.icon} className="h-[24px] w-[24px]" />
+                      </span>
+                      <span className="text-sm font-medium text-text">{o.label}</span>
+                      {/* 非色彩選取線索：選中時尾端顯示勾 */}
+                      {energy === o.value && (
+                        <span
+                          aria-hidden
+                          className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-white"
+                        >
+                          <Icon name="check" className="h-[13px] w-[13px]" />
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
 
-          {/* 情境 */}
-          <fieldset className="space-y-3">
-            <legend className="flex items-center gap-2 text-sm font-semibold text-text">
-              <StepDot n={3} done={context !== null} />
-              現在的情境？
-            </legend>
-            <div className="grid gap-2.5">
-              {CONTEXT_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  aria-pressed={context === o.value}
-                  onClick={() => setContext(o.value)}
-                  className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left shadow-clay-sm transition-all hover:-translate-y-0.5 ${
-                    context === o.value
-                      ? 'border-brand bg-brand-tint shadow-clay'
-                      : 'border-border/60 bg-card'
-                  }`}
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
-                    <Icon name={o.icon} className="h-[22px] w-[22px]" />
-                  </span>
-                  <span className="flex-1 text-sm font-medium text-text">{o.label}</span>
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full border-2 text-transparent ${
-                      context === o.value ? 'border-brand bg-brand text-white' : 'border-border'
-                    }`}
-                  >
-                    <Icon name="check" className="h-[12px] w-[12px]" />
-                  </span>
-                </button>
-              ))}
+              {/* 情境 */}
+              <fieldset className="space-y-3">
+                <legend className="flex items-center gap-2 text-sm font-semibold text-text">
+                  <StepDot n={3} done={context !== null} />
+                  現在的情境？
+                </legend>
+                <div className="grid gap-2.5">
+                  {CONTEXT_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      aria-pressed={context === o.value}
+                      onClick={() => setContext(o.value)}
+                      className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left shadow-clay-sm transition-all hover:-translate-y-0.5 ${
+                        context === o.value
+                          ? 'border-brand bg-brand-tint shadow-clay'
+                          : 'border-border/60 bg-card'
+                      }`}
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                        <Icon name={o.icon} className="h-[22px] w-[22px]" />
+                      </span>
+                      <span className="flex-1 text-sm font-medium text-text">{o.label}</span>
+                      <span
+                        className={`flex h-5 w-5 items-center justify-center rounded-full border-2 text-transparent ${
+                          context === o.value ? 'border-brand bg-brand text-white' : 'border-border'
+                        }`}
+                      >
+                        <Icon name="check" className="h-[12px] w-[12px]" />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
-          </fieldset>
+
+            {/* 桌機：CTA 內嵌右欄表單底（手機改用下方固定列） */}
+            <div className="hidden space-y-2 lg:block">{submitInner}</div>
+          </div>
         </div>
       </PageShell>
 
-      {/* 單手友善：主行動固定在底部拇指弧內。放在 PageShell 外（與 BottomNav 同層），
-          避開 PageShell overflow-hidden 對 fixed 的影響。/try 無底部導覽故不衝突。 */}
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] space-y-2 border-t border-border/60 bg-card/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md">
-        <ErrorAlert message={error} />
-        <Button
-          size="lg"
-          icon="compass"
-          loading={loading}
-          disabled={!canSubmit}
-          onClick={handleSubmit}
-        >
-          看看推薦
-        </Button>
-        <p className="text-center text-xs text-muted">
-          已經有帳號？{' '}
-          <Link href="/auth" className="font-medium text-brand hover:underline">
-            登入
-          </Link>
-        </p>
+      {/* 手機單手友善：主行動固定在底部拇指弧內（桌機隱藏，改用右欄內嵌 CTA）。
+          放在 PageShell 外（與 BottomNav 同層），避開其 overflow-hidden 對 fixed 的影響。 */}
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] space-y-2 border-t border-border/60 bg-card/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
+        {submitInner}
       </div>
     </>
   )

@@ -113,10 +113,13 @@ export function PageShell({
   children,
   className = '',
   withNav = true,
+  containerClassName = '',
 }: {
   children: ReactNode
   className?: string
   withNav?: boolean
+  // 內層置中欄的額外 class：預設手機 app 殼 max-w-[480px]，公開著陸頁可加寬（如 lg:max-w-[940px]）。
+  containerClassName?: string
 }) {
   return (
     <main
@@ -145,7 +148,9 @@ export function PageShell({
           }}
         />
       </div>
-      <div className="relative z-10 mx-auto w-full max-w-[480px] space-y-6">{children}</div>
+      <div className={`relative z-10 mx-auto w-full max-w-[480px] space-y-6 ${containerClassName}`}>
+        {children}
+      </div>
     </main>
   )
 }
