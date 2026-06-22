@@ -58,7 +58,7 @@ function StepDot({ n, done }: { n: number; done: boolean }) {
           : 'bg-brand-tint text-brand'
       }`}
     >
-      {done ? '✓' : n}
+      {done ? <Icon name="check" className="h-[13px] w-[13px]" /> : n}
     </span>
   )
 }
@@ -305,9 +305,9 @@ export default function TryPage() {
                   {ageMonths === band.months && (
                     <span
                       aria-hidden
-                      className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand text-[9px] leading-none text-white"
+                      className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand text-white"
                     >
-                      ✓
+                      <Icon name="check" className="h-[10px] w-[10px]" />
                     </span>
                   )}
                   {band.label}
@@ -344,9 +344,9 @@ export default function TryPage() {
                   {energy === o.value && (
                     <span
                       aria-hidden
-                      className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-xs text-white"
+                      className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-white"
                     >
-                      ✓
+                      <Icon name="check" className="h-[13px] w-[13px]" />
                     </span>
                   )}
                 </button>
