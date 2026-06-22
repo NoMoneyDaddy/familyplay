@@ -280,7 +280,13 @@ export default function TryPage() {
   return (
     <>
       {/* 手機：pb-40 預留底部固定 CTA；桌機：CTA 內嵌右欄、改回一般底距並加寬置中欄做雙欄著陸頁 */}
-      <PageShell withNav={false} className="pb-40 lg:pb-10" containerClassName="lg:max-w-[940px]">
+      {/* lg:overflow-visible：PageShell 外層 main 預設 overflow-hidden 會讓左欄 lg:sticky 失效，
+          桌機改回 visible 讓 sticky 生效（氛圍球由內層 wrapper 各自 clip，不受影響）。 */}
+      <PageShell
+        withNav={false}
+        className="pb-40 lg:overflow-visible lg:pb-10"
+        containerClassName="lg:max-w-[940px]"
+      >
         <div className="space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-12 lg:space-y-0">
           {/* ── 左欄／手機頂部：品牌與價值主張（hero） ── */}
           <div className="flex flex-col items-center gap-4 text-center lg:sticky lg:top-8 lg:items-start lg:pt-2 lg:text-left">
