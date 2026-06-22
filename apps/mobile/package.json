@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
+    "@familyplay/ai": "workspace:*",
     "@familyplay/assessment": "workspace:*",
     "@familyplay/core": "workspace:*",
     "@familyplay/data": "workspace:*",
