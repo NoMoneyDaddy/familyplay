@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import { Text as RNText, TextInput as RNTextInput } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { useReminderStore } from '@/lib/reminder'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
 import { createMobileClient } from '@/lib/supabase/mobile'
 
@@ -36,6 +37,11 @@ export default function RootLayout() {
     })
     return () => sub.subscription.unsubscribe()
   }, [setSession, setIsLoading])
+
+  // 啟動時若使用者已開啟每日提醒，重新排程：更新當日文案，並補回被系統清掉的排程。靜默、不阻斷。
+  useEffect(() => {
+    useReminderStore.getState().rearm()
+  }, [])
 
   // SafeAreaProvider 必須掛在最上層，下游各畫面的 SafeAreaView / useSafeAreaInsets 才讀得到正確
   // 安全區（瀏海、底部 home indicator）。先前缺此 Provider，insets 在部分情境會失準。

@@ -82,6 +82,8 @@ interface ReminderStore {
   setHour: (hour: number) => Promise<boolean>
   /** 關閉並取消排程。 */
   disable: () => Promise<void>
+  /** App 啟動時呼叫：還原偏好，若已開啟就重新排程（更新當日文案、補回被系統清掉的排程）。 */
+  rearm: () => Promise<void>
 }
 
 async function persist(pref: ReminderPref): Promise<void> {
@@ -132,5 +134,11 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
     await cancelScheduled()
     set({ enabled: false, busy: false })
     await persist({ enabled: false, hour: get().hour })
+  },
+  rearm: async () => {
+    const pref = parsePref(await SecureStore.getItemAsync(KEY).catch(() => null))
+    set({ enabled: pref.enabled, hour: pref.hour, hydrated: true })
+    // 已開啟才重排（scheduleDaily 內會先取消再排，不會重複堆疊）。靜默：失敗不影響啟動。
+    if (pref.enabled) await scheduleDaily(pref.hour)
   },
 }))
