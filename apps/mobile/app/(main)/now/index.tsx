@@ -251,9 +251,13 @@ export default function NowScreen() {
             onPress={() => router.push('/children')}
             accessibilityRole="button"
             accessibilityLabel={`目前陪伴 ${childName}，點此切換或管理孩子`}
-            className="mb-5 flex-row items-center justify-center gap-1 active:opacity-70"
+            className="mb-5 flex-row items-center justify-center gap-1 px-4 active:opacity-70"
           >
-            <Text className="text-sm font-medium" style={{ color: colors.muted }}>
+            <Text
+              numberOfLines={1}
+              className="shrink text-sm font-medium"
+              style={{ color: colors.muted }}
+            >
               陪伴中：{childName}
             </Text>
             <Text className="text-sm font-medium" style={{ color: colors.brand }}>

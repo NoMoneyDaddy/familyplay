@@ -103,7 +103,7 @@ export default function AiSettingsScreen() {
                   borderColor: active ? colors.brand : colors.border,
                 }}
               >
-                <View>
+                <View className="flex-1 pr-3">
                   <Text className="text-base font-semibold" style={{ color: colors.text }}>
                     {p.label}
                   </Text>
