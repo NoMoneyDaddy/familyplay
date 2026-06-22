@@ -4,6 +4,7 @@ import type { SavedEntry } from '@familyplay/data'
 import { useEffect, useState } from 'react'
 import { AdSlot } from '@/app/components/ad-slot'
 import { ChildSwitcher } from '@/app/components/child-switcher'
+import { FocusBadge } from '@/app/components/focus-illustration'
 import {
   ActivityMeta,
   Card,
@@ -28,6 +29,8 @@ function SavedSkeleton() {
           key={i}
           className="animate-pulse space-y-3 rounded-xl border border-border/60 bg-card p-6 shadow-clay-sm"
         >
+          {/* 領域徽章佔位（對齊實際卡片的 FocusBadge，避免載入完成時跳版／CLS） */}
+          <div className="h-7 w-24 rounded-full bg-bg" />
           <div className="h-5 w-3/4 rounded-full bg-bg" />
           <div className="flex gap-1.5">
             <div className="h-5 w-16 rounded-full bg-bg" />
@@ -96,9 +99,11 @@ export default function SavedPage() {
                 key={a.activityId}
                 className="space-y-3 transition-transform duration-150 hover:-translate-y-0.5"
               >
+                {/* 領域徽章（圖示＋字一體）與全站結果卡一致；領域已由此呈現，
+                    ActivityMeta 只留時長＋刺激，避免重複。 */}
+                {a.developmentalFocus?.[0] && <FocusBadge focus={a.developmentalFocus[0]} />}
                 <h2 className="text-lg font-semibold leading-snug text-text">{a.title}</h2>
                 <ActivityMeta
-                  developmentalFocus={a.developmentalFocus}
                   minDurationMinutes={a.minDurationMinutes ?? undefined}
                   maxDurationMinutes={a.maxDurationMinutes ?? undefined}
                   stimulationLevel={
