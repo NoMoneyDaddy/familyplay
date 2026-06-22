@@ -29,6 +29,8 @@ function SavedSkeleton() {
           key={i}
           className="animate-pulse space-y-3 rounded-xl border border-border/60 bg-card p-6 shadow-clay-sm"
         >
+          {/* 領域徽章佔位（對齊實際卡片的 FocusBadge，避免載入完成時跳版／CLS） */}
+          <div className="h-7 w-24 rounded-full bg-bg" />
           <div className="h-5 w-3/4 rounded-full bg-bg" />
           <div className="flex gap-1.5">
             <div className="h-5 w-16 rounded-full bg-bg" />
