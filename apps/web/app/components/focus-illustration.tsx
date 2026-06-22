@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { FOCUS_LABEL } from './ui'
 
 // 每個發展領域配一張「通用插畫」motif（自帶 SVG，零外部資產、零載入成本），
 // 用色與品牌黏土調性一致，做成卡片縮圖，提升掃讀性與「被分類」的可愛感。
@@ -124,5 +125,25 @@ export function FocusIllustration({
         </span>
       )}
     </div>
+  )
+}
+
+/** 領域徽章：把領域 motif（小圖示）＋中文標籤綁成一個膠囊，用領域 tint 上色。
+ *  取代「孤零零的縮圖」——家長一看就懂這活動在練哪個發展領域。
+ *  焦點不明時退回品牌火花＋通用「陪玩」標籤。 */
+export function FocusBadge({ focus, className = '' }: { focus?: string; className?: string }) {
+  const meta = (focus && FOCUS_ART[focus]) || FALLBACK_ART
+  const label = (focus && FOCUS_LABEL[focus]) || '陪玩'
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 self-start rounded-full py-1 pr-3 pl-1.5 text-xs font-bold ${meta.bg} ${meta.fg} ${className}`}
+    >
+      <span className="flex h-[22px] w-[22px] items-center justify-center rounded-lg bg-card">
+        <svg className="h-[15px] w-[15px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          {meta.art}
+        </svg>
+      </span>
+      {label}
+    </span>
   )
 }

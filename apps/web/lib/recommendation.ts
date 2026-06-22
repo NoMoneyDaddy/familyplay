@@ -12,6 +12,8 @@ export interface Recommendation {
   developmentalFocus?: string[]
   // recommendations 頁會用到引擎分數；now/try 不需要，故設選填。
   score?: number
+  // 一句白話開場白（怎麼開始玩）；主答案卡顯示用，安全回退方案為 null。
+  openingLine?: string | null
 }
 
 /** 依時段自動帶情境：19:00–05:00 視為睡前（bedtime），其餘 normal。 */

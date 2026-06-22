@@ -6,13 +6,16 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AIGenerateCard } from '@/app/components/ai-generate-card'
 import { ChildSwitcher } from '@/app/components/child-switcher'
 import { FirstRunHint } from '@/app/components/first-run-hint'
+import { FocusBadge } from '@/app/components/focus-illustration'
 import { Mascot } from '@/app/components/mascot'
+import { SaveHeart } from '@/app/components/save-heart'
 import {
   ActivityMeta,
   Button,
   Card,
   friendlyReasons,
   Icon,
+  type IconName,
   LinkButton,
   PageShell,
 } from '@/app/components/ui'
@@ -30,6 +33,37 @@ import { useChildStore } from '@/lib/stores/useChildStore'
 // 精力預設「有點累」，直接給「一個」主答案。想換就按「換一個」，玩完就一鍵記錄。
 // 預設精力刻意取偏低：疲憊家長是常態，給低負擔方案最安全；想精挑可走「自己挑狀態」。
 const DEFAULT_ENERGY = 'low'
+
+// 依時段的擬人問候：先安撫疲憊家長的情緒，再給玩法（與 timeDefaultContext 的睡前判斷對齊）。
+// 只在主答案卡（rec 分支、已水合後）渲染，無 SSR/hydration 不一致疑慮。
+function nowGreeting(): { title: string; subtitle: string; icon: IconName } {
+  const h = new Date().getHours()
+  if (h >= 19 || h < 5)
+    return { title: '睡前時光', subtitle: '忙了一天辛苦了，來個 5 分鐘的小靜玩', icon: 'moon' }
+  if (h < 11) return { title: '早安', subtitle: '新的一天，陪他玩一下下吧', icon: 'today' }
+  if (h < 14) return { title: '午安', subtitle: '吃飽了，來點輕鬆的親子時間', icon: 'today' }
+  if (h < 18) return { title: '午後時光', subtitle: '空檔陪他玩，幫你選好了', icon: 'today' }
+  return { title: '傍晚了', subtitle: '辛苦了，陪他放鬆一下吧', icon: 'today' }
+}
+
+/** 時段問候：大波波 + 一句安撫的話，給主畫面「家」的溫度（取代先前的純站名列）。 */
+function NowGreeting() {
+  const g = nowGreeting()
+  return (
+    <div className="flex flex-col items-center gap-2 text-center">
+      <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
+        <Mascot className="h-11 w-11" />
+      </span>
+      <div>
+        <p className="flex items-center justify-center gap-1.5 font-display text-lg font-bold text-text">
+          <Icon name={g.icon} className="h-[18px] w-[18px] text-brand" />
+          {g.title}
+        </p>
+        <p className="mt-0.5 text-xs text-muted">{g.subtitle}</p>
+      </div>
+    </div>
+  )
+}
 
 export default function NowPage() {
   const router = useRouter()
@@ -264,16 +298,7 @@ export default function NowPage() {
         </div>
       ) : rec ? (
         <div className="space-y-4">
-          {/* 首頁品牌：波波 + FamilyPlay 站名，讓主畫面有「家」的識別（先前 /now 沒有任何品牌） */}
-          <div className="flex flex-col items-center gap-1 text-center">
-            <div className="flex items-center gap-2">
-              <Mascot className="h-7 w-7" />
-              <span className="font-display text-lg font-bold tracking-tight text-text">
-                FamilyPlay
-              </span>
-            </div>
-            <p className="text-xs text-muted">現在就陪 · 幫你選好了，直接開始就行</p>
-          </div>
+          <NowGreeting />
 
           {stale && (
             <p
@@ -285,54 +310,94 @@ export default function NowPage() {
             </p>
           )}
 
-          <Card className="relative space-y-4 ring-2 ring-brand/60">
-            <h1 className="text-xl font-bold leading-snug text-text">{rec.title}</h1>
-            <ActivityMeta
-              developmentalFocus={rec.developmentalFocus}
-              minDurationMinutes={rec.minDurationMinutes}
-              maxDurationMinutes={rec.maxDurationMinutes}
-              stimulationLevel={rec.stimulationLevel}
-            />
-            {reasons.length > 0 && (
-              <ul className="space-y-1.5 text-xs text-muted">
-                {reasons.slice(0, 2).map((reason) => (
-                  <li key={reason} className="flex items-start gap-1.5">
-                    <Icon name="check" className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success" />
-                    <span>{reason}</span>
-                  </li>
-                ))}
-              </ul>
+          {/* 主答案卡：玻璃霧面 + 後方牌組邊（抽牌隱喻：暗示還有別的玩法可換）。 */}
+          <div className="relative">
+            {/* 後方牌組邊，純裝飾；換到沒得換（exhausted）時收掉，不再暗示有下一張。 */}
+            {!exhausted && isRealActivity(rec.id) && (
+              <>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-3 -bottom-2 top-2 rounded-3xl bg-surface opacity-60 shadow-clay-sm"
+                />
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-1.5 -bottom-1 top-1 rounded-3xl bg-card opacity-80 shadow-clay-sm"
+                />
+              </>
             )}
+            <Card className="relative space-y-3.5 bg-card/85 ring-2 ring-brand/50 backdrop-blur-md">
+              {/* 領域徽章（圖示＋領域字一體，取代看不懂的縮圖）＋ 收藏愛心。
+                  愛心用 ml-auto 自動靠右，徽章不在時也不需佔位空 span。 */}
+              <div className="flex items-start gap-2">
+                {rec.developmentalFocus?.[0] && <FocusBadge focus={rec.developmentalFocus[0]} />}
+                {isRealActivity(rec.id) && (
+                  <SaveHeart activityId={rec.id} className="-mr-1 -mt-1 ml-auto" />
+                )}
+              </div>
 
-            {/* 引擎在無匹配時會回「安全回退」方案，其 id 非真實活動 UUID、沒有詳情頁。
-                此時不要渲染會 404 的「開始這個活動」，改提示這就是當下可做的小事。 */}
-            {isRealActivity(rec.id) ? (
-              <LinkButton
-                href={`/activity/${rec.id}?childId=${selectedChildId}`}
-                size="lg"
-                icon="book"
-                className="w-full"
-              >
-                開始這個活動
-              </LinkButton>
-            ) : (
-              <p className="rounded-xl bg-brand-tint/60 px-4 py-3 text-center text-sm text-text">
-                這個就很適合現在——坐到孩子旁邊，直接開始吧。
-              </p>
-            )}
+              <h1 className="text-2xl font-bold leading-tight text-text">{rec.title}</h1>
 
-            <Button
-              variant="secondary"
-              size="md"
-              icon="refresh"
-              loading={shuffling}
-              disabled={exhausted}
-              onClick={handleShuffle}
-              className="w-full"
-            >
-              {exhausted ? '暫時沒有更多了' : '換一個'}
-            </Button>
-          </Card>
+              {/* 一句白話開場白：直接告訴家長「怎麼開始玩」，不必先點進詳情。 */}
+              {isRealActivity(rec.id) && rec.openingLine && (
+                <p className="rounded-xl bg-brand-tint/70 px-3.5 py-2.5 text-sm leading-relaxed text-text">
+                  {rec.openingLine}
+                </p>
+              )}
+
+              {/* 領域已由上方徽章呈現，這裡只補時長與刺激強度，避免重複。 */}
+              <ActivityMeta
+                minDurationMinutes={rec.minDurationMinutes}
+                maxDurationMinutes={rec.maxDurationMinutes}
+                stimulationLevel={rec.stimulationLevel}
+              />
+
+              {reasons.length > 0 && (
+                <ul className="space-y-1.5 text-xs text-muted">
+                  {reasons.slice(0, 2).map((reason) => (
+                    <li key={reason} className="flex items-start gap-1.5">
+                      <Icon
+                        name="check"
+                        className="mt-0.5 h-[14px] w-[14px] shrink-0 text-success"
+                      />
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* 引擎在無匹配時會回「安全回退」方案，其 id 非真實活動 UUID、沒有詳情頁。
+                  此時不要渲染會 404 的「開始這個活動」，改提示這就是當下可做的小事。 */}
+              {isRealActivity(rec.id) ? (
+                <LinkButton
+                  href={`/activity/${rec.id}?childId=${selectedChildId}`}
+                  size="lg"
+                  icon="book"
+                  className="w-full"
+                >
+                  開始這個活動
+                </LinkButton>
+              ) : (
+                <p className="rounded-xl bg-brand-tint/60 px-4 py-3 text-center text-sm text-text">
+                  這個就很適合現在——坐到孩子旁邊，直接開始吧。
+                </p>
+              )}
+
+              {/* 「換一個」＝抽牌隱喻：虛線邊 + 抽牌文案，呼應後方的牌組。 */}
+              {isRealActivity(rec.id) && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  icon="refresh"
+                  loading={shuffling}
+                  disabled={exhausted}
+                  onClick={handleShuffle}
+                  className="w-full border-dashed"
+                >
+                  {exhausted ? '暫時沒有更多了' : '抽下一個玩法'}
+                </Button>
+              )}
+            </Card>
+          </div>
 
           {/* 換到沒得換時，給「請 AI 生一個」的出口 */}
           {exhausted && selectedChildId && <AIGenerateCard childId={selectedChildId} />}

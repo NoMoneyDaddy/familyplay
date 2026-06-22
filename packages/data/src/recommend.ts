@@ -40,6 +40,9 @@ export interface RecommendedActivity {
   maxDurationMinutes: number
   stimulationLevel: 'low' | 'medium' | 'high'
   developmentalFocus: string[]
+  // 一句白話開場白（不參與評分，僅供前端在主答案卡顯示「怎麼開始玩」）。
+  // 安全回退方案無對應 DB 列 → null。
+  openingLine?: string | null
 }
 
 // companion_activities 一列（snake_case，對應 DB）。
@@ -61,10 +64,12 @@ export interface ActivityRow {
   is_sick_day_safe: boolean
   is_fallback: boolean
   is_active: boolean
+  // 開場白：選填（不參與評分，僅回傳給前端顯示）。設選填以免既有測試的 row 物件少欄位報錯。
+  opening_line?: string | null
 }
 
 const ACTIVITY_COLUMNS =
-  'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active'
+  'id,title,min_age_months,max_age_months,required_capabilities,optional_capabilities,zpd_targets,developmental_focus,stimulation_level,required_resources,space_requirement,min_duration_minutes,max_duration_minutes,is_bedtime_safe,is_sick_day_safe,is_fallback,is_active,opening_line'
 
 // 區分錯誤類型，讓 Web 路由能對應到正確的 HTTP 狀態碼（行動端只取 message 顯示）。
 export type RecommendErrorCode =
@@ -234,6 +239,10 @@ export async function fetchRecommendations(
   const focusById = new Map<string, string[]>(
     candidates.map((a) => [a.id, a.developmental_focus || []]),
   )
+  // 開場白同理（不參與評分）：用 map 附掛回傳，避免動到引擎的 Activity 型別與評分管線。
+  const openingById = new Map<string, string | null>(
+    candidates.map((a) => [a.id, a.opening_line ?? null]),
+  )
 
   const recs = getRecommendations(
     candidates.map(mapActivityRow),
@@ -259,6 +268,7 @@ export async function fetchRecommendations(
     maxDurationMinutes: r.maxDurationMinutes,
     stimulationLevel: r.stimulationLevel,
     developmentalFocus: focusById.get(r.id) || [],
+    openingLine: openingById.get(r.id) ?? null,
   }))
 }
 
