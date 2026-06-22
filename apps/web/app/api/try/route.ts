@@ -69,17 +69,14 @@ export async function POST(request: Request) {
 
     const stageKey = getStageKey(ageMonths)
 
-    // 發展領域不參與評分，另存 id→focus 對照供前端分類標籤
-    const focusById = new Map<string, string[]>(
-      (activities || []).map((a) => [a.id, a.developmental_focus || []]),
-    )
-    // 開場白同理（不參與評分）：供前端在主答案卡顯示「怎麼開始玩」
-    const openingById = new Map<string, string | null>(
-      (activities || []).map((a) => [
-        a.id,
-        (a as { opening_line?: string | null }).opening_line ?? null,
-      ]),
-    )
+    // 領域與開場白皆不參與評分，僅回傳給前端（領域做分類標籤、開場白顯示「怎麼開始玩」）。
+    // 單次遍歷同時建兩個對照表，省一次掃描。
+    const focusById = new Map<string, string[]>()
+    const openingById = new Map<string, string | null>()
+    for (const a of activities || []) {
+      focusById.set(a.id, a.developmental_focus || [])
+      openingById.set(a.id, (a as { opening_line?: string | null }).opening_line ?? null)
+    }
 
     const recs = getRecommendations(
       // snake_case→camelCase 映射與 /api/recommendations 共用同一份（@familyplay/data），避免漂移
