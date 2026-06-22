@@ -254,10 +254,35 @@ export default function TryPage() {
   }
 
   // ── 輸入畫面 ──
+  // 送出區內容（錯誤訊息＋主行動＋登入連結）：手機固定在底部拇指弧、桌機嵌入右欄表單底，
+  // 同一份避免重複維護。任一斷點只會顯示其中一個容器（另一個 display:none）。
+  const submitInner = (
+    <>
+      <ErrorAlert message={error} />
+      <Button
+        size="lg"
+        icon="compass"
+        loading={loading}
+        disabled={!canSubmit}
+        onClick={handleSubmit}
+      >
+        看看推薦
+      </Button>
+      <p className="text-center text-xs text-muted">
+        已經有帳號？{' '}
+        <Link href="/auth" className="font-medium text-brand hover:underline">
+          登入
+        </Link>
+      </p>
+    </>
+  )
+
   return (
     <>
-      {/* pb-40：預留底部固定 CTA 列的高度，避免內容被遮住 */}
-      <PageShell withNav={false} className="pb-40">
+      {/* 版面與元件全沿用手機設計語言（單欄置中）：PageShell 已 mx-auto max-w-[480px]，
+          桌機自然置中；唯一調整是 ≥md 表單完整可見時把 CTA 接在表單下方，手機維持底部固定拇指列，
+          避免固定列在高螢幕上孤懸。pb-40 給手機固定列預留高度，≥md 改回一般底距。 */}
+      <PageShell withNav={false} className="pb-40 md:pb-10">
         <div className="flex flex-col items-center gap-3 text-center">
           <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-[image:var(--gradient-brand)] shadow-brand ring-4 ring-brand-tint">
             <Mascot className="h-11 w-11" />
@@ -403,27 +428,14 @@ export default function TryPage() {
             </div>
           </fieldset>
         </div>
-      </PageShell>
 
-      {/* 單手友善：主行動固定在底部拇指弧內。放在 PageShell 外（與 BottomNav 同層），
-          避開 PageShell overflow-hidden 對 fixed 的影響。/try 無底部導覽故不衝突。 */}
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] space-y-2 border-t border-border/60 bg-card/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md">
-        <ErrorAlert message={error} />
-        <Button
-          size="lg"
-          icon="compass"
-          loading={loading}
-          disabled={!canSubmit}
-          onClick={handleSubmit}
-        >
-          看看推薦
-        </Button>
-        <p className="text-center text-xs text-muted">
-          已經有帳號？{' '}
-          <Link href="/auth" className="font-medium text-brand hover:underline">
-            登入
-          </Link>
-        </p>
+        {/* ≥md：CTA 接在表單下方（手機改用下方固定列），不讓固定列在高螢幕上孤懸 */}
+        <div className="hidden space-y-2 md:block">{submitInner}</div>
+      </PageShell>
+      {/* 手機單手友善：底部固定拇指 CTA（≥md 隱藏，改用上方內嵌）。
+          放在 PageShell 外避開其 overflow-hidden 對 fixed 的影響。 */}
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] space-y-2 border-t border-border/60 bg-card/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
+        {submitInner}
       </div>
     </>
   )
