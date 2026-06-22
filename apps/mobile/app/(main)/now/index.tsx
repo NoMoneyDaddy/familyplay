@@ -14,6 +14,7 @@ import { ActivityLogControl } from '@/components/ActivityLogControl'
 import { Mascot } from '@/components/Mascot'
 import { type AiActivity, generateAiActivity } from '@/lib/ai-activity'
 import { useAIKeyStore } from '@/lib/ai-key'
+import { readCachedRec, saveCachedRec } from '@/lib/rec-cache'
 import { resolveActiveChild } from '@/lib/resolve-active-child'
 import { useActiveChildStore } from '@/lib/stores/useActiveChild'
 import { useAuthStore } from '@/lib/stores/useAuthStore'
@@ -71,6 +72,8 @@ export default function NowScreen() {
   // 已載入過的孩子 id：首次 null→解析後會 setActiveChild 再觸發本 effect，靠它短路避免重複打 API。
   const loadedChildIdRef = useRef<string | undefined>(undefined)
   const [rec, setRec] = useState<RecommendedActivity | null>(null)
+  // 顯示的是離線快取的上次方案（網路不穩時回放）
+  const [stale, setStale] = useState(false)
   const [loading, setLoading] = useState(true)
   const [shuffling, setShuffling] = useState(false)
   const [exhausted, setExhausted] = useState(false)
@@ -122,10 +125,24 @@ export default function NowScreen() {
       if (next) {
         seen.current.add(next.id)
         setRec(next)
+        setStale(false)
         setExhausted(false)
+        saveCachedRec(cid, next) // 成功就更新離線快取（fire-and-forget）
       }
     } catch {
-      if (isMounted.current) setError('系統忙線或網路不穩，請稍後再試。')
+      if (!isMounted.current) return
+      // 初次載入失敗（多半離線/網路不穩）：有上次快取就回放並標記離線，別只給錯誤畫面；
+      // 「換一個」失敗則維持原畫面。
+      if (!shuffle) {
+        const cached = await readCachedRec(cid)
+        if (!isMounted.current) return
+        if (cached) {
+          setRec(cached as RecommendedActivity)
+          setStale(true)
+        } else {
+          setError('系統忙線或網路不穩，請稍後再試。')
+        }
+      }
     } finally {
       if (isMounted.current) {
         setLoading(false)
@@ -249,6 +266,14 @@ export default function NowScreen() {
           <View className="mb-4 rounded-xl p-4" style={{ backgroundColor: colors.dangerTint }}>
             <Text className="text-sm" style={{ color: colors.danger }}>
               {error}
+            </Text>
+          </View>
+        ) : null}
+
+        {stale ? (
+          <View className="mb-4 rounded-xl p-3" style={{ backgroundColor: colors.warningTint }}>
+            <Text className="text-xs" style={{ color: colors.warning }}>
+              目前網路不穩，先給你上次的方案。
             </Text>
           </View>
         ) : null}
